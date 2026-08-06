@@ -1,0 +1,30 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-storage:/qdrant/storage
+
+  embeddings:
+    # TEI sirviendo Qwen3-Embedding-0.6B (Fase 4).
+    # Imagen CPU por defecto; para GPU cambia a ghcr.io/huggingface/text-embeddings-inference:latest
+    # y descomenta el bloque deploy.
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
+    command: --model-id Qwen/Qwen3-Embedding-0.6B
+    ports:
+      - "8080:80"
+    volumes:
+      - tei-data:/data
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  qdrant-storage:
+  tei-data:

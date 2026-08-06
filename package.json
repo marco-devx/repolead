@@ -1,0 +1,26 @@
+{
+  "name": "repolead",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.3.13",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "adapters/*"
+  ],
+  "scripts": {
+    "dev": "bun apps/cli/src/index.ts",
+    "doctor": "bun apps/cli/src/index.ts doctor",
+    "build": "bun run --cwd apps/cli build",
+    "test": "rstest run",
+    "lint": "rslint",
+    "typecheck": "rslint --type-check-only",
+    "check": "bun run lint && bun run typecheck && bun run test && bun run build"
+  },
+  "devDependencies": {
+    "@rslint/core": "^0.7.3",
+    "@rstest/core": "^0.11.6",
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0"
+  }
+}
