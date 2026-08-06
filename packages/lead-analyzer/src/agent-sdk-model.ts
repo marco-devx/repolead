@@ -47,10 +47,16 @@ export class AgentSdkTechLeadModel implements TechLeadModel {
       if (message.structured_output === undefined) {
         throw new Error('Claude Code no devolvió structured_output');
       }
+      // input_tokens es solo el remanente no cacheado: el total real del
+      // prompt incluye lo que entra y sale del prompt cache.
+      const usage = message.usage;
       return {
         json: message.structured_output,
-        inputTokens: message.usage.input_tokens,
-        outputTokens: message.usage.output_tokens,
+        inputTokens:
+          usage.input_tokens +
+          (usage.cache_creation_input_tokens ?? 0) +
+          (usage.cache_read_input_tokens ?? 0),
+        outputTokens: usage.output_tokens,
       };
     }
 

@@ -46,7 +46,10 @@ export class AnthropicTechLeadModel implements TechLeadModel {
 
     return {
       json: JSON.parse(text) as unknown,
-      inputTokens: response.usage.input_tokens,
+      inputTokens:
+        response.usage.input_tokens +
+        (response.usage.cache_creation_input_tokens ?? 0) +
+        (response.usage.cache_read_input_tokens ?? 0),
       outputTokens: response.usage.output_tokens,
     };
   }
