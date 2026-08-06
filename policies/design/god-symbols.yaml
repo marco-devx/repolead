@@ -1,0 +1,16 @@
+id: DESIGN-COUPLING-001
+name: Excessive fan-in
+description: >
+  A symbol referenced from a very large number of places concentrates
+  knowledge and becomes expensive to change; it may hide a missing
+  abstraction or an interface that should be split.
+severity: medium
+candidate_detectors:
+  - name: high_fan_in
+    params:
+      threshold: 20
+llm_judgment:
+  question: >
+    Is this high fan-in a design problem (a god object / missing abstraction),
+    or legitimate for this kind of symbol (e.g. a domain entity type or a
+    deliberate facade)?

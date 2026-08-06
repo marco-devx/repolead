@@ -1,25 +1,9 @@
 import type { Command } from 'commander';
 
-import type { TechLeadModel } from '@repolead/lead-analyzer';
-import {
-  AgentSdkTechLeadModel,
-  AnthropicTechLeadModel,
-  analyzeSnapshot,
-  buildModuleEvidencePack,
-} from '@repolead/lead-analyzer';
+import { analyzeSnapshot, buildModuleEvidencePack } from '@repolead/lead-analyzer';
 import { openStore } from '@repolead/knowledge-store';
 
-/**
- * Con credenciales de API se usa la Messages API directa; sin ellas, el
- * Agent SDK con la sesión de Claude Code del usuario (suscripción Pro/Max).
- */
-function pickModel(backend: string | undefined, modelName: string | undefined): TechLeadModel {
-  const hasApiCredentials = Boolean(
-    process.env['ANTHROPIC_API_KEY'] ?? process.env['ANTHROPIC_AUTH_TOKEN'],
-  );
-  const useApi = backend === 'api' || (backend !== 'claude-code' && hasApiCredentials);
-  return useApi ? new AnthropicTechLeadModel(modelName) : new AgentSdkTechLeadModel(modelName);
-}
+import { backendLabel, pickModel } from '../model-select';
 
 export function registerAnalyze(program: Command): void {
   program
@@ -62,8 +46,7 @@ export function registerAnalyze(program: Command): void {
       }
 
       const model = pickModel(options.backend, options.model);
-      const backendLabel = model instanceof AnthropicTechLeadModel ? 'API directa' : 'Claude Code (suscripción)';
-      console.log(`backend: ${backendLabel} · modelo: ${model.name}`);
+      console.log(`backend: ${backendLabel(model)} · modelo: ${model.name}`);
 
       const result = await analyzeSnapshot({
         store,

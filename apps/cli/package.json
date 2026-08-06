@@ -13,6 +13,7 @@
     "@repolead/code-graph": "workspace:*",
     "@repolead/knowledge-store": "workspace:*",
     "@repolead/lead-analyzer": "workspace:*",
+    "@repolead/policy-engine": "workspace:*",
     "@repolead/retrieval": "workspace:*",
     "commander": "^14.0.0"
   },

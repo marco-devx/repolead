@@ -1,0 +1,16 @@
+id: ARCH-DEPENDENCY-001
+name: Dependency Rule
+description: >
+  High-level policy (domain/core) must not depend directly on low-level
+  infrastructure (ORMs, database drivers, HTTP clients).
+severity: high
+candidate_detectors:
+  - name: forbidden_import
+    params:
+      from: "(^|/)(domain|core)/"
+      to: "(prisma|typeorm|sequelize|knex|mongoose|pg|mysql2|axios|node-fetch)"
+llm_judgment:
+  question: >
+    Is this dependency an actual architectural boundary violation (business
+    logic coupled to infrastructure), or a harmless implementation detail
+    such as a type-only import or test utility?

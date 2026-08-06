@@ -1,0 +1,14 @@
+id: TEST-COVERAGE-001
+name: Untested module
+description: >
+  A module with a meaningful number of symbols and no linked tests carries
+  unverified behavior; regressions there will only be found in production.
+severity: medium
+candidate_detectors:
+  - name: untested_module
+    params:
+      minSymbols: 5
+llm_judgment:
+  question: >
+    Does this module contain logic that deserves tests, or is it glue/config
+    code (type definitions, wiring, generated code) where tests add no value?

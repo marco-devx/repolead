@@ -1,0 +1,12 @@
+id: ARCH-CYCLE-001
+name: Module dependency cycle
+description: >
+  Two modules that import each other form a cycle: neither can be understood,
+  tested or replaced in isolation, and the boundary between them is fictional.
+severity: high
+candidate_detectors:
+  - module_cycle
+llm_judgment:
+  question: >
+    Is this a real architectural cycle between separate modules, or an artifact
+    of module detection (e.g. a package re-exporting types from its own tooling)?

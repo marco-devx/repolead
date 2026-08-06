@@ -26,8 +26,11 @@ export class AgentSdkTechLeadModel implements TechLeadModel {
       options: {
         systemPrompt: request.system,
         ...(this.model ? { model: this.model } : {}),
-        maxTurns: 1,
-        allowedTools: [],
+        // tools: [] apaga las built-in (Read/Bash/…); el structured output
+        // usa un tool interno del harness que no pasa por esta lista. Los
+        // turnos extra cubren sus retries.
+        maxTurns: 3,
+        tools: [],
         outputFormat: { type: 'json_schema', schema: request.schema },
       },
     });
