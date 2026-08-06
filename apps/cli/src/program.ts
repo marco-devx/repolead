@@ -2,6 +2,7 @@ import { Command } from 'commander';
 
 import { registerAnalyze } from './commands/analyze';
 import { registerAudit } from './commands/audit';
+import { registerBrief } from './commands/brief';
 import { registerDoctor } from './commands/doctor';
 import { registerQuery, registerReindex } from './commands/query';
 import { registerRefresh } from './commands/refresh';
@@ -17,6 +18,7 @@ export function buildProgram(): Command {
   registerRefresh(program);
   registerAnalyze(program);
   registerAudit(program);
+  registerBrief(program);
   registerQuery(program);
   registerReindex(program);
   registerServe(program);
