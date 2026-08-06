@@ -7,7 +7,6 @@ interface StubSpec {
 }
 
 const STUBS: StubSpec[] = [
-  { name: 'serve', description: 'Levanta el servidor MCP para Claude Code / Codex', phase: 'Fase 7' },
   { name: 'refresh', description: 'Actualiza el índice incrementalmente a partir del git diff', phase: 'Fase 8' },
 ];
 

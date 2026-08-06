@@ -5,6 +5,7 @@ import { registerAudit } from './commands/audit';
 import { registerDoctor } from './commands/doctor';
 import { registerQuery, registerReindex } from './commands/query';
 import { registerScan } from './commands/scan';
+import { registerServe } from './commands/serve';
 import { registerStubCommands } from './commands/stubs';
 
 export function buildProgram(): Command {
@@ -17,6 +18,7 @@ export function buildProgram(): Command {
   registerAudit(program);
   registerQuery(program);
   registerReindex(program);
+  registerServe(program);
   registerStubCommands(program);
   registerDoctor(program);
 

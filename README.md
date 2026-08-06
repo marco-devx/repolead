@@ -41,6 +41,15 @@ bun run check          # lint + typecheck + test + build
 docker compose up -d   # Qdrant + TEI (embeddings)
 ```
 
+## Conectar a Claude Code (MCP)
+
+```bash
+claude mcp add repolead -- bun /ruta/a/repolead/apps/cli/src/index.ts serve --db /ruta/al/repo/.repolead/repolead.db
+```
+
+Y en la sesión: *"Use RepoLead to explain the audit-log architecture. Do not scan the repository manually."*
+Tools: `repo_overview` · `module_context` · `symbol_context` · `find_callers` · `architecture_findings` · `get_evidence` · `search`.
+
 ## Estructura
 
 ```text

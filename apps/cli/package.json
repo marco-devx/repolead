@@ -10,9 +10,11 @@
     "build": "rsbuild build"
   },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@repolead/code-graph": "workspace:*",
     "@repolead/knowledge-store": "workspace:*",
     "@repolead/lead-analyzer": "workspace:*",
+    "@repolead/mcp-server": "workspace:*",
     "@repolead/policy-engine": "workspace:*",
     "@repolead/retrieval": "workspace:*",
     "commander": "^14.0.0"

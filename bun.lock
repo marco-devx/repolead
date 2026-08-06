@@ -46,9 +46,11 @@
         "repolead": "./bin/repolead.js",
       },
       "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.30.0",
         "@repolead/code-graph": "workspace:*",
         "@repolead/knowledge-store": "workspace:*",
         "@repolead/lead-analyzer": "workspace:*",
+        "@repolead/mcp-server": "workspace:*",
         "@repolead/policy-engine": "workspace:*",
         "@repolead/retrieval": "workspace:*",
         "commander": "^14.0.0",
@@ -60,6 +62,13 @@
     "apps/mcp-server": {
       "name": "@repolead/mcp-server",
       "version": "0.1.0",
+      "dependencies": {
+        "@modelcontextprotocol/sdk": "^1.30.0",
+        "@repolead/domain": "workspace:*",
+        "@repolead/knowledge-store": "workspace:*",
+        "@repolead/retrieval": "workspace:*",
+        "zod": "^4.4.3",
+      },
     },
     "packages/code-graph": {
       "name": "@repolead/code-graph",
