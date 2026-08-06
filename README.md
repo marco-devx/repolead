@@ -42,6 +42,11 @@ docker compose up -d   # Qdrant + TEI (embeddings + reranker) en CPU
 
 # Con GPU NVIDIA (requiere Container Toolkit; tag para RTX 40xx incluido):
 docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+
+# Para no repetir los -f en cada comando, crea un .env local (gitignoreado):
+#   COMPOSE_FILE=docker-compose.yml:docker-compose.gpu.yml
+# Nota: los ERROR de "ORT backend / model.onnx does not exist" al arrancar el
+# reranker son ruido del fallback de TEI — dos líneas después carga con candle.
 ```
 
 ## Conectar a Claude Code (MCP)
