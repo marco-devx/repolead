@@ -38,7 +38,10 @@ bun run typecheck      # typecheck (rslint --type-check-only)
 bun run build          # build del CLI (rsbuild)
 bun run check          # lint + typecheck + test + build
 
-docker compose up -d   # Qdrant + TEI (embeddings)
+docker compose up -d   # Qdrant + TEI (embeddings + reranker) en CPU
+
+# Con GPU NVIDIA (requiere Container Toolkit; tag para RTX 40xx incluido):
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 ```
 
 ## Conectar a Claude Code (MCP)

@@ -1,0 +1,27 @@
+# Override opt-in para GPU (Ada Lovelace, compute capability 8.9 — RTX 40xx):
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+# Requiere NVIDIA Container Toolkit. Para otras generaciones cambia el tag:
+# turing-latest (75), latest (80), 86-latest (86), hopper-latest (90).
+services:
+  embeddings:
+    image: ghcr.io/huggingface/text-embeddings-inference:89-latest
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  reranker:
+    image: ghcr.io/huggingface/text-embeddings-inference:89-latest
+    # Mismo modelo que en CPU (bge-reranker-v2-m3): verificado en vivo que
+    # candle no soporta Qwen3 como classifier ni en CUDA
+    # ("`classifier` model type is not supported for Qwen3").
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
