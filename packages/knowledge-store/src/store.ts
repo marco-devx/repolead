@@ -7,12 +7,15 @@ import type {
   Evidence,
   Finding,
   FindingStatus,
+  Metric,
+  Module,
   Repository,
   Severity,
   Snapshot,
   SourceFile,
   SummaryDoc,
   SymbolKind,
+  TestCase,
 } from '@repolead/domain';
 import { stableRepositoryId } from '@repolead/domain';
 
@@ -184,8 +187,9 @@ export class KnowledgeStore {
 
   insertFiles(files: SourceFile[]): void {
     const insert = this.db.prepare(
-      `INSERT INTO files (id, repository_id, snapshot_id, path, language, content_hash, line_count)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO files (id, repository_id, snapshot_id, path, language, content_hash, line_count,
+                          last_author, last_commit_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     );
     this.db.transaction(() => {
       for (const file of files) {
@@ -197,9 +201,67 @@ export class KnowledgeStore {
           file.language,
           file.contentHash,
           file.lineCount,
+          file.lastAuthor,
+          file.lastCommitAt,
         );
       }
     })();
+  }
+
+  insertModules(modules: Module[]): void {
+    const insert = this.db.prepare(
+      'INSERT INTO modules (id, repository_id, snapshot_id, name, path) VALUES (?, ?, ?, ?, ?)',
+    );
+    this.db.transaction(() => {
+      for (const module of modules) {
+        insert.run(module.id, module.repositoryId, module.snapshotId, module.name, module.path);
+      }
+    })();
+  }
+
+  insertTests(tests: TestCase[]): void {
+    const insert = this.db.prepare('INSERT INTO tests (id, snapshot_id, path, name) VALUES (?, ?, ?, ?)');
+    this.db.transaction(() => {
+      for (const testCase of tests) {
+        insert.run(testCase.id, testCase.snapshotId, testCase.path, testCase.name);
+      }
+    })();
+  }
+
+  insertMetrics(metrics: Metric[]): void {
+    const insert = this.db.prepare(
+      `INSERT INTO metrics (snapshot_id, subject_id, name, value, analyzer) VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(snapshot_id, subject_id, name, analyzer) DO UPDATE SET value = excluded.value`,
+    );
+    this.db.transaction(() => {
+      for (const metric of metrics) {
+        insert.run(metric.snapshotId, metric.subjectId, metric.name, metric.value, metric.analyzer);
+      }
+    })();
+  }
+
+  getCounts(snapshotId: string): {
+    files: number;
+    symbols: number;
+    edges: number;
+    modules: number;
+    tests: number;
+    metrics: number;
+  } {
+    const count = (table: string): number => {
+      const row = this.db
+        .prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE snapshot_id = ?`)
+        .get(snapshotId) as { n: number };
+      return row.n;
+    };
+    return {
+      files: count('files'),
+      symbols: count('symbols'),
+      edges: count('edges'),
+      modules: count('modules'),
+      tests: count('tests'),
+      metrics: count('metrics'),
+    };
   }
 
   insertSymbols(symbols: CodeSymbol[]): void {

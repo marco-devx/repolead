@@ -1,0 +1,4 @@
+# Linker hoisted: node_modules plano en la raíz. El CLI compilado (apps/cli/dist)
+# externaliza módulos nativos/wasm y los resuelve desde la raíz en runtime.
+[install]
+linker = "hoisted"

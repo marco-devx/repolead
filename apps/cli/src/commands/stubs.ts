@@ -7,7 +7,6 @@ interface StubSpec {
 }
 
 const STUBS: StubSpec[] = [
-  { name: 'scan', description: 'Indexa el repositorio: archivos, símbolos, referencias y módulos', phase: 'Fase 2' },
   { name: 'query', description: 'Consulta el conocimiento del repositorio en lenguaje natural', phase: 'Fase 4' },
   { name: 'serve', description: 'Levanta el servidor MCP para Claude Code / Codex', phase: 'Fase 7' },
   { name: 'refresh', description: 'Actualiza el índice incrementalmente a partir del git diff', phase: 'Fase 8' },

@@ -65,7 +65,7 @@ Racional: el primer producto es `repolead scan .` + `repolead serve` (MCP). Todo
 **Objetivo:** primer `scan` real que llena SQLite.
 
 - `adapters/git`: enumeración de archivos versionados, `commit_sha`, detección de lenguaje, y la **dimensión temporal**: último autor, frecuencia de cambios, co-cambios (archivos que cambian juntos), edad. Se guarda en `metrics` — el análisis de hotspots la consumirá después.
-- `adapters/tree-sitter` (con `web-tree-sitter` o bindings nativos): extracción de clases, funciones, métodos, interfaces, imports/exports, decoradores, rutas HTTP, límites exactos de cada símbolo. **Chunks = unidades del lenguaje**, nunca ventanas de N tokens.
+- `adapters/tree-sitter` con **`web-tree-sitter` (WASM) + gramáticas de `@vscode/tree-sitter-wasm`** — un solo code path para Bun y Node, sin módulos nativos (`tree-sitter-wasms` quedó descartado: gramáticas compiladas con CLI 0.20, ABI incompatible). Extracción de clases, funciones, métodos, interfaces, imports/exports, rutas HTTP, límites exactos de cada símbolo. **Chunks = unidades del lenguaje**, nunca ventanas de N tokens.
 - `adapters/typescript`: queries de Tree-sitter específicas del lenguaje + heurísticas (rutas Express/Nest, handlers, tests por convención `*.spec.ts`/`*.test.ts` → relación `TESTED_BY`).
 - Detección de **módulos**: por directorio + `package.json`/barrels como primera heurística.
 - Pipeline de `scan`: fingerprint del repo → snapshot → archivos → símbolos → edges sintácticos (`CONTAINS`, `IMPORTS`) → salida estilo checklist del doc (`✓ N files indexed`, `✓ N symbols extracted`, …).

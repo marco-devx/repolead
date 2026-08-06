@@ -59,6 +59,31 @@ export interface SourceFile {
   language: string | null;
   contentHash: string;
   lineCount: number | null;
+  lastAuthor: string | null;
+  lastCommitAt: string | null;
+}
+
+export interface Module {
+  id: string;
+  repositoryId: string;
+  snapshotId: string;
+  name: string;
+  path: string;
+}
+
+export interface TestCase {
+  id: string;
+  snapshotId: string;
+  path: string;
+  name: string;
+}
+
+export interface Metric {
+  snapshotId: string;
+  subjectId: string;
+  name: string;
+  value: number;
+  analyzer: string;
 }
 
 export interface CodeSymbol {

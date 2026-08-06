@@ -33,8 +33,19 @@ CREATE TABLE files (
   language TEXT,
   content_hash TEXT NOT NULL,
   line_count INTEGER,
+  last_author TEXT,
+  last_commit_at TEXT,
   PRIMARY KEY (id, snapshot_id),
   UNIQUE (snapshot_id, path)
+);
+
+CREATE TABLE modules (
+  id TEXT NOT NULL,
+  repository_id TEXT NOT NULL,
+  snapshot_id TEXT NOT NULL REFERENCES snapshots(id),
+  name TEXT NOT NULL,
+  path TEXT NOT NULL,
+  PRIMARY KEY (id, snapshot_id)
 );
 
 CREATE TABLE symbols (

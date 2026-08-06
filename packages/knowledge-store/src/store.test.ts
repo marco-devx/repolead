@@ -25,6 +25,8 @@ async function seedSnapshot() {
       language: 'typescript',
       contentHash: contentHash(path),
       lineCount: 100,
+      lastAuthor: null,
+      lastCommitAt: null,
     })),
   );
 

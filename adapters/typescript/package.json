@@ -3,5 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "./src/index.ts"
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@repolead/adapter-tree-sitter": "workspace:*",
+    "@repolead/domain": "workspace:*"
+  }
 }
