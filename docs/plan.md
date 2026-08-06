@@ -102,7 +102,7 @@ Racional: el primer producto es `repolead scan .` + `repolead serve` (MCP). Todo
 
 **Objetivo:** interpretación con evidencia, sin crawling.
 
-- `packages/lead-analyzer` sobre el **Claude Agent SDK** (TypeScript).
+- `packages/lead-analyzer` sobre la **Messages API con structured outputs** (`@anthropic-ai/sdk` + `output_config.format`, modelo `claude-opus-5`) — el Claude Agent SDK quedó descartado: es el harness completo de Claude Code (tools, filesystem, loop), y esta fase necesita exactamente lo contrario — una llamada controlada donde Claude solo ve el evidence pack y el schema fuerza el JSON.
 - **Evidence packs**: ensamblados desde SQLite (estructura del módulo, símbolos públicos, dependencias entrantes/salientes, call graph, métricas, tests). Claude recibe el pack, no el repo. Prompt exige JSON con schema y referencias a `evidenceIds`; validación con zod + retry.
 - Jerarquía de síntesis, en orden bottom-up:
   1. **Symbol Cards** (purpose, inputs/outputs, sideEffects, dependencies, invariants, errorBehavior, tests, evidence) — solo para símbolos públicos/no triviales en v1.

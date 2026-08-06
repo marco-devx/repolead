@@ -14,6 +14,7 @@ import type {
   Snapshot,
   SourceFile,
   SummaryDoc,
+  SummaryLevel,
   SymbolKind,
   TestCase,
 } from '@repolead/domain';
@@ -367,6 +368,71 @@ export class KnowledgeStore {
         summary.contentHash,
         summary.createdAt,
       );
+  }
+
+  listModules(snapshotId: string): Module[] {
+    const rows = this.db
+      .prepare('SELECT * FROM modules WHERE snapshot_id = ? ORDER BY path')
+      .all(snapshotId) as {
+      id: string;
+      repository_id: string;
+      snapshot_id: string;
+      name: string;
+      path: string;
+    }[];
+    return rows.map((row) => ({
+      id: row.id,
+      repositoryId: row.repository_id,
+      snapshotId: row.snapshot_id,
+      name: row.name,
+      path: row.path,
+    }));
+  }
+
+  /**
+   * Caché de análisis: busca un summary previo del mismo subject cuyo evidence
+   * pack (content_hash) + prompt + modelo no cambiaron, en cualquier snapshot.
+   * Si existe, el análisis no se repite (regla 2 del plan: caché por contenido).
+   */
+  findCachedSummary(
+    subjectId: string,
+    level: SummaryLevel,
+    contentHash: string,
+    promptVersion: string,
+    model: string,
+  ): SummaryDoc | null {
+    const row = this.db
+      .prepare(
+        `SELECT * FROM summaries
+         WHERE subject_id = ? AND level = ? AND content_hash = ? AND prompt_version = ? AND model = ?
+         ORDER BY created_at DESC LIMIT 1`,
+      )
+      .get(subjectId, level, contentHash, promptVersion, model) as
+      | {
+          id: string;
+          snapshot_id: string;
+          subject_id: string;
+          level: string;
+          content_json: string;
+          model: string;
+          prompt_version: string;
+          content_hash: string;
+          created_at: string;
+        }
+      | undefined;
+    return row
+      ? {
+          id: row.id,
+          snapshotId: row.snapshot_id,
+          subjectId: row.subject_id,
+          level: row.level as SummaryLevel,
+          contentJson: row.content_json,
+          model: row.model,
+          promptVersion: row.prompt_version,
+          contentHash: row.content_hash,
+          createdAt: row.created_at,
+        }
+      : null;
   }
 
   getSymbol(snapshotId: string, symbolId: string): CodeSymbol | null {

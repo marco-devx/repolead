@@ -3,5 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "main": "./src/index.ts"
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
+    "@repolead/domain": "workspace:*",
+    "@repolead/knowledge-store": "workspace:*"
+  }
 }

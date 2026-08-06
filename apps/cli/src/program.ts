@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 
+import { registerAnalyze } from './commands/analyze';
 import { registerDoctor } from './commands/doctor';
 import { registerQuery, registerReindex } from './commands/query';
 import { registerScan } from './commands/scan';
@@ -11,6 +12,7 @@ export function buildProgram(): Command {
     .version('0.1.0');
 
   registerScan(program);
+  registerAnalyze(program);
   registerQuery(program);
   registerReindex(program);
   registerStubCommands(program);
