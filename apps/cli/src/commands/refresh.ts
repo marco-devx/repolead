@@ -78,7 +78,15 @@ export function registerRefresh(program: Command): void {
         const model = pickModel(options.backend, options.model);
         console.log(`analyze: ${backendLabel(model)} · ${model.name}`);
         const store = await openStore(dbPath);
-        const analysis = await analyzeSnapshot({ store, snapshotId: scan.snapshotId, model });
+        const analysis = await analyzeSnapshot({
+          store,
+          snapshotId: scan.snapshotId,
+          model,
+          onProgress: (progress) =>
+            console.log(
+              `${progress.outcome === 'cached' ? '\u21ba' : '\u2713'} [${progress.index}/${progress.total}] ${progress.subject}`,
+            ),
+        });
         store.close();
         console.log(
           `✓ ${analysis.modulesAnalyzed} módulos re-analizados, ${analysis.modulesCached} desde caché · brief ${analysis.briefCached ? 'desde caché' : 'regenerado'}`,

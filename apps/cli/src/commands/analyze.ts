@@ -53,6 +53,12 @@ export function registerAnalyze(program: Command): void {
         snapshotId: snapshot.id,
         model,
         moduleFilter: options.module,
+        onProgress: (progress) => {
+          const mark = progress.outcome === 'cached' ? '\u21ba' : '\u2713';
+          const detail =
+            progress.outcome === 'cached' ? 'desde cach\u00e9' : `${(progress.durationMs / 1000).toFixed(0)}s`;
+          console.log(`${mark} [${progress.index}/${progress.total}] ${progress.subject} \u00b7 ${detail}`);
+        },
       });
 
       console.log(`✓ ${result.modulesAnalyzed} módulos analizados, ${result.modulesCached} desde caché`);

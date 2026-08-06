@@ -15,6 +15,15 @@ import {
   TECH_LEAD_SYSTEM,
 } from './prompts';
 
+export interface AnalyzeProgress {
+  subject: string;
+  level: 'module' | 'repository';
+  outcome: 'analyzed' | 'cached';
+  durationMs: number;
+  index: number;
+  total: number;
+}
+
 export interface AnalyzeOptions {
   store: KnowledgeStore;
   snapshotId: string;
@@ -22,6 +31,8 @@ export interface AnalyzeOptions {
   budget?: AnalysisBudget;
   /** Limita el análisis a un módulo por nombre (para pruebas o re-análisis puntual). */
   moduleFilter?: string;
+  /** Se invoca al terminar cada subject — el análisis es secuencial y lento sin esto. */
+  onProgress?: (progress: AnalyzeProgress) => void;
 }
 
 export interface AnalyzeResult {
@@ -131,8 +142,10 @@ export async function analyzeSnapshot(options: AnalyzeOptions): Promise<AnalyzeR
     .listModules(snapshotId)
     .filter((module) => !options.moduleFilter || module.name === options.moduleFilter);
 
+  const total = modules.length + (options.moduleFilter ? 0 : 1);
   const dossiers: { module: string; dossier: unknown }[] = [];
-  for (const module of modules) {
+  for (const [index, module] of modules.entries()) {
+    const startedAt = Date.now();
     const pack = buildModuleEvidencePack(store, snapshotId, module, budget);
     const packJson = JSON.stringify(pack);
     const outcome = await analyzeSubject(
@@ -143,6 +156,14 @@ export async function analyzeSnapshot(options: AnalyzeOptions): Promise<AnalyzeR
       modulePrompt(packJson),
       MODULE_DOSSIER_SCHEMA,
     );
+    options.onProgress?.({
+      subject: module.name,
+      level: 'module',
+      outcome: outcome.cached ? 'cached' : 'analyzed',
+      durationMs: Date.now() - startedAt,
+      index: index + 1,
+      total,
+    });
     if (outcome.cached) {
       result.modulesCached += 1;
     } else {
@@ -174,6 +195,7 @@ export async function analyzeSnapshot(options: AnalyzeOptions): Promise<AnalyzeR
       modules: dossiers,
     });
     const subjectId = `repo://${repository?.name ?? 'unknown'}`;
+    const startedAt = Date.now();
     const outcome = await analyzeSubject(
       options,
       subjectId,
@@ -182,6 +204,14 @@ export async function analyzeSnapshot(options: AnalyzeOptions): Promise<AnalyzeR
       repositoryPrompt(briefPack),
       REPOSITORY_BRIEF_SCHEMA,
     );
+    options.onProgress?.({
+      subject: 'Repository Brief',
+      level: 'repository',
+      outcome: outcome.cached ? 'cached' : 'analyzed',
+      durationMs: Date.now() - startedAt,
+      index: total,
+      total,
+    });
     result.briefCached = outcome.cached;
     result.briefGenerated = !outcome.cached;
     result.inputTokens += outcome.inputTokens;
