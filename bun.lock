@@ -47,6 +47,8 @@
       },
       "dependencies": {
         "@repolead/code-graph": "workspace:*",
+        "@repolead/knowledge-store": "workspace:*",
+        "@repolead/retrieval": "workspace:*",
         "commander": "^14.0.0",
       },
       "devDependencies": {
@@ -91,6 +93,10 @@
     "packages/retrieval": {
       "name": "@repolead/retrieval",
       "version": "0.1.0",
+      "dependencies": {
+        "@repolead/domain": "workspace:*",
+        "@repolead/knowledge-store": "workspace:*",
+      },
     },
   },
   "packages": {

@@ -25,6 +25,16 @@ services:
     #           count: 1
     #           capabilities: [gpu]
 
+  reranker:
+    # Reranking vía TEI con la conversión seq-cls de Qwen3-Reranker-0.6B (Fase 4).
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
+    command: --model-id tomaarsen/Qwen3-Reranker-0.6B-seq-cls
+    ports:
+      - "8081:80"
+    volumes:
+      - reranker-data:/data
+
 volumes:
   qdrant-storage:
   tei-data:
+  reranker-data:

@@ -88,7 +88,7 @@ Racional: el primer producto es `repolead scan .` + `repolead serve` (MCP). Todo
 **Objetivo:** `repolead query` responde preguntas en lenguaje natural con evidencia.
 
 - `services/embeddings`: TEI sirviendo **Qwen3-Embedding-0.6B** (ya en docker-compose desde fase 0); cliente TS con batching.
-- `services/reranker`: servicio Python (FastAPI) con **Qwen3-Reranker-0.6B**.
+- `services/reranker`: **TEI** con la conversión seq-cls de **Qwen3-Reranker-0.6B** (`tomaarsen/Qwen3-Reranker-0.6B-seq-cls`, endpoint `/rerank`). El servicio Python propio queda diferido salvo que la conversión pierda calidad.
 - `packages/retrieval`: pipeline del doc —
   ```text
   consulta → embedding → FTS5 + vector + graph → ~20 candidatos → reranker → 5–8 evidencias

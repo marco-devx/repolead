@@ -2,10 +2,10 @@ import { expect, test } from '@rstest/core';
 
 import { buildProgram } from './program';
 
-test('el CLI registra los cinco comandos de la Fase 0', () => {
+test('el CLI registra todos los comandos', () => {
   const names = buildProgram()
     .commands.map((command) => command.name())
     .sort();
 
-  expect(names).toEqual(['doctor', 'query', 'refresh', 'scan', 'serve']);
+  expect(names).toEqual(['doctor', 'query', 'refresh', 'reindex', 'scan', 'serve']);
 });

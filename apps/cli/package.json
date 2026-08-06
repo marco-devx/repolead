@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@repolead/code-graph": "workspace:*",
+    "@repolead/knowledge-store": "workspace:*",
+    "@repolead/retrieval": "workspace:*",
     "commander": "^14.0.0"
   },
   "devDependencies": {

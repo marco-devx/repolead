@@ -91,5 +91,9 @@ export async function runDoctorChecks(env: NodeJS.ProcessEnv = process.env): Pro
       required: false,
       hint: 'levántalo con: docker compose up -d embeddings',
     }),
+    checkService('reranker (TEI)', `${env['REPOLEAD_RERANKER_URL'] ?? 'http://localhost:8081'}/health`, {
+      required: false,
+      hint: 'levántalo con: docker compose up -d reranker',
+    }),
   ]);
 }

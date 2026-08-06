@@ -369,6 +369,29 @@ export class KnowledgeStore {
       );
   }
 
+  getSymbol(snapshotId: string, symbolId: string): CodeSymbol | null {
+    const row = this.db
+      .prepare('SELECT * FROM symbols WHERE snapshot_id = ? AND id = ?')
+      .get(snapshotId, symbolId) as SymbolRow | undefined;
+    return row ? toSymbol(row) : null;
+  }
+
+  getLatestSnapshot(): Snapshot | null {
+    const row = this.db
+      .prepare('SELECT * FROM snapshots ORDER BY created_at DESC LIMIT 1')
+      .get() as { id: string; repository_id: string; commit_sha: string; created_at: string } | undefined;
+    return row
+      ? { id: row.id, repositoryId: row.repository_id, commitSha: row.commit_sha, createdAt: row.created_at }
+      : null;
+  }
+
+  getRepository(repositoryId: string): Repository | null {
+    const row = this.db.prepare('SELECT * FROM repositories WHERE id = ?').get(repositoryId) as
+      | { id: string; name: string; root_path: string; created_at: string }
+      | undefined;
+    return row ? { id: row.id, name: row.name, rootPath: row.root_path, createdAt: row.created_at } : null;
+  }
+
   listSymbols(snapshotId: string, path?: string): CodeSymbol[] {
     const rows = path
       ? (this.db
