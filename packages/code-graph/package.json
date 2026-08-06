@@ -6,6 +6,7 @@
   "main": "./src/index.ts",
   "dependencies": {
     "@repolead/adapter-git": "workspace:*",
+    "@repolead/adapter-scip": "workspace:*",
     "@repolead/adapter-typescript": "workspace:*",
     "@repolead/domain": "workspace:*",
     "@repolead/knowledge-store": "workspace:*"

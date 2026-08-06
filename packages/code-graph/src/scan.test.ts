@@ -58,7 +58,7 @@ afterAll(() => {
 });
 
 test('scanRepository indexa un repo TypeScript completo', async () => {
-  const result = await scanRepository({ rootPath: fixtureRoot, dbPath: ':memory:' });
+  const result = await scanRepository({ rootPath: fixtureRoot, dbPath: ':memory:', scip: false });
 
   expect(result.counts.files).toBe(4);
   expect(result.counts.symbols).toBeGreaterThanOrEqual(3);
@@ -70,7 +70,7 @@ test('scanRepository indexa un repo TypeScript completo', async () => {
 
 test('el scan persiste símbolos consultables y edges correctos', async () => {
   const dbPath = join(fixtureRoot, 'scan-test.db');
-  const result = await scanRepository({ rootPath: fixtureRoot, dbPath, repositoryName: 'fixture' });
+  const result = await scanRepository({ rootPath: fixtureRoot, dbPath, repositoryName: 'fixture', scip: false });
 
   const store = await openStore(dbPath);
   const hits = store.searchSymbols(result.snapshotId, 'order service');

@@ -3,11 +3,14 @@ import { mkdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, posix, resolve } from 'node:path';
 
 import { collectHistory, gitHead, listTrackedFiles } from '@repolead/adapter-git';
+import { indexWithScipTypescript } from '@repolead/adapter-scip';
 import { extractFromSource, isTestPath } from '@repolead/adapter-typescript';
 import type { CodeSymbol, Edge, Metric, Module, SourceFile, TestCase } from '@repolead/domain';
 import { contentHash, fileUri, moduleUri, stableSymbolId } from '@repolead/domain';
 import type { KnowledgeStore } from '@repolead/knowledge-store';
 import { openStore } from '@repolead/knowledge-store';
+
+import { buildScipEdges } from './scip-enrich';
 
 const LANGUAGES: Record<string, string> = {
   '.ts': 'typescript',
@@ -68,6 +71,8 @@ export interface ScanOptions {
   rootPath: string;
   dbPath?: string;
   repositoryName?: string;
+  /** Ejecuta scip-typescript para resolver referencias (default: true). */
+  scip?: boolean;
 }
 
 export interface ScanResult {
@@ -83,6 +88,8 @@ export interface ScanResult {
     tests: number;
     metrics: number;
   };
+  /** Referencias resueltas por SCIP; null si el indexador no corrió. */
+  referencesResolved: number | null;
   durationMs: number;
 }
 
@@ -264,6 +271,25 @@ export async function scanRepository(options: ScanOptions): Promise<ScanResult> 
     }
   }
 
+  let referencesResolved: number | null = null;
+  if (options.scip !== false) {
+    const scipIndex = await indexWithScipTypescript(rootPath);
+    if (scipIndex) {
+      const enrichment = buildScipEdges(scipIndex, [...symbols.values()], snapshot.id);
+      for (const edge of enrichment.edges) {
+        addEdge(edge);
+      }
+      referencesResolved = enrichment.resolvedReferences;
+      metrics.push({
+        snapshotId: snapshot.id,
+        subjectId: fileUri(repositoryName, '.'),
+        name: 'scip_unmapped_definitions',
+        value: enrichment.unmappedDefinitions,
+        analyzer: 'scip',
+      });
+    }
+  }
+
   for (const pair of history.coChanges) {
     metrics.push({
       snapshotId: snapshot.id,
@@ -290,6 +316,7 @@ export async function scanRepository(options: ScanOptions): Promise<ScanResult> 
     commitSha,
     dbPath,
     counts,
+    referencesResolved,
     durationMs: Date.now() - startedAt,
   };
 }
