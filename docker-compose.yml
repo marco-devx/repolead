@@ -26,9 +26,11 @@ services:
     #           capabilities: [gpu]
 
   reranker:
-    # Reranking vía TEI con la conversión seq-cls de Qwen3-Reranker-0.6B (Fase 4).
+    # Reranking vía TEI (Fase 4). bge-reranker-v2-m3: multilingüe y soportado
+    # nativamente por TEI CPU (la conversión seq-cls de Qwen3-Reranker no tiene
+    # pesos ONNX y candle no soporta esa arquitectura en CPU).
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
-    command: --model-id tomaarsen/Qwen3-Reranker-0.6B-seq-cls
+    command: --model-id BAAI/bge-reranker-v2-m3
     ports:
       - "8081:80"
     volumes:
