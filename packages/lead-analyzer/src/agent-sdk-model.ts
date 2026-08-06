@@ -1,5 +1,3 @@
-import { query } from '@anthropic-ai/claude-agent-sdk';
-
 import type { ModelCompletion, TechLeadModel } from './model';
 
 /**
@@ -21,6 +19,10 @@ export class AgentSdkTechLeadModel implements TechLeadModel {
     prompt: string;
     schema: Record<string, unknown>;
   }): Promise<ModelCompletion> {
+    // Import dinámico: el SDK es ESM y el CLI compilado es CJS — require(ESM)
+    // dispara el ExperimentalWarning de Node; import() no. Además solo se
+    // carga cuando este backend se usa de verdad.
+    const { query } = await import(/* webpackIgnore: true */ '@anthropic-ai/claude-agent-sdk');
     const stream = query({
       prompt: request.prompt,
       options: {
