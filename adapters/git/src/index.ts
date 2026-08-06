@@ -27,6 +27,23 @@ export async function listTrackedFiles(rootPath: string): Promise<string[]> {
   return output.split('\0').filter(Boolean);
 }
 
+/**
+ * Archivos cambiados desde un commit (committed + working tree). Los
+ * untracked se excluyen a propósito: el scan solo indexa archivos
+ * trackeados, así que no pueden invalidar nada.
+ */
+export async function changedFilesSince(rootPath: string, commitSha: string): Promise<string[]> {
+  const diff = await git(rootPath, ['diff', '--name-only', commitSha]);
+  return [
+    ...new Set(
+      diff
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean),
+    ),
+  ];
+}
+
 export interface FileHistory {
   path: string;
   commitCount: number;

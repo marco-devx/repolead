@@ -12,6 +12,8 @@ export interface IndexSnapshotOptions {
   collection: string;
   embeddings: EmbeddingsClient;
   qdrant: QdrantSearcher;
+  /** Reindex selectivo: solo estos símbolos (refresh incremental). */
+  symbolIds?: Set<string>;
 }
 
 /**
@@ -19,7 +21,9 @@ export interface IndexSnapshotOptions {
  * de verdad: este índice se reconstruye completo desde SQLite cuando haga falta.
  */
 export async function indexSnapshot(options: IndexSnapshotOptions): Promise<number> {
-  const symbols = options.store.listSymbols(options.snapshotId);
+  const symbols = options.store
+    .listSymbols(options.snapshotId)
+    .filter((symbol) => !options.symbolIds || options.symbolIds.has(symbol.id));
   if (symbols.length === 0) {
     return 0;
   }

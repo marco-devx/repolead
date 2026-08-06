@@ -4,9 +4,9 @@ import { registerAnalyze } from './commands/analyze';
 import { registerAudit } from './commands/audit';
 import { registerDoctor } from './commands/doctor';
 import { registerQuery, registerReindex } from './commands/query';
+import { registerRefresh } from './commands/refresh';
 import { registerScan } from './commands/scan';
 import { registerServe } from './commands/serve';
-import { registerStubCommands } from './commands/stubs';
 
 export function buildProgram(): Command {
   const program = new Command('repolead')
@@ -14,12 +14,12 @@ export function buildProgram(): Command {
     .version('0.1.0');
 
   registerScan(program);
+  registerRefresh(program);
   registerAnalyze(program);
   registerAudit(program);
   registerQuery(program);
   registerReindex(program);
   registerServe(program);
-  registerStubCommands(program);
   registerDoctor(program);
 
   return program;
