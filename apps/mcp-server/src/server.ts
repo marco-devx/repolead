@@ -17,6 +17,18 @@ const PREVIEW_CHARS = 300;
 const EVIDENCE_HINT =
   'Los textos son previews; usa get_evidence para el código exacto que respalda una conclusión.';
 
+export interface ServedRepo {
+  name: string;
+  store: KnowledgeStore;
+}
+
+interface RepoContext {
+  name: string;
+  store: KnowledgeStore;
+  snapshotId: string;
+  rootPath: string;
+}
+
 /** Contrato de tokens (patrón engram): previews cortos + get_evidence para el detalle. */
 function preview(text: string): string {
   return text.length > PREVIEW_CHARS ? `${text.slice(0, PREVIEW_CHARS)}… [preview]` : text;
@@ -26,8 +38,8 @@ function textResult(payload: unknown): { content: { type: 'text'; text: string }
   return { content: [{ type: 'text', text: JSON.stringify(payload, null, 1) }] };
 }
 
-function findSymbol(store: KnowledgeStore, snapshotId: string, name: string): CodeSymbol | null {
-  const symbols = store.listSymbols(snapshotId);
+function findSymbolIn(context: RepoContext, name: string): CodeSymbol | null {
+  const symbols = context.store.listSymbols(context.snapshotId);
   return (
     symbols.find((symbol) => symbol.qualifiedName === name) ??
     symbols.find((symbol) => symbol.qualifiedName.endsWith(`.${name}`)) ??
@@ -44,35 +56,81 @@ async function reachable(url: string): Promise<boolean> {
   }
 }
 
-export function createServer(store: KnowledgeStore): McpServer {
-  const server = new McpServer({ name: 'repolead', version: '0.1.0' });
-  const snapshot = store.getLatestSnapshot();
-  if (!snapshot) {
-    throw new Error('No hay snapshots en la base: corre `repolead scan` primero.');
+/**
+ * Servidor MCP sobre una o varias bases de RepoLead. Con varios repos, cada
+ * tool acepta `repo`; cuando el objetivo es inequívoco (un solo repo, o el
+ * símbolo/módulo existe en uno solo) se resuelve sin pedirlo.
+ */
+export function createServer(repos: ServedRepo[]): McpServer {
+  const contexts: RepoContext[] = [];
+  for (const { name, store } of repos) {
+    const snapshot = store.getLatestSnapshot();
+    if (!snapshot) {
+      continue;
+    }
+    const repository = store.getRepository(snapshot.repositoryId);
+    contexts.push({
+      name,
+      store,
+      snapshotId: snapshot.id,
+      rootPath: repository?.rootPath ?? process.cwd(),
+    });
   }
-  const snapshotId = snapshot.id;
-  const repository = store.getRepository(snapshot.repositoryId);
-  const rootPath = repository?.rootPath ?? process.cwd();
+  if (contexts.length === 0) {
+    throw new Error('Ninguna base tiene snapshots: corre `repolead scan` primero.');
+  }
+
+  const byName = new Map(contexts.map((context) => [context.name, context]));
+  const repoNames = [...byName.keys()].join(', ');
+  const single = contexts.length === 1 ? contexts[0]! : null;
+
+  const server = new McpServer({ name: 'repolead', version: '0.2.0' });
+
+  const repoParam = {
+    repo: z.string().optional().describe(`repo objetivo (disponibles: ${repoNames})`),
+  };
+
+  type Resolved = RepoContext | { error: string } | null;
+  const resolveRepo = (repo?: string): Resolved => {
+    if (repo) {
+      return byName.get(repo) ?? { error: `repo desconocido: ${repo}. Disponibles: ${repoNames}` };
+    }
+    return single;
+  };
+  const isError = (value: Resolved): value is { error: string } =>
+    value !== null && 'error' in value;
 
   server.registerTool(
     'repo_overview',
     {
       description:
-        'Visión técnica general del repositorio: stats del snapshot, módulos y el Repository Brief sintetizado por el Tech Lead. Úsala antes de explorar manualmente.',
-      inputSchema: {},
+        'Visión técnica general: stats, módulos y Repository Brief. Sin `repo` y con varios repos servidos, lista todos.',
+      inputSchema: repoParam,
     },
-    () => {
-      const counts = store.getCounts(snapshotId);
-      const brief = store.db
+    ({ repo }) => {
+      const resolved = resolveRepo(repo);
+      if (isError(resolved)) {
+        return textResult(resolved);
+      }
+      if (!resolved) {
+        return textResult({
+          repos: contexts.map((context) => ({
+            repo: context.name,
+            stats: context.store.getCounts(context.snapshotId),
+            modules: context.store.listModules(context.snapshotId).map((module) => module.name),
+          })),
+          hint: 'pasa `repo` para el detalle y el Repository Brief de uno',
+        });
+      }
+      const brief = resolved.store.db
         .prepare(
           "SELECT content_json FROM summaries WHERE snapshot_id = ? AND level = 'repository' ORDER BY created_at DESC LIMIT 1",
         )
-        .get(snapshotId) as { content_json: string } | undefined;
+        .get(resolved.snapshotId) as { content_json: string } | undefined;
       return textResult({
-        repository: repository?.name,
-        commit: snapshot.commitSha,
-        stats: counts,
-        modules: store.listModules(snapshotId).map((module) => module.name),
+        repository: resolved.name,
+        stats: resolved.store.getCounts(resolved.snapshotId),
+        modules: resolved.store.listModules(resolved.snapshotId).map((module) => module.name),
         brief: brief ? (JSON.parse(brief.content_json) as unknown) : 'sin analizar: corre `repolead analyze`',
       });
     },
@@ -81,24 +139,44 @@ export function createServer(store: KnowledgeStore): McpServer {
   server.registerTool(
     'module_context',
     {
-      description:
-        'Dossier de un módulo: responsabilidad, API pública, dependencias, riesgos y findings confirmados.',
-      inputSchema: { module: z.string().describe('nombre del módulo (ver repo_overview)') },
+      description: 'Dossier de un módulo: responsabilidad, API, riesgos y findings confirmados.',
+      inputSchema: { module: z.string(), ...repoParam },
     },
-    ({ module: moduleName }) => {
-      const module = store.listModules(snapshotId).find((entry) => entry.name === moduleName);
-      if (!module) {
-        return textResult({ error: `módulo desconocido: ${moduleName}` });
+    ({ module: moduleName, repo }) => {
+      let resolved = resolveRepo(repo);
+      if (isError(resolved)) {
+        return textResult(resolved);
       }
-      const dossier = store.db
+      if (!resolved) {
+        const owners = contexts.filter((context) =>
+          context.store.listModules(context.snapshotId).some((entry) => entry.name === moduleName),
+        );
+        if (owners.length !== 1) {
+          return textResult({
+            error:
+              owners.length === 0
+                ? `módulo desconocido en todos los repos: ${moduleName}`
+                : `módulo ambiguo (${owners.map((owner) => owner.name).join(', ')}): pasa \`repo\``,
+          });
+        }
+        resolved = owners[0]!;
+      }
+      const module = resolved.store
+        .listModules(resolved.snapshotId)
+        .find((entry) => entry.name === moduleName);
+      if (!module) {
+        return textResult({ error: `módulo desconocido en ${resolved.name}: ${moduleName}` });
+      }
+      const dossier = resolved.store.db
         .prepare(
           "SELECT content_json FROM summaries WHERE snapshot_id = ? AND subject_id = ? AND level = 'module' ORDER BY created_at DESC LIMIT 1",
         )
-        .get(snapshotId, module.id) as { content_json: string } | undefined;
-      const findings = store
-        .getFindings(snapshotId)
-        .filter((finding) => finding.module === module.id && finding.status === 'confirmed');
+        .get(resolved.snapshotId, module.id) as { content_json: string } | undefined;
+      const findings = resolved.store
+        .getFindings(resolved.snapshotId, 'confirmed')
+        .filter((finding) => finding.module === module.id);
       return textResult({
+        repo: resolved.name,
         module: module.name,
         path: module.path,
         dossier: dossier ? (JSON.parse(dossier.content_json) as unknown) : 'sin analizar',
@@ -113,20 +191,50 @@ export function createServer(store: KnowledgeStore): McpServer {
     },
   );
 
+  const locateSymbol = (
+    symbolName: string,
+    repo?: string,
+  ): { context: RepoContext; symbol: CodeSymbol } | { error: string } => {
+    const resolved = resolveRepo(repo);
+    if (isError(resolved)) {
+      return resolved;
+    }
+    if (resolved) {
+      const symbol = findSymbolIn(resolved, symbolName);
+      return symbol
+        ? { context: resolved, symbol }
+        : { error: `símbolo desconocido en ${resolved.name}: ${symbolName}` };
+    }
+    const matches = contexts
+      .map((context) => ({ context, symbol: findSymbolIn(context, symbolName) }))
+      .filter((entry): entry is { context: RepoContext; symbol: CodeSymbol } => entry.symbol !== null);
+    if (matches.length === 1) {
+      return matches[0]!;
+    }
+    return {
+      error:
+        matches.length === 0
+          ? `símbolo desconocido en todos los repos: ${symbolName}`
+          : `símbolo ambiguo (${matches.map((match) => match.context.name).join(', ')}): pasa \`repo\``,
+    };
+  };
+
   server.registerTool(
     'symbol_context',
     {
       description: 'Ficha de un símbolo: ubicación, firma, relaciones entrantes y salientes.',
-      inputSchema: { symbol: z.string().describe('qualified name, p. ej. PaymentService.process') },
+      inputSchema: { symbol: z.string(), ...repoParam },
     },
-    ({ symbol: symbolName }) => {
-      const symbol = findSymbol(store, snapshotId, symbolName);
-      if (!symbol) {
-        return textResult({ error: `símbolo desconocido: ${symbolName}` });
+    ({ symbol: symbolName, repo }) => {
+      const located = locateSymbol(symbolName, repo);
+      if ('error' in located) {
+        return textResult(located);
       }
-      const graph = store.loadGraph(snapshotId);
+      const { context, symbol } = located;
+      const graph = context.store.loadGraph(context.snapshotId);
       const describe = (id: string): string => graph.symbols.get(id)?.qualifiedName ?? id;
       return textResult({
+        repo: context.name,
         symbol: symbol.qualifiedName,
         kind: symbol.kind,
         signature: symbol.signature,
@@ -149,19 +257,20 @@ export function createServer(store: KnowledgeStore): McpServer {
       inputSchema: {
         symbol: z.string(),
         transitiveDepth: z.number().int().min(1).max(5).optional().describe('default 1'),
+        ...repoParam,
       },
     },
-    ({ symbol: symbolName, transitiveDepth }) => {
-      const symbol = findSymbol(store, snapshotId, symbolName);
-      if (!symbol) {
-        return textResult({ error: `símbolo desconocido: ${symbolName}` });
+    ({ symbol: symbolName, transitiveDepth, repo }) => {
+      const located = locateSymbol(symbolName, repo);
+      if ('error' in located) {
+        return textResult(located);
       }
-      const graph = store.loadGraph(snapshotId);
-      const depth = transitiveDepth ?? 1;
+      const { context, symbol } = located;
+      const graph = context.store.loadGraph(context.snapshotId);
       const layers: string[][] = [];
       let frontier = new Set([symbol.id]);
       const seen = new Set(frontier);
-      for (let level = 0; level < depth; level += 1) {
+      for (let level = 0; level < (transitiveDepth ?? 1); level += 1) {
         const next = new Set<string>();
         for (const id of frontier) {
           for (const edge of graph.incoming.get(id) ?? []) {
@@ -177,37 +286,44 @@ export function createServer(store: KnowledgeStore): McpServer {
         layers.push([...next].map((id) => graph.symbols.get(id)?.qualifiedName ?? id));
         frontier = next;
       }
-      return textResult({ symbol: symbol.qualifiedName, callersByDepth: layers });
+      return textResult({ repo: context.name, symbol: symbol.qualifiedName, callersByDepth: layers });
     },
   );
 
   server.registerTool(
     'architecture_findings',
     {
-      description: 'Findings arquitectónicos confirmados por el policy engine, filtrables.',
+      description: 'Findings confirmados del policy engine. Sin `repo`, agrega los de todos.',
       inputSchema: {
         severity: z.array(z.string()).optional().describe('p. ej. ["high", "critical"]'),
         module: z.string().optional(),
+        ...repoParam,
       },
     },
-    ({ severity, module: moduleName }) => {
-      const module = moduleName
-        ? store.listModules(snapshotId).find((entry) => entry.name === moduleName)
-        : null;
-      const findings = store
-        .getFindings(snapshotId, 'confirmed')
-        .filter((finding) => !severity || severity.includes(finding.severity))
-        .filter((finding) => !module || finding.module === module.id);
-      return textResult({
-        findings: findings.map((finding) => ({
-          findingId: finding.id,
-          ruleId: finding.ruleId,
-          severity: finding.severity,
-          confidence: finding.confidence,
-          claim: preview(finding.claim),
-        })),
-        hint: EVIDENCE_HINT,
+    ({ severity, module: moduleName, repo }) => {
+      const resolved = resolveRepo(repo);
+      if (isError(resolved)) {
+        return textResult(resolved);
+      }
+      const targets = resolved ? [resolved] : contexts;
+      const findings = targets.flatMap((context) => {
+        const module = moduleName
+          ? context.store.listModules(context.snapshotId).find((entry) => entry.name === moduleName)
+          : null;
+        return context.store
+          .getFindings(context.snapshotId, 'confirmed')
+          .filter((finding) => !severity || severity.includes(finding.severity))
+          .filter((finding) => !moduleName || (module && finding.module === module.id))
+          .map((finding) => ({
+            repo: context.name,
+            findingId: finding.id,
+            ruleId: finding.ruleId,
+            severity: finding.severity,
+            confidence: finding.confidence,
+            claim: preview(finding.claim),
+          }));
       });
+      return textResult({ findings, hint: EVIDENCE_HINT });
     },
   );
 
@@ -221,12 +337,18 @@ export function createServer(store: KnowledgeStore): McpServer {
         path: z.string().optional(),
         startLine: z.number().int().optional(),
         endLine: z.number().int().optional(),
+        ...repoParam,
       },
     },
-    ({ findingId, path, startLine, endLine }) => {
-      const readRange = (filePath: string, start: number | null, end: number | null): string => {
+    ({ findingId, path, startLine, endLine, repo }) => {
+      const readRange = (
+        context: RepoContext,
+        filePath: string,
+        start: number | null,
+        end: number | null,
+      ): string => {
         try {
-          const lines = readFileSync(join(rootPath, filePath), 'utf8').split('\n');
+          const lines = readFileSync(join(context.rootPath, filePath), 'utf8').split('\n');
           const from = Math.max((start ?? 1) - 1, 0);
           const to = Math.min(end ?? from + 20, lines.length);
           return lines
@@ -238,21 +360,35 @@ export function createServer(store: KnowledgeStore): McpServer {
         }
       };
       if (findingId) {
-        const evidence = store.getEvidence(findingId);
-        if (evidence.length === 0) {
-          return textResult({ error: `sin evidencia para ${findingId}` });
+        for (const context of contexts) {
+          const evidence = context.store.getEvidence(findingId);
+          if (evidence.length > 0) {
+            return textResult(
+              evidence.map((item) => ({
+                repo: context.name,
+                path: item.path,
+                lines: item.startLine ? `${item.startLine}-${item.endLine ?? item.startLine}` : null,
+                excerpt: item.excerpt,
+                source: readRange(context, item.path, item.startLine, item.endLine),
+              })),
+            );
+          }
         }
-        return textResult(
-          evidence.map((item) => ({
-            path: item.path,
-            lines: item.startLine ? `${item.startLine}-${item.endLine ?? item.startLine}` : null,
-            excerpt: item.excerpt,
-            source: readRange(item.path, item.startLine, item.endLine),
-          })),
-        );
+        return textResult({ error: `sin evidencia para ${findingId}` });
       }
       if (path) {
-        return textResult({ path, source: readRange(path, startLine ?? null, endLine ?? null) });
+        const resolved = resolveRepo(repo);
+        if (isError(resolved)) {
+          return textResult(resolved);
+        }
+        if (!resolved) {
+          return textResult({ error: `pasa \`repo\` para leer un path (disponibles: ${repoNames})` });
+        }
+        return textResult({
+          repo: resolved.name,
+          path,
+          source: readRange(resolved, path, startLine ?? null, endLine ?? null),
+        });
       }
       return textResult({ error: 'pasa findingId o path' });
     },
@@ -262,10 +398,19 @@ export function createServer(store: KnowledgeStore): McpServer {
     'search',
     {
       description:
-        'Búsqueda híbrida de símbolos (FTS5 + vectores + grafo). Acepta lenguaje natural, también en español.',
-      inputSchema: { query: z.string(), limit: z.number().int().min(1).max(20).optional() },
+        'Búsqueda híbrida de símbolos (FTS5 + vectores + grafo), también en español. Sin `repo`, busca en todos los repos servidos.',
+      inputSchema: {
+        query: z.string(),
+        limit: z.number().int().min(1).max(20).optional(),
+        ...repoParam,
+      },
     },
-    async ({ query, limit }) => {
+    async ({ query, limit, repo }) => {
+      const resolved = resolveRepo(repo);
+      if (isError(resolved)) {
+        return textResult(resolved);
+      }
+      const targets = resolved ? [resolved] : contexts;
       const tei = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
       const qdrant = process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333';
       const reranker = process.env['REPOLEAD_RERANKER_URL'] ?? 'http://localhost:8081';
@@ -274,24 +419,34 @@ export function createServer(store: KnowledgeStore): McpServer {
         reachable(`${qdrant}/healthz`),
         reachable(`${reranker}/health`),
       ]);
-      const hits = await hybridSearch({
-        store,
-        snapshotId,
-        collection: 'repolead-symbols',
-        query,
-        embeddings: teiUp ? new TeiEmbeddingsClient(tei) : null,
-        qdrant: qdrantUp ? new QdrantRestClient(qdrant) : null,
-        reranker: rerankerUp ? new TeiRerankerClient(reranker) : null,
-        limit: limit ?? 8,
-      });
-      return textResult(
-        hits.map((hit) => ({
-          symbol: hit.symbol.qualifiedName,
-          kind: hit.symbol.kind,
-          location: `${hit.symbol.path}:${hit.symbol.startLine}-${hit.symbol.endLine}`,
-          sources: hit.sources,
-        })),
+      const perRepo = await Promise.all(
+        targets.map(async (context) => {
+          const hits = await hybridSearch({
+            store: context.store,
+            snapshotId: context.snapshotId,
+            collection: 'repolead-symbols',
+            query,
+            embeddings: teiUp ? new TeiEmbeddingsClient(tei) : null,
+            qdrant: qdrantUp ? new QdrantRestClient(qdrant) : null,
+            reranker: rerankerUp ? new TeiRerankerClient(reranker) : null,
+            limit: limit ?? 8,
+          });
+          return hits.map((hit) => ({
+            repo: context.name,
+            symbol: hit.symbol.qualifiedName,
+            kind: hit.symbol.kind,
+            location: `${hit.symbol.path}:${hit.symbol.startLine}-${hit.symbol.endLine}`,
+            score: hit.score,
+            sources: hit.sources,
+          }));
+        }),
       );
+      const merged = perRepo
+        .flat()
+        .sort((left, right) => right.score - left.score)
+        .slice(0, limit ?? 8)
+        .map((hit) => ({ repo: hit.repo, symbol: hit.symbol, kind: hit.kind, location: hit.location, sources: hit.sources }));
+      return textResult(merged);
     },
   );
 

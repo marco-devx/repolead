@@ -90,7 +90,7 @@ async function seedAndConnect() {
     ],
   );
 
-  const server = createServer(store);
+  const server = createServer([{ name: REPO, store }]);
   const client = new Client({ name: 'test-client', version: '0.0.1' });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);

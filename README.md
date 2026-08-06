@@ -52,8 +52,14 @@ docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 ## Conectar a Claude Code (MCP)
 
 ```bash
+# Un repo:
 claude mcp add repolead -- bun /ruta/a/repolead/apps/cli/src/index.ts serve --db /ruta/al/repo/.repolead/repolead.db
+
+# Varios repos bajo una carpeta (cada uno ya con `repolead onboard`):
+claude mcp add repolead -- bun /ruta/a/repolead/apps/cli/src/index.ts serve --dir /carpeta/con/los/repos
 ```
+
+En modo `--dir`, cada tool acepta `repo` opcional: `repo_overview` sin argumentos lista todos, `search` busca en todos a la vez, y símbolos/módulos inequívocos se resuelven sin especificar repo.
 
 Y en la sesión: *"Use RepoLead to explain the audit-log architecture. Do not scan the repository manually."*
 Tools: `repo_overview` · `module_context` · `symbol_context` · `find_callers` · `architecture_findings` · `get_evidence` · `search`.
