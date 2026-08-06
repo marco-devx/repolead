@@ -54,7 +54,7 @@ Racional: el primer producto es `repolead scan .` + `repolead serve` (MCP). Todo
   - `repo://<repo>/<path>` y `symbol://<repo>/<path>#<qualified>.<name>`
   - ID de símbolo = `hash(repository + path + kind + qualified_name + signature)` — nunca por línea.
   - `content_hash`, `commit_sha`, `start_line`, `end_line`, `language`, `signature` como metadatos.
-- `packages/knowledge-store`: SQLite vía **`bun:sqlite`** (driver nativo de Bun, síncrono; ata el runtime a Bun, aceptado), migraciones versionadas, tablas del doc (`repositories`, `snapshots`, `files`, `symbols`, `edges`, `metrics`, `tests`, `coverage`, `findings`, `summaries`, `opportunities`, `analysis_runs`, `evidence`).
+- `packages/knowledge-store`: SQLite con **driver dual** detrás de una interfaz común mínima — `bun:sqlite` bajo Bun (better-sqlite3 no carga en Bun) y **better-sqlite3** bajo Node, donde corren los workers de Rstest (`bun:sqlite` no existe ahí y el `node:sqlite` de Node 22 no trae FTS5). Migraciones versionadas, tablas del doc (`repositories`, `snapshots`, `files`, `symbols`, `edges`, `metrics`, `tests`, `coverage`, `findings`, `summaries`, `opportunities`, `analysis_runs`, `evidence`).
 - **FTS5** sobre símbolos, resúmenes y findings (BM25) desde esta fase — es gratis y desbloquea `repolead query` textual temprano.
 - `edges` con `confidence`, `analyzer` y `evidence_json` desde el día uno (clave primaria compuesta como en el doc): permite que Tree-sitter y SCIP coexistan sin pisarse.
 
