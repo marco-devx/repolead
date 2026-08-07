@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path';
 
 import { Language, Parser } from 'web-tree-sitter';
 
-export type GrammarName = 'typescript' | 'tsx';
+export type GrammarName = 'typescript' | 'tsx' | 'python';
 
 const require_ = createRequire(import.meta.url);
 

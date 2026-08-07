@@ -166,7 +166,7 @@ Racional: el primer producto es `repolead scan .` + `repolead serve` (MCP). Todo
 
 En orden sugerido:
 
-1. **Python adapter** (Tree-sitter queries + `scip-python` + Ruff/Radon normalizados a `metrics`) — valida que la abstracción de adapters funciona.
+1. ~~**Python adapter**~~ **HECHO**: `adapters/python` (Tree-sitter: clases, funciones, métodos, endpoints FastAPI por decorador, imports resueltos, tests pytest) + `scip-python` para referencias. Ruff/Radon a `metrics` pendiente (Fase de métricas).
 2. **`impact_analysis` + scoring** — los factores objetivos del doc (símbolos afectados, dependientes transitivos, API pública, persistencia, cobertura…) → score → recomendación de workflow. Es lo que conecta con SwarmForge.
 3. **`trace_flow`** — BFS sobre el grafo entre endpoint y side effect.
 4. **Hotspots + mutation testing dirigido** — combinar complejidad × cobertura × fan-in × churn de la fase 2; Stryker solo sobre hotspots.

@@ -3,7 +3,8 @@ import { mkdirSync, readFileSync } from 'node:fs';
 import { basename, dirname, isAbsolute, join, posix, resolve } from 'node:path';
 
 import { collectHistory, gitHead, listTrackedFiles } from '@repolead/adapter-git';
-import { indexWithScipTypescript } from '@repolead/adapter-scip';
+import { extractPythonSource, isPythonTestPath, resolvePythonImport } from '@repolead/adapter-python';
+import { indexWithScipPython, indexWithScipTypescript } from '@repolead/adapter-scip';
 import { extractFromSource, isTestPath } from '@repolead/adapter-typescript';
 import type { CodeSymbol, Edge, Metric, Module, SourceFile, TestCase } from '@repolead/domain';
 import { contentHash, fileUri, moduleUri, stableSymbolId } from '@repolead/domain';
@@ -48,6 +49,14 @@ function extensionOf(path: string): string {
 
 function isParseableTypescript(path: string): boolean {
   return /\.[cm]?tsx?$/.test(path) && !path.endsWith('.d.ts');
+}
+
+function isParseablePython(path: string): boolean {
+  return path.endsWith('.py');
+}
+
+function isTestFile(path: string): boolean {
+  return isTestPath(path) || isPythonTestPath(path);
 }
 
 /** Resuelve un import relativo a un archivo real del repo (con .ts/.tsx/index). */
@@ -158,11 +167,17 @@ export async function scanRepository(options: ScanOptions): Promise<ScanResult> 
       });
     }
 
-    if (source === null || !isParseableTypescript(path)) {
+    if (source === null) {
       continue;
     }
-
-    const extraction = await extractFromSource(path, source);
+    let extraction;
+    if (isParseableTypescript(path)) {
+      extraction = await extractFromSource(path, source);
+    } else if (isParseablePython(path)) {
+      extraction = await extractPythonSource(path, source);
+    } else {
+      continue;
+    }
 
     for (const extracted of extraction.symbols) {
       const symbolId = stableSymbolId({
@@ -204,7 +219,9 @@ export async function scanRepository(options: ScanOptions): Promise<ScanResult> 
     }
 
     for (const importEntry of extraction.imports) {
-      const targetPath = resolveRelativeImport(path, importEntry.specifier, tracked);
+      const targetPath = isParseablePython(path)
+        ? resolvePythonImport(path, importEntry.specifier, tracked)
+        : resolveRelativeImport(path, importEntry.specifier, tracked);
       if (!targetPath) {
         continue;
       }
@@ -217,7 +234,7 @@ export async function scanRepository(options: ScanOptions): Promise<ScanResult> 
         analyzer: 'tree-sitter',
         evidence: { path, line: importEntry.startLine, specifier: importEntry.specifier },
       });
-      if (isTestPath(path)) {
+      if (isTestFile(path)) {
         addEdge({
           snapshotId: snapshot.id,
           sourceId: fileUri(repositoryName, targetPath),
@@ -242,9 +259,13 @@ export async function scanRepository(options: ScanOptions): Promise<ScanResult> 
 
   // Módulos: cada directorio con package.json es un módulo; los archivos se
   // asignan al módulo más cercano hacia la raíz.
-  const moduleDirs = trackedFiles
-    .filter((path) => basename(path) === 'package.json')
-    .map((path) => posix.dirname(path));
+  const moduleDirs = [
+    ...new Set(
+      trackedFiles
+        .filter((path) => ['package.json', 'pyproject.toml', 'setup.py'].includes(basename(path)))
+        .map((path) => posix.dirname(path)),
+    ),
+  ];
   if (moduleDirs.length === 0) {
     moduleDirs.push('.');
   }
@@ -273,18 +294,27 @@ export async function scanRepository(options: ScanOptions): Promise<ScanResult> 
 
   let referencesResolved: number | null = null;
   if (options.scip !== false) {
-    const scipIndex = await indexWithScipTypescript(rootPath);
-    if (scipIndex) {
+    const hasTs = trackedFiles.some((path) => isParseableTypescript(path));
+    const hasPy = trackedFiles.some((path) => isParseablePython(path));
+    const indexes = [
+      ...(hasTs ? [await indexWithScipTypescript(rootPath)] : []),
+      ...(hasPy ? [await indexWithScipPython(rootPath)] : []),
+    ].filter((index) => index !== null);
+    let unmapped = 0;
+    for (const scipIndex of indexes) {
       const enrichment = buildScipEdges(scipIndex, [...symbols.values()], snapshot.id);
       for (const edge of enrichment.edges) {
         addEdge(edge);
       }
-      referencesResolved = enrichment.resolvedReferences;
+      referencesResolved = (referencesResolved ?? 0) + enrichment.resolvedReferences;
+      unmapped += enrichment.unmappedDefinitions;
+    }
+    if (indexes.length > 0) {
       metrics.push({
         snapshotId: snapshot.id,
         subjectId: fileUri(repositoryName, '.'),
         name: 'scip_unmapped_definitions',
-        value: enrichment.unmappedDefinitions,
+        value: unmapped,
         analyzer: 'scip',
       });
     }

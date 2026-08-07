@@ -177,10 +177,10 @@ export function parseScipIndex(data: Uint8Array): ScipIndex {
   return { documents, relationships };
 }
 
-function scipTypescriptEntry(): string | null {
+function packageEntry(packageName: string, entryRelative: string): string | null {
   try {
-    const packagePath = require_.resolve('@sourcegraph/scip-typescript/package.json');
-    return join(dirname(packagePath), 'dist/src/main.js');
+    const packagePath = require_.resolve(`${packageName}/package.json`);
+    return join(dirname(packagePath), entryRelative);
   } catch {
     return null;
   }
@@ -190,24 +190,50 @@ function scipTypescriptEntry(): string | null {
  * Ejecuta scip-typescript sobre el repo y devuelve el índice parseado,
  * o null si el indexador no está disponible o falla (el scan sigue sin SCIP).
  */
-export async function indexWithScipTypescript(rootPath: string): Promise<ScipIndex | null> {
-  const entry = scipTypescriptEntry();
-  if (!entry) {
-    return null;
-  }
-
+async function runIndexer(entry: string, rootPath: string, buildArgs: (output: string) => string[]): Promise<ScipIndex | null> {
   const workDir = await mkdtemp(join(tmpdir(), 'repolead-scip-'));
   const outputPath = join(workDir, 'index.scip');
   try {
-    const args = [entry, 'index', '--output', outputPath];
-    if (!existsSync(join(rootPath, 'tsconfig.json'))) {
-      args.push('--infer-tsconfig');
-    }
-    await run(process.execPath, args, { cwd: rootPath, maxBuffer: 64 * 1024 * 1024 });
+    await run(process.execPath, [entry, ...buildArgs(outputPath)], {
+      cwd: rootPath,
+      maxBuffer: 64 * 1024 * 1024,
+    });
     return parseScipIndex(await readFile(outputPath));
   } catch {
     return null;
   } finally {
     await rm(workDir, { recursive: true, force: true });
   }
+}
+
+export async function indexWithScipTypescript(rootPath: string): Promise<ScipIndex | null> {
+  const entry = packageEntry('@sourcegraph/scip-typescript', 'dist/src/main.js');
+  if (!entry) {
+    return null;
+  }
+  return runIndexer(entry, rootPath, (output) => {
+    const args = ['index', '--output', output];
+    if (!existsSync(join(rootPath, 'tsconfig.json'))) {
+      args.push('--infer-tsconfig');
+    }
+    return args;
+  });
+}
+
+/** scip-python (pyright): referencias resueltas para repos Python. */
+export async function indexWithScipPython(rootPath: string): Promise<ScipIndex | null> {
+  const entry = packageEntry('@sourcegraph/scip-python', 'index.js');
+  if (!entry) {
+    return null;
+  }
+  return runIndexer(entry, rootPath, (output) => [
+    'index',
+    '.',
+    '--output',
+    output,
+    '--project-name',
+    'repolead-scan',
+    '--project-version',
+    '0',
+  ]);
 }
