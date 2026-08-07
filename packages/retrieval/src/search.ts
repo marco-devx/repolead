@@ -97,9 +97,21 @@ export async function hybridSearch(options: HybridSearchOptions): Promise<Search
 
   let candidates = [...fused.entries()]
     .map(([id, entry]) => ({ symbol: symbols.get(id), score: entry.score, sources: [...entry.sources] }))
-    .filter((entry): entry is SearchHit => entry.symbol !== undefined)
-    .sort((left, right) => right.score - left.score)
-    .slice(0, candidateLimit);
+    .filter((entry): entry is SearchHit => entry.symbol !== undefined);
+
+  // Term-coverage bonus: with multi-term queries, candidates matching more
+  // distinct terms outrank a single rare-term exact hit, without burying
+  // vector-only semantic matches (bonus, not multiplier).
+  const terms = [...new Set(query.toLowerCase().split(/\s+/).filter((term) => term.length > 2))];
+  if (terms.length >= 2) {
+    for (const candidate of candidates) {
+      const text = symbolText(candidate.symbol).toLowerCase();
+      const matched = terms.filter((term) => text.includes(term)).length;
+      candidate.score += (matched / terms.length) ** 2 * 0.03;
+    }
+  }
+
+  candidates = candidates.sort((left, right) => right.score - left.score).slice(0, candidateLimit);
 
   if (options.reranker && candidates.length > 1) {
     const scores = await options.reranker.rerank(

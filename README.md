@@ -99,6 +99,7 @@ repolead onboard .
 | `repolead query <text...>` | Hybrid search (FTS5 + vectors + graph) in natural language | `--db <path>` · `--limit <n>` |
 | `repolead reindex` | Rebuild the Qdrant vector index from SQLite | `--db <path>` |
 | `repolead serve` | Start the MCP server over stdio | `--db <path>` one repo · `--dir <path>` every repo under a directory |
+| `repolead install-hooks [path]` | Install a Claude Code PreToolUse hook that steers agents toward RepoLead instead of raw file reads | `--remove` uninstall |
 | `repolead doctor` | Check binaries and services (git, SCIP, Qdrant, TEI, reranker) | — |
 
 Analysis backend selection: if `ANTHROPIC_API_KEY` or `ANTHROPIC_AUTH_TOKEN` is set the direct API is used (default model `claude-opus-5`); otherwise the Claude Agent SDK runs on your Claude Code subscription. Force either with `--backend`.
@@ -134,6 +135,8 @@ Then, inside a session:
 ```
 Use RepoLead to explain the authentication flow. Do not scan the repository manually.
 ```
+
+Optionally, make the steering automatic: `repolead install-hooks .` registers a PreToolUse hook in the project that nudges the agent toward RepoLead tools whenever it tries to read indexed source files directly (at most twice per session, silent when the index is stale, fails open on any error).
 
 ## Connect to Codex
 

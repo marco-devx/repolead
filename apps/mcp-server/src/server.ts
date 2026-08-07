@@ -233,16 +233,29 @@ export function createServer(repos: ServedRepo[]): McpServer {
       const { context, symbol } = located;
       const graph = context.store.loadGraph(context.snapshotId);
       const describe = (id: string): string => graph.symbols.get(id)?.qualifiedName ?? id;
+      const ordered = (edges: { edgeType: string; confidence: number }[]) =>
+        [...edges].sort(
+          (left, right) =>
+            Number(right.edgeType === 'CALLS') - Number(left.edgeType === 'CALLS') ||
+            right.confidence - left.confidence,
+        );
+      const incomingAll = ordered(graph.incoming.get(symbol.id) ?? []) as typeof graph.incoming extends Map<string, infer E> ? E : never;
+      const outgoingAll = ordered(graph.outgoing.get(symbol.id) ?? []) as typeof incomingAll;
       return textResult({
+        ...(incomingAll.length > 20 || outgoingAll.length > 20
+          ? {
+              truncation: `showing 20 of ${incomingAll.length} incoming and 20 of ${outgoingAll.length} outgoing relations; use find_callers with transitiveDepth for the full caller set`,
+            }
+          : {}),
         repo: context.name,
         symbol: symbol.qualifiedName,
         kind: symbol.kind,
         signature: symbol.signature,
         location: `${symbol.path}:${symbol.startLine}-${symbol.endLine}`,
-        incoming: (graph.incoming.get(symbol.id) ?? [])
+        incoming: incomingAll
           .slice(0, 20)
           .map((edge) => `${describe(edge.sourceId)} —${edge.edgeType}→ (${edge.analyzer})`),
-        outgoing: (graph.outgoing.get(symbol.id) ?? [])
+        outgoing: outgoingAll
           .slice(0, 20)
           .map((edge) => `—${edge.edgeType}→ ${describe(edge.targetId)} (${edge.analyzer})`),
         hint: EVIDENCE_HINT,
@@ -441,12 +454,18 @@ export function createServer(repos: ServedRepo[]): McpServer {
           }));
         }),
       );
-      const merged = perRepo
-        .flat()
-        .sort((left, right) => right.score - left.score)
+      const all = perRepo.flat().sort((left, right) => right.score - left.score);
+      const shown = all
         .slice(0, limit ?? 8)
         .map((hit) => ({ repo: hit.repo, symbol: hit.symbol, kind: hit.kind, location: hit.location, sources: hit.sources }));
-      return textResult(merged);
+      return textResult({
+        ...(all.length > shown.length
+          ? {
+              truncation: `showing ${shown.length} of ${all.length} matches; narrow the query, raise limit, or pass repo`,
+            }
+          : {}),
+        results: shown,
+      });
     },
   );
 

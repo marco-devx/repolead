@@ -156,8 +156,8 @@ test('findings filtrables y evidencia con contrato de preview', async () => {
 
   const search = payloadOf(
     await client.callTool({ name: 'search', arguments: { query: 'payment process' } }),
-  ) as { symbol: string }[];
-  expect(search[0]?.symbol).toBe('PaymentService.process');
+  ) as { results: { symbol: string }[] };
+  expect(search.results[0]?.symbol).toBe('PaymentService.process');
 
   store.close();
 });

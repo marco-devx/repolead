@@ -7,5 +7,5 @@ test('el CLI registra todos los comandos', () => {
     .commands.map((command) => command.name())
     .sort();
 
-  expect(names).toEqual(['analyze', 'audit', 'brief', 'doctor', 'onboard', 'query', 'refresh', 'reindex', 'scan', 'serve']);
+  expect(names).toEqual(['analyze', 'audit', 'brief', 'doctor', 'install-hooks', 'onboard', 'query', 'refresh', 'reindex', 'scan', 'serve']);
 });

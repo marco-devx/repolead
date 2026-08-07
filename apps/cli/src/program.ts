@@ -5,6 +5,7 @@ import { registerAudit } from './commands/audit';
 import { registerBrief } from './commands/brief';
 import { registerOnboard } from './commands/onboard';
 import { registerDoctor } from './commands/doctor';
+import { registerInstallHooks } from './commands/install-hooks';
 import { registerQuery, registerReindex } from './commands/query';
 import { registerRefresh } from './commands/refresh';
 import { registerScan } from './commands/scan';
@@ -24,6 +25,7 @@ export function buildProgram(): Command {
   registerQuery(program);
   registerReindex(program);
   registerServe(program);
+  registerInstallHooks(program);
   registerDoctor(program);
 
   return program;
