@@ -138,6 +138,32 @@ Use RepoLead to explain the authentication flow. Do not scan the repository manu
 
 Optionally, make the steering automatic: `repolead install-hooks .` registers a PreToolUse hook in the project that nudges the agent toward RepoLead tools whenever it tries to read indexed source files directly (at most twice per session, silent when the index is stale, fails open on any error).
 
+## Remote deployment (product teams, private cloud)
+
+The server can also run over authenticated HTTP so non-developers query the knowledge base from claude.ai without installing anything:
+
+```bash
+REPOLEAD_TOKEN=<strong-secret> repolead serve --dir /srv/repos --http --port 3939 --no-source
+```
+
+- `--http` switches from stdio to MCP Streamable HTTP at `POST /mcp`; every request requires `Authorization: Bearer <token>`.
+- `--no-source` enables product mode: dossiers, briefs, findings, search and stored evidence excerpts are served, but raw source lines never leave the server.
+- Keep the endpoint inside your VPN or behind a reverse proxy with TLS.
+
+Connect it as a custom connector in claude.ai (Settings -> Connectors -> Add custom connector, URL `https://your-host/mcp`) or in Claude Code:
+
+```bash
+claude mcp add --transport http repolead https://your-host/mcp --header "Authorization: Bearer <token>"
+```
+
+Keep the indexes fresh with a cron job on the host:
+
+```
+*/30 * * * * cd /srv/repos && for d in */; do git -C "$d" pull -q && repolead refresh "$d" --analyze; done
+```
+
+Content-addressed caching keeps this cheap: unchanged modules cost zero LLM calls.
+
 ## Connect to Codex
 
 Add to `~/.codex/config.toml`:

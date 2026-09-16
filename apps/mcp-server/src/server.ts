@@ -61,7 +61,14 @@ async function reachable(url: string): Promise<boolean> {
  * tool acepta `repo`; cuando el objetivo es inequívoco (un solo repo, o el
  * símbolo/módulo existe en uno solo) se resuelve sin pedirlo.
  */
-export function createServer(repos: ServedRepo[]): McpServer {
+export interface ServerOptions {
+  /** false = modo producto: nunca se sirve código fuente crudo (get_evidence
+   * devuelve solo los metadatos y excerpts persistidos en la base). */
+  exposeSource?: boolean;
+}
+
+export function createServer(repos: ServedRepo[], options: ServerOptions = {}): McpServer {
+  const exposeSource = options.exposeSource !== false;
   const contexts: RepoContext[] = [];
   for (const { name, store } of repos) {
     const snapshot = store.getLatestSnapshot();
@@ -360,6 +367,9 @@ export function createServer(repos: ServedRepo[]): McpServer {
         start: number | null,
         end: number | null,
       ): string => {
+        if (!exposeSource) {
+          return '(source access disabled on this server)';
+        }
         try {
           const lines = readFileSync(join(context.rootPath, filePath), 'utf8').split('\n');
           const from = Math.max((start ?? 1) - 1, 0);
@@ -390,6 +400,9 @@ export function createServer(repos: ServedRepo[]): McpServer {
         return textResult({ error: `sin evidencia para ${findingId}` });
       }
       if (path) {
+        if (!exposeSource) {
+          return textResult({ error: 'source access disabled on this server' });
+        }
         const resolved = resolveRepo(repo);
         if (isError(resolved)) {
           return textResult(resolved);

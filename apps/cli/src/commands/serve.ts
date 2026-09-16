@@ -6,7 +6,7 @@ import type { Command } from 'commander';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { openStore } from '@repolead/knowledge-store';
 import type { ServedRepo } from '@repolead/mcp-server';
-import { createServer } from '@repolead/mcp-server';
+import { createServer, startHttpServer } from '@repolead/mcp-server';
 
 /** Bases de RepoLead en <dir> y sus subdirectorios inmediatos. */
 function discoverDatabases(dir: string): { name: string; dbPath: string }[] {
@@ -29,7 +29,18 @@ export function registerServe(program: Command): void {
     .description('Levanta el servidor MCP de RepoLead sobre stdio (uno o varios repos)')
     .option('--db <path>', 'una base SQLite concreta', '.repolead/repolead.db')
     .option('--dir <path>', 'sirve todos los repos con .repolead/repolead.db bajo este directorio')
-    .action(async (options: { db: string; dir?: string }) => {
+    .option('--http', 'sirve por HTTP (Streamable HTTP) en vez de stdio')
+    .option('--port <port>', 'puerto HTTP', '3939')
+    .option('--token <token>', 'bearer token para HTTP (o env REPOLEAD_TOKEN)')
+    .option('--no-source', 'modo producto: nunca servir código fuente crudo')
+    .action(async (options: {
+      db: string;
+      dir?: string;
+      http?: boolean;
+      port: string;
+      token?: string;
+      source: boolean;
+    }) => {
       const repos: ServedRepo[] = [];
       if (options.dir) {
         for (const found of discoverDatabases(options.dir)) {
@@ -47,7 +58,22 @@ export function registerServe(program: Command): void {
         repos.push({ name: repository?.name ?? 'repo', store });
       }
 
-      const server = createServer(repos);
+      if (options.http) {
+        const token = options.token ?? process.env['REPOLEAD_TOKEN'];
+        if (!token) {
+          console.error('HTTP requiere autenticación: pasa --token o define REPOLEAD_TOKEN.');
+          process.exitCode = 1;
+          return;
+        }
+        const port = Number(options.port);
+        await startHttpServer(repos, { port, token, exposeSource: options.source });
+        console.error(
+          `RepoLead MCP server listo (http://0.0.0.0:${port}/mcp) · ${repos.map((repo) => repo.name).join(', ')}${options.source ? '' : ' · sin código fuente'}`,
+        );
+        return;
+      }
+
+      const server = createServer(repos, { exposeSource: options.source });
       // stdout es el canal MCP: cualquier log va a stderr.
       console.error(`RepoLead MCP server listo (stdio) · ${repos.map((repo) => repo.name).join(', ')}`);
       await server.connect(new StdioServerTransport());
