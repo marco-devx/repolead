@@ -1,6 +1,7 @@
 import { Command } from 'commander';
 
 import { registerAnalyze } from './commands/analyze';
+import { registerContext } from './commands/context';
 import { registerAudit } from './commands/audit';
 import { registerBrief } from './commands/brief';
 import { registerOnboard } from './commands/onboard';
@@ -17,6 +18,7 @@ export function buildProgram(): Command {
     .version('0.1.0');
 
   registerScan(program);
+  registerContext(program);
   registerOnboard(program);
   registerRefresh(program);
   registerAnalyze(program);

@@ -3,9 +3,10 @@ import { expect, test } from '@rstest/core';
 import type { CodeSymbol } from '@repolead/domain';
 import { fileUri, moduleUri, stableSymbolId } from '@repolead/domain';
 import { openStore } from '@repolead/knowledge-store';
+import { countTokens } from '@repolead/retrieval';
 
 import { analyzeSnapshot } from './analyze';
-import { buildModuleEvidencePack } from './evidence';
+import { buildModuleEvidencePack, buildRepositoryEvidencePack } from './evidence';
 import type { TechLeadModel } from './model';
 
 class FakeModel implements TechLeadModel {
@@ -193,4 +194,51 @@ test('el presupuesto recorta símbolos por fan-in y lo deja explícito', async (
   expect(pack.symbols[0]?.qualifiedName).toBe('PaymentService.process');
 
   store.close();
+});
+
+test('invalida la caché si cambia el cuerpo de un símbolo omitido por presupuesto', async () => {
+  const { store, snapshot, symbols } = await seed(30);
+  const model = new FakeModel();
+  const budget = { maxTokens: 1000, maxSymbolsPerPack: 2 };
+  await analyzeSnapshot({ store, snapshotId: snapshot.id, model, budget });
+  store.db.prepare('UPDATE symbols SET content_hash = ? WHERE id = ? AND snapshot_id = ?')
+    .run('new-body-identical-signature', symbols[29]!.id, snapshot.id);
+  const result = await analyzeSnapshot({ store, snapshotId: snapshot.id, model, budget });
+  expect(result.modulesAnalyzed).toBe(1);
+  const unchanged = await analyzeSnapshot({ store, snapshotId: snapshot.id, model, budget });
+  expect(unchanged.modulesCached).toBe(1);
+  expect(unchanged.inputTokens).toBe(0);
+  store.close();
+});
+
+test('respeta tokens y cuenta relaciones perdidas al omitir símbolos', async () => {
+  const { store, snapshot } = await seed(40);
+  const module = store.listModules(snapshot.id)[0]!;
+  const pack = buildModuleEvidencePack(store, snapshot.id, module, { maxTokens: 600, maxSymbolsPerPack: 1 });
+  expect(countTokens(JSON.stringify(pack))).toBeLessThanOrEqual(600);
+  expect(pack.truncation.droppedSymbols).toBe(39);
+  expect(pack.truncation.droppedEdges).toBe(1);
+  store.close();
+});
+
+test('el módulo raíz no vuelve a analizar símbolos de los submódulos', async () => {
+  const { store, repository, snapshot } = await seed();
+  const root = { id: moduleUri(REPO, 'root'), repositoryId: repository.id, snapshotId: snapshot.id, name: 'root', path: '.' };
+  store.insertModules([root]);
+  const pack = buildModuleEvidencePack(store, snapshot.id, root);
+  expect(pack.symbols).toEqual([]);
+  expect(pack.files).toEqual([]);
+  store.close();
+});
+
+test('el resumen global limita tokens y reparte el presupuesto entre módulos', () => {
+  const dossiers = Array.from({ length: 10 }, (_, index) => ({
+    module: 'module-' + index,
+    dossier: { responsibility: 'small purpose', publicApi: Array.from({ length: 1000 }, (_, n) => 'function' + n) },
+  }));
+  const pack = buildRepositoryEvidencePack('demo', { modules: 10 }, dossiers, 1000);
+  expect(countTokens(JSON.stringify(pack))).toBeLessThanOrEqual(1000);
+  expect(pack.modules).toHaveLength(10);
+  expect(pack.modules.every((module) => module.dossier['responsibility'] === 'small purpose')).toBe(true);
+  expect(pack.truncation.omittedSections).toBe(10);
 });

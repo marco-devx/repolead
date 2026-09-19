@@ -1,6 +1,3 @@
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
-
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
@@ -11,6 +8,9 @@ import {
   TeiEmbeddingsClient,
   TeiRerankerClient,
   hybridSearch,
+  buildContextPack,
+  countTokens,
+  readIndexedSource,
 } from '@repolead/retrieval';
 
 const PREVIEW_CHARS = 300;
@@ -35,7 +35,7 @@ function preview(text: string): string {
 }
 
 function textResult(payload: unknown): { content: { type: 'text'; text: string }[] } {
-  return { content: [{ type: 'text', text: JSON.stringify(payload, null, 1) }] };
+  return { content: [{ type: 'text', text: JSON.stringify(payload) }] };
 }
 
 function findSymbolIn(context: RepoContext, name: string): CodeSymbol | null {
@@ -91,7 +91,9 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
   const repoNames = [...byName.keys()].join(', ');
   const single = contexts.length === 1 ? contexts[0]! : null;
 
-  const server = new McpServer({ name: 'repolead', version: '0.2.0' });
+  const server = new McpServer({ name: 'repolead', version: '0.3.0' }, {
+    instructions: 'Start repository exploration with context_pack (default 2000-token budget). Use search to locate symbols, then request complete source only for the symbols needed. Check omission counts; a compact map is not a behavioral analysis. All tools are read-only.',
+  });
 
   const repoParam = {
     repo: z.string().optional().describe(`repo objetivo (disponibles: ${repoNames})`),
@@ -99,6 +101,13 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
 
   type Resolved = RepoContext | { error: string } | null;
   const resolveRepo = (repo?: string): Resolved => {
+    // Long-lived stdio clients must observe refresh without restarting their session.
+    for (const context of contexts) {
+      const latest = context.store.getLatestSnapshot();
+      if (latest) {
+        context.snapshotId = latest.id;
+      }
+    }
     if (repo) {
       return byName.get(repo) ?? { error: `repo desconocido: ${repo}. Disponibles: ${repoNames}` };
     }
@@ -106,6 +115,50 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
   };
   const isError = (value: Resolved): value is { error: string } =>
     value !== null && 'error' in value;
+
+  server.registerTool(
+    'context_pack',
+    {
+      description: 'Start here to save tokens: task-specific code map with a measured token budget. Optional complete source for selected symbols; reports omitted context. No LLM call.',
+      annotations: { readOnlyHint: true, destructiveHint: false, openWorldHint: false },
+      inputSchema: {
+        query: z.string().max(2000).optional(),
+        module: z.string().optional(),
+        symbols: z.array(z.string()).max(20).optional().describe('exact qualified names or symbol IDs'),
+        maxTokens: z.number().int().min(256).max(64000).optional().describe('default 2000; o200k_base proxy'),
+        includeSource: z.boolean().optional().describe('include complete source spans if they fit; default false'),
+        ...repoParam,
+      },
+    },
+    async ({ repo, query, module, symbols, maxTokens, includeSource }) => {
+      const context = resolveRepo(repo);
+      if (isError(context)) {
+        return textResult(context);
+      }
+      if (!context) {
+        return textResult({ error: 'pasa repo para construir un contexto con presupuesto global', repos: [...byName.keys()] });
+      }
+      try {
+        let seedIds: string[] | undefined;
+        if (query && !symbols?.length && !module) {
+          const tei = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
+          const qdrant = process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333';
+          const [teiUp, qdrantUp] = await Promise.all([reachable(`${tei}/health`), reachable(`${qdrant}/healthz`)]);
+          const hits = await hybridSearch({
+            store: context.store, snapshotId: context.snapshotId, collection: 'repolead-symbols', query, limit: 3,
+            embeddings: teiUp ? new TeiEmbeddingsClient(tei) : null,
+            qdrant: qdrantUp ? new QdrantRestClient(qdrant) : null,
+          });
+          seedIds = hits.map((hit) => hit.symbol.id);
+        }
+        const pack = buildContextPack({ store: context.store, snapshotId: context.snapshotId, query, module,
+          symbols, seedIds, maxTokens, includeSource, exposeSource });
+        return { content: [{ type: 'text' as const, text: pack.text }] };
+      } catch (error) {
+        return { ...textResult({ error: error instanceof Error ? error.message : String(error) }), isError: true };
+      }
+    },
+  );
 
   server.registerTool(
     'repo_overview',
@@ -371,15 +424,18 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
           return '(source access disabled on this server)';
         }
         try {
-          const lines = readFileSync(join(context.rootPath, filePath), 'utf8').split('\n');
+          const lines = readIndexedSource(context.store, context.snapshotId, context.rootPath, filePath).split('\n');
           const from = Math.max((start ?? 1) - 1, 0);
-          const to = Math.min(end ?? from + 20, lines.length);
-          return lines
-            .slice(from, to)
-            .map((line, index) => `${from + index + 1}\t${line}`)
-            .join('\n');
-        } catch {
-          return '(archivo no disponible en el working tree actual)';
+          const requestedEnd = Math.min(end ?? from + 20, lines.length);
+          let to = Math.min(requestedEnd, from + 200);
+          const render = (): string => lines.slice(from, to).map((line, index) => `${from + index + 1}\t${line}`).join('\n') +
+            (to < requestedEnd ? `\n[truncated; request startLine=${to + 1}]` : '');
+          while (to > from && countTokens(render()) > 2000) {
+            to -= 1;
+          }
+          return render();
+        } catch (error) {
+          return `(source unavailable: ${error instanceof Error ? error.message : String(error)})`;
         }
       };
       if (findingId) {

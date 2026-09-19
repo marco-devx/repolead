@@ -13,7 +13,12 @@ import { hybridSearch, symbolText } from './search';
 
 /** Embedding determinístico de juguete: bolsa de caracteres en 26 dimensiones. */
 class FakeEmbeddings implements EmbeddingsClient {
+  embedded = 0;
+  cacheKey(): Promise<string> {
+    return Promise.resolve('fake-26-v1');
+  }
   embed(texts: string[]): Promise<number[][]> {
+    this.embedded += texts.length;
     return Promise.resolve(
       texts.map((text) => {
         const vector = new Array<number>(26).fill(0);
@@ -37,8 +42,13 @@ class FakeQdrant implements QdrantSearcher {
   }
 
   upsert(_name: string, points: QdrantPoint[]): Promise<void> {
-    this.points.push(...points);
+    const ids = new Set(points.map((point) => point.id));
+    this.points = [...this.points.filter((point) => !ids.has(point.id)), ...points];
     return Promise.resolve();
+  }
+
+  retrieve(_name: string, ids: string[]): Promise<QdrantPoint[]> {
+    return Promise.resolve(this.points.filter((point) => ids.includes(point.id)));
   }
 
   search(_name: string, vector: number[], snapshotId: string, limit: number): Promise<QdrantHit[]> {
@@ -167,5 +177,37 @@ test('symbolText incluye kind, nombre y path', async () => {
   const { store, payment } = await seed();
   expect(symbolText(payment)).toContain('method PaymentService.process');
   expect(symbolText(payment)).toContain('src/payment/service.ts');
+  store.close();
+});
+
+test('refresh conserva vectores intactos, excluye eliminados y reutiliza embeddings por contenido/modelo', async () => {
+  const { store, snapshot, payment, audit, mapper } = await seed();
+  const embeddings = new FakeEmbeddings();
+  const qdrant = new FakeQdrant();
+  const base = { store, repositoryName: 'demo', collection: 'repolead', embeddings, qdrant };
+  await indexSnapshot({ ...base, snapshotId: snapshot.id });
+  expect(embeddings.embedded).toBe(3);
+  const next = store.createSnapshot({ repositoryId: payment.repositoryId, commitSha: 'next' });
+  store.insertSymbols([
+    { ...payment, snapshotId: next.id, signature: 'changed(value: string)' },
+    { ...audit, snapshotId: next.id },
+  ]);
+  await indexSnapshot({ ...base, snapshotId: next.id, symbolIds: new Set([payment.id]) });
+  expect(embeddings.embedded).toBe(4);
+  const matches = await qdrant.search('repolead', [1], next.id, 20);
+  expect(matches.map((hit) => hit.payload['symbol_id']).sort()).toEqual([payment.id, audit.id].sort());
+  expect(matches.some((hit) => hit.payload['symbol_id'] === mapper.id)).toBe(false);
+  // A commit with no symbol changes still advances ALL live vector payloads.
+  const third = store.createSnapshot({ repositoryId: payment.repositoryId, commitSha: 'third' });
+  store.insertSymbols(store.listSymbols(next.id).map((symbol) => ({ ...symbol, snapshotId: third.id })));
+  await indexSnapshot({ ...base, snapshotId: third.id, symbolIds: new Set() });
+  expect(embeddings.embedded).toBe(4);
+  expect((await qdrant.search('repolead', [1], third.id, 20)).length).toBe(2);
+  const differentModel: EmbeddingsClient = {
+    cacheKey: () => Promise.resolve('fake-26-v2'),
+    embed: (texts) => embeddings.embed(texts),
+  };
+  await indexSnapshot({ ...base, snapshotId: third.id, embeddings: differentModel });
+  expect(embeddings.embedded).toBe(6);
   store.close();
 });

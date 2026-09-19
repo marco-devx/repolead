@@ -1,0 +1,130 @@
+{
+  "repository": "repolead",
+  "benchmarkVersion": 1,
+  "commit": "991e341181ac719f8a90372beb7551145ac98baf",
+  "tokenizer": "o200k_base",
+  "maxTokens": 2000,
+  "modelCalls": 0,
+  "measurement": "Numbered source of the relevant files versus context_pack text including complete target source. Snapshot includes tracked working-tree contents; per-file hashes identify the measured revision. Excludes prompts, tool schemas/protocol overhead, reasoning, output tokens and provider cache/billing. Symbol targets are supplied; discovery cost and answer quality are not measured.",
+  "cases": [
+    {
+      "name": "Cómo se invalida la caché del análisis",
+      "symbols": [
+        "analyzeSubject"
+      ],
+      "paths": [
+        "packages/lead-analyzer/src/analyze.ts"
+      ],
+      "sourceContentHashes": {
+        "packages/lead-analyzer/src/analyze.ts": "73fc1b886f1bcaf345efe1f22d3ff366eca9f74bbe92934aede65d05d958244a"
+      },
+      "baselineTokens": 1859,
+      "contextTokens": 717,
+      "mapOnlyTokens": 434,
+      "savedTokens": 1142,
+      "savingsPercent": 61.4,
+      "completeTargetSources": 1,
+      "requestedTargetSources": 1,
+      "includedSymbols": 6,
+      "candidateSymbols": 6,
+      "sourceOmissions": 0
+    },
+    {
+      "name": "Cómo se construyen las referencias SCIP",
+      "symbols": [
+        "buildScipEdges"
+      ],
+      "paths": [
+        "packages/code-graph/src/scip-enrich.ts"
+      ],
+      "sourceContentHashes": {
+        "packages/code-graph/src/scip-enrich.ts": "a99b56e96a45ba28a4632f3bdb33d00774f8f5782f9487352c0781e98dfeac30"
+      },
+      "baselineTokens": 1287,
+      "contextTokens": 1302,
+      "mapOnlyTokens": 553,
+      "savedTokens": -15,
+      "savingsPercent": -1.2,
+      "completeTargetSources": 1,
+      "requestedTargetSources": 1,
+      "includedSymbols": 10,
+      "candidateSymbols": 10,
+      "sourceOmissions": 0
+    },
+    {
+      "name": "Cómo se combina la búsqueda",
+      "symbols": [
+        "hybridSearch"
+      ],
+      "paths": [
+        "packages/retrieval/src/search.ts"
+      ],
+      "sourceContentHashes": {
+        "packages/retrieval/src/search.ts": "0b6a5620c2ea554141d8f92d448fdd58dd221aa6336fbe3e7cfd102b5c034120"
+      },
+      "baselineTokens": 1388,
+      "contextTokens": 1362,
+      "mapOnlyTokens": 441,
+      "savedTokens": 26,
+      "savingsPercent": 1.9,
+      "completeTargetSources": 1,
+      "requestedTargetSources": 1,
+      "includedSymbols": 7,
+      "candidateSymbols": 7,
+      "sourceOmissions": 0
+    },
+    {
+      "name": "Cómo se recopila el historial de Git",
+      "symbols": [
+        "collectHistory"
+      ],
+      "paths": [
+        "adapters/git/src/index.ts"
+      ],
+      "sourceContentHashes": {
+        "adapters/git/src/index.ts": "d8eaf1a68831a35097e8bae3525b9d154eedf7deecdfd675b5b67f364896a61f"
+      },
+      "baselineTokens": 1228,
+      "contextTokens": 812,
+      "mapOnlyTokens": 239,
+      "savedTokens": 416,
+      "savingsPercent": 33.9,
+      "completeTargetSources": 1,
+      "requestedTargetSources": 1,
+      "includedSymbols": 4,
+      "candidateSymbols": 4,
+      "sourceOmissions": 0
+    },
+    {
+      "name": "Cómo se elige el backend del modelo",
+      "symbols": [
+        "pickModel"
+      ],
+      "paths": [
+        "apps/cli/src/model-select.ts"
+      ],
+      "sourceContentHashes": {
+        "apps/cli/src/model-select.ts": "8eb5cf37a8ba764887a0271e4b7ba7af820f1270be693597b26d30cade697d2b"
+      },
+      "baselineTokens": 254,
+      "contextTokens": 231,
+      "mapOnlyTokens": 282,
+      "savedTokens": 23,
+      "savingsPercent": 9.1,
+      "completeTargetSources": 1,
+      "requestedTargetSources": 1,
+      "includedSymbols": 2,
+      "candidateSymbols": 2,
+      "sourceOmissions": 0
+    }
+  ],
+  "totals": {
+    "baselineTokens": 6016,
+    "contextTokens": 4424,
+    "savedTokens": 1592,
+    "mapOnlyTokens": 1949,
+    "savingsPercent": 26.5,
+    "completeTargetSources": 5,
+    "requestedTargetSources": 5
+  }
+}

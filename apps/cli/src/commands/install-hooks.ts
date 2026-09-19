@@ -58,7 +58,7 @@ process.stdin.on('end', () => {
         hookEventName: 'PreToolUse',
         additionalContext:
           'This repository is indexed by RepoLead (MCP server "repolead"). Prefer its tools over raw exploration: ' +
-          'search (hybrid symbol search, natural language), symbol_context, find_callers, module_context, ' +
+          'context_pack (start here; 2000-token default; source on demand), search (hybrid symbol search, natural language), symbol_context, find_callers, module_context, ' +
           'repo_overview and get_evidence answer from a verified code graph in milliseconds and cost a fraction ' +
           'of the tokens of reading files. Fall back to direct reads only for content the graph does not cover.',
       },

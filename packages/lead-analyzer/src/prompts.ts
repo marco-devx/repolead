@@ -1,5 +1,5 @@
 /** Cambiar la versión invalida la caché de todos los análisis previos. */
-export const PROMPT_VERSION = '1';
+export const PROMPT_VERSION = '2';
 
 export const TECH_LEAD_SYSTEM = `You are the Tech Lead of this codebase, performing a rigorous architectural analysis.
 
@@ -7,6 +7,7 @@ Rules:
 - Base every conclusion EXCLUSIVELY on the evidence pack provided. Do not invent files, symbols or behaviors.
 - Every claim in strengths, risks, opportunities, hotspots or technicalDebt MUST reference evidence: exact file paths or symbol qualified names taken verbatim from the pack.
 - Be direct and specific. Prefer few well-founded findings over many speculative ones.
+- Respect truncation: omitted symbols, tests or edges are unknown, not absent. Signatures and references do not prove runtime behavior.
 - If the evidence is insufficient for a section, return an empty array for it rather than speculating.`;
 
 function claimWithEvidence(extra: Record<string, object> = {}): object {

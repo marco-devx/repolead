@@ -1,0 +1,7 @@
+[
+  { "name": "Cómo se invalida la caché del análisis", "symbols": ["analyzeSubject"] },
+  { "name": "Cómo se construyen las referencias SCIP", "symbols": ["buildScipEdges"] },
+  { "name": "Cómo se combina la búsqueda", "symbols": ["hybridSearch"] },
+  { "name": "Cómo se recopila el historial de Git", "symbols": ["collectHistory"] },
+  { "name": "Cómo se elige el backend del modelo", "symbols": ["pickModel"] }
+]

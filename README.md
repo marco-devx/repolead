@@ -9,6 +9,8 @@
 
 RepoLead is a **repository intelligence system**. Deterministic analyzers (Tree-sitter, SCIP, git) build a verifiable code graph in SQLite; Claude acts as a Tech Lead that interprets the evidence into module dossiers and an architecture brief; everything is exposed to coding agents (Claude Code, Codex) through MCP.
 
+**Documentación en español:** [Guía técnica: del primer uso a la arquitectura interna](docs/guia-tecnica.md), con el flujo de trabajo, todos los comandos, MCP y presupuestos de tokens.
+
 ## Why
 
 When an AI agent explores a repository by reading files, every question burns context: repeated reads, compacted sessions, conclusions without evidence, and the same discoveries made over and over. RepoLead inverts the flow:
@@ -40,7 +42,7 @@ Agents query a small, up-to-date, verifiable knowledge base instead of crawling 
  [audit]    YAML policies -> deterministic detectors -> Claude as judge -> findings
      |
      v
- [serve]  MCP server -> Claude Code / Codex query it with 7 tools
+ [serve]  MCP server -> Claude Code / Codex query it with 8 tools
 ```
 
 Key properties:
@@ -48,6 +50,7 @@ Key properties:
 - **Language-unit chunks.** Symbols are real classes, functions, methods and HTTP endpoints — never fixed-size token windows.
 - **Stable identities.** A symbol ID is a hash of `repository + path + kind + qualified name + signature`, never a line number.
 - **Content-addressed caching.** A module is re-analyzed only when its evidence pack changes. Re-running `analyze` on an unchanged repository makes zero LLM calls.
+- **Measured context budgets.** `context_pack` provides a task-specific map (and optional complete source) within a default 2,000-token budget. Analysis uses configurable 4,000-token evidence packs instead of a fixed 50-symbol cutoff. Counts use `o200k_base` as a declared proxy.
 - **Evidence or it does not exist.** A finding without file/line evidence is never stored.
 - **Graceful degradation.** No vector services? Search falls back to FTS5 + graph. No SCIP indexer? Scan continues with syntactic edges. No LLM? Deterministic layers still work.
 
@@ -97,6 +100,8 @@ repolead onboard .
 | `repolead audit` | Run the policy pack: deterministic detectors + Claude as judge | `--db <path>` · `--policies <dir>` · `--model` · `--backend` · `--no-judge` store raw candidates |
 | `repolead brief` | Read the repository brief or a module dossier in the terminal | `--db <path>` · `--module <name>` · `--json` |
 | `repolead query <text...>` | Hybrid search (FTS5 + vectors + graph) in natural language | `--db <path>` · `--limit <n>` |
+| `repolead context [query...]` | Ranked, compact task context without an LLM call | `--symbols <names...>` · `--module <name>` · `--tokens <n>` (default 2000) · `--source` · `--json` · `--db <path>` |
+| `repolead benchmark-tokens` | Compare relevant-file reads with compact context, including target-source coverage | `--cases <json>` · `--tokens <n>` · `--db <path>` |
 | `repolead reindex` | Rebuild the Qdrant vector index from SQLite | `--db <path>` |
 | `repolead serve` | Start the MCP server over stdio | `--db <path>` one repo · `--dir <path>` every repo under a directory |
 | `repolead install-hooks [path]` | Install a Claude Code PreToolUse hook that steers agents toward RepoLead instead of raw file reads | `--remove` uninstall |
@@ -104,12 +109,17 @@ repolead onboard .
 
 Analysis backend selection: if `ANTHROPIC_API_KEY` or `ANTHROPIC_AUTH_TOKEN` is set the direct API is used (default model `claude-opus-5`); otherwise the Claude Agent SDK runs on your Claude Code subscription. Force either with `--backend`.
 
+`onboard`, `analyze` and `refresh --analyze` accept `--context-tokens <n>` (default
+4000) for module evidence and the repository synthesis. This is an evidence
+budget, not a limit on total provider usage including schemas and output.
+
 ## MCP tools
 
 Once served, agents see these tools:
 
 | Tool | Arguments | Returns |
 |---|---|---|
+| `context_pack` | `query?`, `symbols?`, `module?`, `maxTokens?`, `includeSource?`, `repo?` | Start here: budgeted task map and optional complete source, with omission counts. With multiple repos, specify `repo` |
 | `repo_overview` | `repo?` | Snapshot stats, module list and the repository brief. With `--dir` and no `repo`, lists every served repository |
 | `module_context` | `module`, `repo?` | Module dossier: responsibility, public API, dependencies, risks, confirmed findings |
 | `symbol_context` | `symbol`, `repo?` | Location, signature, incoming and outgoing relations of a symbol |
@@ -166,13 +176,43 @@ Content-addressed caching keeps this cheap: unchanged modules cost zero LLM call
 
 ## Connect to Codex
 
-Add to `~/.codex/config.toml`:
+Register a repository using the [Codex MCP CLI](https://developers.openai.com/codex/mcp):
+
+```bash
+codex mcp add repolead -- bun /path/to/repolead/apps/cli/src/index.ts serve --db /path/to/your/repo/.repolead/repolead.db
+```
+
+Alternatively, add a multi-repository server to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.repolead]
 command = "bun"
 args = ["/path/to/repolead/apps/cli/src/index.ts", "serve", "--dir", "/path/to/your/repos"]
 ```
+
+Start a new Codex session after registering it, then use `/mcp` to inspect the
+connection. The server recommends `context_pack` in its MCP instructions.
+Example task:
+
+> Use RepoLead's context_pack with maxTokens=2000 to locate the authentication
+> code. Request source only for the relevant symbols and check omission counts.
+
+`onboard` prints registration commands for both Claude Code and Codex. The
+stdio server observes refreshed snapshots without requiring a restart.
+
+## Measure token savings
+
+```bash
+repolead context --symbols analyzeSubject --tokens 2000 --source
+repolead benchmark-tokens --cases benchmarks/token-cases.json --tokens 2000
+```
+
+The benchmark compares relevant-file source with task context that retains the
+complete target function bodies. It reports coverage and negative savings too.
+It makes no LLM calls. Counts are `o200k_base` measurements, not exact Fable/Astra
+billing or a measurement of reasoning tokens. See the
+[design, upstream ideas and limitations](CONTEXT.md) and
+[recorded benchmark](benchmarks/token-results.json).
 
 ## CPU or GPU
 

@@ -14,6 +14,7 @@ export interface QdrantSearcher {
   ensureCollection(name: string, dimension: number): Promise<void>;
   upsert(name: string, points: QdrantPoint[]): Promise<void>;
   search(name: string, vector: number[], snapshotId: string, limit: number): Promise<QdrantHit[]>;
+  retrieve?(name: string, ids: string[]): Promise<QdrantPoint[]>;
 }
 
 /** Qdrant exige ids UUID o enteros: sym_<32 hex> → formato UUID. */
@@ -50,6 +51,13 @@ export class QdrantRestClient implements QdrantSearcher {
 
   async upsert(name: string, points: QdrantPoint[]): Promise<void> {
     await this.request('PUT', `/collections/${name}/points?wait=true`, { points });
+  }
+
+  async retrieve(name: string, ids: string[]): Promise<QdrantPoint[]> {
+    const response = await this.request('POST', `/collections/${name}/points`, {
+      ids, with_payload: true, with_vector: true,
+    }) as { result: QdrantPoint[] };
+    return response.result.filter((point) => Array.isArray(point.vector) && point.vector.length > 0);
   }
 
   async search(name: string, vector: number[], snapshotId: string, limit: number): Promise<QdrantHit[]> {

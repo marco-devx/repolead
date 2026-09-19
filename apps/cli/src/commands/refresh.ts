@@ -6,6 +6,7 @@ import { analyzeSnapshot } from '@repolead/lead-analyzer';
 import { QdrantRestClient, TeiEmbeddingsClient, indexSnapshot } from '@repolead/retrieval';
 
 import { backendLabel, pickModel } from '../model-select';
+import { tokenBudget } from './context';
 
 async function reachable(url: string): Promise<boolean> {
   try {
@@ -24,6 +25,7 @@ export function registerRefresh(program: Command): void {
     .option('--analyze', 're-analiza con el Tech Lead (solo módulos invalidados, vía caché)')
     .option('--model <name>', 'modelo para --analyze')
     .option('--backend <backend>', 'api | claude-code')
+    .option('--context-tokens <n>', 'presupuesto de evidencia por módulo (o200k_base)', tokenBudget, 4000)
     .option('--no-scip', 'no ejecutar scip-typescript')
     .action(async (path: string, options: {
       db?: string;
@@ -31,6 +33,7 @@ export function registerRefresh(program: Command): void {
       model?: string;
       backend?: string;
       scip: boolean;
+      contextTokens: number;
     }) => {
       const result = await refreshRepository({
         rootPath: path,
@@ -57,7 +60,7 @@ export function registerRefresh(program: Command): void {
         reachable(`${teiUrl}/health`),
         reachable(`${qdrantUrl}/healthz`),
       ]);
-      if (teiUp && qdrantUp && result.changedSymbolIds.length > 0) {
+      if (teiUp && qdrantUp) {
         const store = await openStore(dbPath);
         const indexed = await indexSnapshot({
           store,
@@ -67,9 +70,10 @@ export function registerRefresh(program: Command): void {
           embeddings: new TeiEmbeddingsClient(teiUrl),
           qdrant: new QdrantRestClient(qdrantUrl),
           symbolIds: new Set(result.changedSymbolIds),
+          onProgress: ({ embedded, reused }) => console.log(`  embeddings: ${embedded} nuevos · ${reused} reutilizados`),
         });
         store.close();
-        console.log(`✓ ${String(indexed).padStart(6)} vectores actualizados (solo cambiados)`);
+        console.log(`✓ ${String(indexed).padStart(6)} vectores asociados al snapshot actual`);
       } else {
         console.log('− vectores sin actualizar (TEI/Qdrant no disponibles o sin cambios)');
       }
@@ -82,6 +86,7 @@ export function registerRefresh(program: Command): void {
           store,
           snapshotId: scan.snapshotId,
           model,
+          budget: { maxTokens: options.contextTokens },
           onProgress: (progress) =>
             console.log(
               `${progress.outcome === 'cached' ? '\u21ba' : '\u2713'} [${progress.index}/${progress.total}] ${progress.subject}`,

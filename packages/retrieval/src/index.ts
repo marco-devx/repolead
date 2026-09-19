@@ -3,3 +3,8 @@ export * from './indexer';
 export * from './qdrant';
 export * from './reranker';
 export * from './search';
+export * from './tokens';
+export * from './ranking';
+export * from './source';
+export * from './context';
+export * from './benchmark';

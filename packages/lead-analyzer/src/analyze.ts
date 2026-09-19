@@ -4,7 +4,7 @@ import { contentHash } from '@repolead/domain';
 import type { KnowledgeStore } from '@repolead/knowledge-store';
 
 import type { AnalysisBudget } from './evidence';
-import { buildModuleEvidencePack, DEFAULT_BUDGET } from './evidence';
+import { buildModuleEvidencePack, buildRepositoryEvidencePack, DEFAULT_BUDGET } from './evidence';
 import type { TechLeadModel } from './model';
 import {
   MODULE_DOSSIER_SCHEMA,
@@ -189,11 +189,7 @@ export async function analyzeSnapshot(options: AnalyzeOptions): Promise<AnalyzeR
     const snapshot = store.getLatestSnapshot();
     const repository = snapshot ? store.getRepository(snapshot.repositoryId) : null;
     const counts = store.getCounts(snapshotId);
-    const briefPack = JSON.stringify({
-      repository: repository?.name ?? 'unknown',
-      stats: counts,
-      modules: dossiers,
-    });
+    const briefPack = JSON.stringify(buildRepositoryEvidencePack(repository?.name ?? 'unknown', counts, dossiers, budget.maxTokens));
     const subjectId = `repo://${repository?.name ?? 'unknown'}`;
     const startedAt = Date.now();
     const outcome = await analyzeSubject(

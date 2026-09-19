@@ -6,6 +6,7 @@
   "main": "./src/index.ts",
   "dependencies": {
     "@repolead/domain": "workspace:*",
-    "@repolead/knowledge-store": "workspace:*"
+    "@repolead/knowledge-store": "workspace:*",
+    "gpt-tokenizer": "^4.0.0"
   }
 }

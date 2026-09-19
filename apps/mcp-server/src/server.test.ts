@@ -102,12 +102,13 @@ function payloadOf(result: Awaited<ReturnType<Client['callTool']>>): unknown {
   return JSON.parse(content[0]!.text) as unknown;
 }
 
-test('el servidor MCP expone las 7 tools y responde overview y callers', async () => {
+test('el servidor MCP expone las 8 tools y responde overview y callers', async () => {
   const { store, client } = await seedAndConnect();
 
   const tools = await client.listTools();
   expect(tools.tools.map((tool) => tool.name).sort()).toEqual([
     'architecture_findings',
+    'context_pack',
     'find_callers',
     'get_evidence',
     'module_context',
@@ -133,6 +134,21 @@ test('el servidor MCP expone las 7 tools y responde overview y callers', async (
   ) as { callersByDepth: string[][] };
   expect(callers.callersByDepth).toEqual([['checkout'], ['httpHandler']]);
 
+  store.close();
+});
+
+test('context_pack entrega contexto acotado y stdio observa snapshots nuevos', async () => {
+  const { store, client } = await seedAndConnect();
+  const context = await client.callTool({ name: 'context_pack', arguments: { symbols: ['checkout'], maxTokens: 600 } });
+  const text = (context.content as { text: string }[])[0]!.text;
+  expect(text).toContain('checkout');
+  expect(text).toContain('Budget 600');
+  const previous = store.getLatestSnapshot()!;
+  const next = store.createSnapshot({ repositoryId: previous.repositoryId, commitSha: 'next' });
+  store.db.prepare('UPDATE snapshots SET created_at = ? WHERE id = ?').run('2099-01-01T00:00:00Z', next.id);
+  const overview = payloadOf(await client.callTool({ name: 'repo_overview', arguments: {} })) as { stats: { symbols: number } };
+  expect(overview.stats.symbols).toBe(0);
+  await client.close();
   store.close();
 });
 

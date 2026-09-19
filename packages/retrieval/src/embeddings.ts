@@ -1,5 +1,9 @@
+import { contentHash } from '@repolead/domain';
+
 export interface EmbeddingsClient {
   embed(texts: string[]): Promise<number[][]>;
+  /** Identity of weights/configuration; no identity means no vector reuse. */
+  cacheKey?(): Promise<string | null>;
 }
 
 const BATCH_SIZE = 32;
@@ -7,6 +11,22 @@ const BATCH_SIZE = 32;
 /** Cliente de Hugging Face Text Embeddings Inference (POST /embed). */
 export class TeiEmbeddingsClient implements EmbeddingsClient {
   constructor(private readonly baseUrl: string) {}
+
+  async cacheKey(): Promise<string | null> {
+    try {
+      const response = await fetch(`${this.baseUrl}/info`, { signal: AbortSignal.timeout(3000) });
+      if (!response.ok) {
+        return null;
+      }
+      const info = await response.json() as Record<string, unknown>;
+      if (typeof info['model_id'] !== 'string' || typeof info['model_sha'] !== 'string') {
+        return null;
+      }
+      return contentHash(JSON.stringify(Object.fromEntries(Object.entries(info).sort())));
+    } catch {
+      return null;
+    }
+  }
 
   async embed(texts: string[]): Promise<number[][]> {
     const vectors: number[][] = [];

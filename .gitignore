@@ -5,4 +5,5 @@ coverage/
 .DS_Store
 .repolead/
 .env
-docs/
+/docs/*
+!/docs/guia-tecnica.md

@@ -2,8 +2,10 @@ import type { Command } from 'commander';
 
 import { analyzeSnapshot, buildModuleEvidencePack } from '@repolead/lead-analyzer';
 import { openStore } from '@repolead/knowledge-store';
+import { countTokens } from '@repolead/retrieval';
 
 import { backendLabel, pickModel } from '../model-select';
+import { tokenBudget } from './context';
 
 export function registerAnalyze(program: Command): void {
   program
@@ -14,12 +16,14 @@ export function registerAnalyze(program: Command): void {
     .option('--backend <backend>', 'api | claude-code (default: api si hay credenciales)')
     .option('--module <name>', 'analiza solo este módulo')
     .option('--dry-run', 'construye los evidence packs sin llamar al modelo')
+    .option('--context-tokens <n>', 'presupuesto de evidencia por módulo (o200k_base)', tokenBudget, 4000)
     .action(async (options: {
       db: string;
       model?: string;
       backend?: string;
       module?: string;
       dryRun?: boolean;
+      contextTokens: number;
     }) => {
       const store = await openStore(options.db);
       const snapshot = store.getLatestSnapshot();
@@ -34,11 +38,11 @@ export function registerAnalyze(program: Command): void {
           if (options.module && module.name !== options.module) {
             continue;
           }
-          const pack = buildModuleEvidencePack(store, snapshot.id, module);
+          const pack = buildModuleEvidencePack(store, snapshot.id, module, { maxTokens: options.contextTokens });
           const size = JSON.stringify(pack).length;
           const dropped = pack.truncation.droppedSymbols;
           console.log(
-            `− ${module.name.padEnd(20)} ${String(pack.symbols.length).padStart(3)} símbolos · ${String(size).padStart(7)} bytes${dropped > 0 ? ` · ${dropped} descartados por presupuesto` : ''}`,
+            `− ${module.name.padEnd(20)} ${String(pack.symbols.length).padStart(3)} símbolos · ${String(size).padStart(7)} caracteres · ${countTokens(JSON.stringify(pack))} tokens${dropped > 0 ? ` · ${dropped} símbolos omitidos` : ''} · ${pack.truncation.droppedEdges} relaciones omitidas`,
           );
         }
         store.close();
@@ -53,6 +57,7 @@ export function registerAnalyze(program: Command): void {
         snapshotId: snapshot.id,
         model,
         moduleFilter: options.module,
+        budget: { maxTokens: options.contextTokens },
         onProgress: (progress) => {
           const mark = progress.outcome === 'cached' ? '\u21ba' : '\u2713';
           const detail =

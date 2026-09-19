@@ -11,6 +11,7 @@ import { loadPolicies, runPolicies } from '@repolead/policy-engine';
 import { QdrantRestClient, TeiEmbeddingsClient, indexSnapshot } from '@repolead/retrieval';
 
 import { backendLabel, pickModel } from '../model-select';
+import { tokenBudget } from './context';
 
 /**
  * Localiza el policy pack: --policies explícito, ./policies del repo objetivo,
@@ -51,6 +52,7 @@ export function registerOnboard(program: Command): void {
     .option('--name <name>', 'nombre del repositorio')
     .option('--model <name>', 'modelo para analyze y audit')
     .option('--backend <backend>', 'api | claude-code')
+    .option('--context-tokens <n>', 'presupuesto de evidencia por módulo (o200k_base)', tokenBudget, 4000)
     .option('--policies <dir>', 'directorio de policies (default: el pack de RepoLead)')
     .option('--no-scip', 'no ejecutar scip-typescript')
     .option('--no-analyze', 'saltar el análisis del Tech Lead')
@@ -64,6 +66,7 @@ export function registerOnboard(program: Command): void {
       scip: boolean;
       analyze: boolean;
       audit: boolean;
+      contextTokens: number;
     }) => {
       const rootPath = resolve(path);
       const dbPath = options.db ?? join(rootPath, '.repolead', 'repolead.db');
@@ -110,6 +113,7 @@ export function registerOnboard(program: Command): void {
           store,
           snapshotId: scan.snapshotId,
           model,
+          budget: { maxTokens: options.contextTokens },
           onProgress: (progress) => {
             const mark = progress.outcome === 'cached' ? '↺' : '✓';
             const detail =
@@ -148,8 +152,10 @@ export function registerOnboard(program: Command): void {
 
       const installRoot = policiesDir ? dirname(policiesDir) : null;
       const serveEntry = installRoot ? join(installRoot, 'apps/cli/src/index.ts') : '<ruta-a-repolead>/apps/cli/src/index.ts';
+      const quote = (value: string): string => "'" + value.replaceAll("'", "'\"'\"'") + "'";
       console.log(`\nListo. Siguientes pasos:`);
       console.log(`  repolead brief --db ${dbPath}`);
-      console.log(`  claude mcp add repolead -- bun ${serveEntry} serve --db ${dbPath}`);
+      console.log(`  claude mcp add repolead -- bun ${quote(serveEntry)} serve --db ${quote(dbPath)}`);
+      console.log(`  codex mcp add repolead -- bun ${quote(serveEntry)} serve --db ${quote(dbPath)}`);
     });
 }
