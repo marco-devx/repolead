@@ -1,0 +1,13 @@
+services:
+  embeddings:
+    platform: linux/amd64
+    # ONNX precompilado -> backend ORT en vez de candle (mucha menos RAM bajo Rosetta).
+    # Cambia la dimensionalidad de los vectores respecto al Qwen3-Embedding-0.6B
+    # del docker-compose.yml original; sin problema porque todavia no se indexo nada.
+    # max-batch-tokens bajo: el arena de memoria del batch se reserva entero en el
+    # warmup: con el default (16384) sobra RAM bajo Rosetta en una VM de 9GB.
+    command: --model-id BAAI/bge-m3 --max-batch-tokens 2048 --max-batch-requests 8
+
+  reranker:
+    platform: linux/amd64
+    command: --model-id BAAI/bge-reranker-base --max-batch-tokens 2048 --max-batch-requests 8
