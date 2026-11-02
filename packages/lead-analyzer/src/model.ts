@@ -4,11 +4,25 @@ export interface ModelCompletion {
   json: unknown;
   inputTokens: number;
   outputTokens: number;
+  telemetry?: { provider: string; models: string[]; estimatedCostUsd?: number; durationMs?: number; accounting: string;
+    usageBreakdown?: { uncachedInputTokens: number; cacheWriteInputTokens: number; cacheReadInputTokens: number; outputTokens: number; totalTokens: number };
+    structuredOutputAttempts?: number; assistantMessages?: number; formattingErrors?: string[];
+    batch?: { requests: number; inputTokens: number; outputTokens: number; allocation: 'proportional-proxy' } };
+}
+
+export interface ModelRequest { system: string; prompt: string; schema: Record<string, unknown> }
+
+/** A provider response consumed tokens even when its envelope cannot be accepted. */
+export class ModelUsageError extends Error {
+  constructor(message: string, readonly usage: Pick<ModelCompletion, 'inputTokens' | 'outputTokens'>, options?: ErrorOptions) {
+    super(message, options); this.name = 'ModelUsageError';
+  }
 }
 
 export interface TechLeadModel {
   readonly name: string;
-  complete(request: { system: string; prompt: string; schema: Record<string, unknown> }): Promise<ModelCompletion>;
+  readonly locality?: 'local' | 'remote';
+  complete(request: ModelRequest): Promise<ModelCompletion>;
 }
 
 /**
@@ -46,6 +60,7 @@ export class AnthropicTechLeadModel implements TechLeadModel {
 
     return {
       json: JSON.parse(text) as unknown,
+      telemetry: { provider: 'anthropic', models: [response.model], accounting: 'API usage including cache read/write input; no invoice attribution' },
       inputTokens:
         response.usage.input_tokens +
         (response.usage.cache_creation_input_tokens ?? 0) +

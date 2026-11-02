@@ -1,0 +1,17 @@
+id: DESIGN-COUPLING-002
+version: 1
+name: Excessive outgoing dependencies
+severity: medium
+description: Many distinct observed dependencies can indicate misplaced orchestration.
+required_evidence: [location, metric, source_excerpt]
+candidate_detectors:
+  - name: metric_threshold
+    params:
+      metric: fan_out
+      analyzer: observed-graph-metrics-v1
+      threshold: 15
+llm_judgment:
+  question: >
+    Does this symbol combine unrelated responsibilities or violate an evident
+    boundary? Reject composition roots, deliberate orchestration and adapters.
+    Missing semantic references are unknown, not proof of independence.

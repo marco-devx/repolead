@@ -1,24 +1,18 @@
+import { Option } from 'commander';
 import type { Command } from 'commander';
 
+import { KNOWLEDGE_KINDS } from '@repolead/domain';
+import type { KnowledgeKind } from '@repolead/domain';
 import { openStore } from '@repolead/knowledge-store';
-import {
-  QdrantRestClient,
-  TeiEmbeddingsClient,
-  TeiRerankerClient,
-  hybridSearch,
-  indexSnapshot,
-} from '@repolead/retrieval';
+import { QdrantRestClient, TeiEmbeddingsClient, TeiRerankerClient, hybridKnowledgeSearch, indexSnapshot, indexedCollection, defaultEmbeddingCollection } from '@repolead/retrieval';
+
+import { printVectorProgress } from './vector-progress';
 
 const DEFAULT_DB = '.repolead/repolead.db';
-const COLLECTION = 'repolead-symbols';
 
 async function reachable(url: string): Promise<boolean> {
-  try {
-    const response = await fetch(url, { signal: AbortSignal.timeout(1500) });
-    return response.ok;
-  } catch {
-    return false;
-  }
+  try { return (await fetch(url, { signal: AbortSignal.timeout(1500) })).ok; }
+  catch { return false; }
 }
 
 function serviceUrls(): { tei: string; qdrant: string; reranker: string } {
@@ -30,92 +24,68 @@ function serviceUrls(): { tei: string; qdrant: string; reranker: string } {
 }
 
 export function registerQuery(program: Command): void {
-  program
-    .command('query')
-    .description('Consulta el conocimiento del repositorio (FTS5 + vectores + grafo)')
+  program.command('query')
+    .description('Consulta código, resúmenes, documentos, hallazgos y tests (FTS5 + vectores + grafo)')
     .argument('<text...>', 'consulta en lenguaje natural')
     .option('--db <path>', 'ruta del archivo SQLite', DEFAULT_DB)
-    .option('--limit <n>', 'evidencias finales', '8')
-    .action(async (text: string[], options: { db: string; limit: string }) => {
+    .option('--limit <n>', 'resultados finales (1–100)', '8')
+    .option('--collection <name>', 'colección Qdrant (default: registrada en el snapshot)')
+    .option('--snapshot <id>', 'snapshot SQLite (default: último; Qdrant conserva solo el último)')
+    .addOption(new Option('--type <type>', 'tipo de conocimiento').choices([...KNOWLEDGE_KINDS]))
+    .option('--language <name>', 'lenguaje exacto')
+    .option('--module <name>', 'nombre o ruta de módulo')
+    .option('--kind <name>', 'subtipo: function, product, documentation, identificador de policy, etc.')
+    .action(async (text: string[], options: { db: string; limit: string; collection?: string; snapshot?: string;
+      type?: KnowledgeKind; language?: string; module?: string; kind?: string }) => {
       const store = await openStore(options.db);
-      const snapshot = store.getLatestSnapshot();
-      if (!snapshot) {
-        console.error('No hay snapshots: corre `repolead scan` primero.');
-        process.exitCode = 1;
-        return;
-      }
-
-      const urls = serviceUrls();
-      const [teiUp, qdrantUp, rerankerUp] = await Promise.all([
-        reachable(`${urls.tei}/health`),
-        reachable(`${urls.qdrant}/healthz`),
-        reachable(`${urls.reranker}/health`),
-      ]);
-
-      const hits = await hybridSearch({
-        store,
-        snapshotId: snapshot.id,
-        collection: COLLECTION,
-        query: text.join(' '),
-        embeddings: teiUp ? new TeiEmbeddingsClient(urls.tei) : null,
-        qdrant: qdrantUp ? new QdrantRestClient(urls.qdrant) : null,
-        reranker: rerankerUp ? new TeiRerankerClient(urls.reranker) : null,
-        limit: Number(options.limit),
-      });
-
-      if (!teiUp || !qdrantUp) {
-        console.log('− búsqueda vectorial desactivada (TEI/Qdrant no disponibles) — solo FTS5 + grafo\n');
-      }
-      if (hits.length === 0) {
-        console.log('Sin resultados.');
-        return;
-      }
-      for (const [index, hit] of hits.entries()) {
-        const { symbol } = hit;
-        console.log(
-          `${String(index + 1).padStart(2)}. ${symbol.qualifiedName} (${symbol.kind})  ${symbol.path}:${symbol.startLine}-${symbol.endLine}`,
-        );
-        console.log(`    score ${hit.score.toFixed(4)} · ${hit.sources.join(' + ')}`);
-      }
-      store.close();
+      try {
+        const snapshot = options.snapshot ? store.getSnapshot(options.snapshot) : store.getLatestSnapshot();
+        if (!snapshot) { throw new Error('No existe el snapshot: corre `repolead scan` primero o verifica --snapshot.'); }
+        const urls = serviceUrls();
+        const [teiUp, qdrantUp, rerankerUp] = await Promise.all([
+          reachable(`${urls.tei}/health`), reachable(`${urls.qdrant}/healthz`), reachable(`${urls.reranker}/health`),
+        ]);
+        const hits = await hybridKnowledgeSearch({
+          store, snapshotId: snapshot.id, collection: options.collection ?? indexedCollection(store, snapshot.id), query: text.join(' '),
+          embeddings: teiUp ? new TeiEmbeddingsClient(urls.tei) : null,
+          qdrant: qdrantUp ? new QdrantRestClient(urls.qdrant) : null,
+          reranker: rerankerUp ? new TeiRerankerClient(urls.reranker) : null,
+          limit: Number(options.limit),
+          filters: { entityKinds: options.type ? [options.type] : undefined, language: options.language, module: options.module, kind: options.kind },
+          onWarning: (message) => console.warn(`− ${message}`),
+        });
+        if (!teiUp || !qdrantUp) { console.log('− búsqueda vectorial desactivada (TEI/Qdrant no disponibles) — solo FTS5 + grafo\n'); }
+        if (!hits.length) { console.log('Sin resultados.'); }
+        for (const [index, hit] of hits.entries()) {
+          const { item } = hit;
+          console.log(`${String(index + 1).padStart(2)}. ${item.title} (${item.entityKind}/${item.kind})  ${item.path}${item.startLine ? `:${item.startLine}-${item.endLine}` : ''}`);
+          console.log(`    score ${hit.score.toFixed(4)} · ${hit.sources.join(' + ')} · id ${item.subjectId}`);
+        }
+      } finally { store.close(); }
     });
 }
 
 export function registerReindex(program: Command): void {
-  program
-    .command('reindex')
-    .description('Reconstruye el índice vectorial en Qdrant desde SQLite (fuente de verdad)')
+  program.command('reindex')
+    .description('Reconstruye todo el conocimiento buscable desde SQLite y sincroniza Qdrant')
     .option('--db <path>', 'ruta del archivo SQLite', DEFAULT_DB)
-    .action(async (options: { db: string }) => {
+    .option('--collection <name>', 'colección Qdrant (por defecto, aislada por modelo de embeddings)')
+    .action(async (options: { db: string; collection?: string }) => {
       const urls = serviceUrls();
-      const [teiUp, qdrantUp] = await Promise.all([
-        reachable(`${urls.tei}/health`),
-        reachable(`${urls.qdrant}/healthz`),
-      ]);
-      if (!teiUp || !qdrantUp) {
-        console.error('Necesitas TEI y Qdrant corriendo: docker compose up -d');
-        process.exitCode = 1;
-        return;
-      }
-
+      const [teiUp, qdrantUp] = await Promise.all([reachable(`${urls.tei}/health`), reachable(`${urls.qdrant}/healthz`)]);
+      if (!teiUp || !qdrantUp) { throw new Error('Necesitas TEI y Qdrant corriendo: docker compose up -d'); }
       const store = await openStore(options.db);
-      const snapshot = store.getLatestSnapshot();
-      if (!snapshot) {
-        console.error('No hay snapshots: corre `repolead scan` primero.');
-        process.exitCode = 1;
-        return;
-      }
-      const repository = store.getRepository(snapshot.repositoryId);
-
-      const count = await indexSnapshot({
-        store,
-        snapshotId: snapshot.id,
-        repositoryName: repository?.name ?? 'unknown',
-        collection: COLLECTION,
-        embeddings: new TeiEmbeddingsClient(urls.tei),
-        qdrant: new QdrantRestClient(urls.qdrant),
-      });
-      console.log(`✓ ${count} símbolos vectorizados en Qdrant (colección ${COLLECTION})`);
-      store.close();
+      try {
+        const snapshot = store.getLatestSnapshot();
+        if (!snapshot) { throw new Error('No hay snapshots: corre `repolead scan` primero.'); }
+        const embeddings = new TeiEmbeddingsClient(urls.tei);
+        const collection = options.collection ?? await defaultEmbeddingCollection(embeddings);
+        const count = await indexSnapshot({
+          store, snapshotId: snapshot.id, repositoryName: store.getRepository(snapshot.repositoryId)!.name,
+          collection, embeddings, qdrant: new QdrantRestClient(urls.qdrant),
+          onProgress: printVectorProgress,
+        });
+        console.log(`✓ ${count} elementos de conocimiento en Qdrant (colección ${collection})`);
+      } finally { store.close(); }
     });
 }

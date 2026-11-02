@@ -1,4 +1,6 @@
 id: TEST-COVERAGE-001
+version: 1
+required_evidence: [location, test_links]
 name: Untested module
 description: >
   A module with a meaningful number of symbols and no linked tests carries

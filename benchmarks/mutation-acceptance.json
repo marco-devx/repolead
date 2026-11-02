@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2026-11-01T00:27:33.511Z",
+  "fixture": "Five real Git commits; actual Stryker command runner with node:test; selected first function only",
+  "strykerVersion": "10.1.1",
+  "durationMs": 1188,
+  "mutate": [
+    "src/price.js:1:7-1:63"
+  ],
+  "counts": {
+    "Killed": 4,
+    "Survived": 2,
+    "NoCoverage": 0,
+    "CompileError": 0,
+    "RuntimeError": 0,
+    "Timeout": 0,
+    "Ignored": 0,
+    "Pending": 0
+  },
+  "mutationScore": 66.67,
+  "verified": {
+    "planDoesNotExecute": true,
+    "explicitRunRequired": true,
+    "onlySelectedFunctionMutated": true,
+    "checkoutUnchanged": true,
+    "fullSourceHashChecked": true,
+    "forgedReportRejected": true,
+    "executedAndImportedProvenance": true,
+    "persisted": true,
+    "compiledNodeCli": true,
+    "doctor": true,
+    "mcpNoSource": true,
+    "oldSnapshotNotReused": true,
+    "verifiedCalls": 4
+  },
+  "limitations": [
+    "This fixture executes real tests and mutants; it does not measure production test quality or generative token savings.",
+    "Command runner uses coverageAnalysis off and can run the full supplied test command for each selected mutant.",
+    "Imported reports verify mutated source hashes and ranges; they do not authenticate execution or dependency/test freshness."
+  ],
+  "scriptHash": "98314790204a499c89f36d27330891af565f2f793c2ce699b5f60e0cd6d2718c"
+}

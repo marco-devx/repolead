@@ -1,16 +1,26 @@
 import type { Command } from 'commander';
 
+import { fileUri } from '@repolead/domain';
+import type { SummaryDoc } from '@repolead/domain';
 import { openStore } from '@repolead/knowledge-store';
 
 export function registerBrief(program: Command): void {
   program
     .command('brief')
-    .description('Muestra el Repository Brief (o el dossier de un módulo) generado por analyze')
+    .description('Lee el brief, dossier de archivo/módulo o ficha de símbolo ya generado')
     .option('--db <path>', 'ruta del archivo SQLite', '.repolead/repolead.db')
     .option('--module <name>', 'muestra el dossier de este módulo en vez del brief')
+    .option('--file <path>', 'muestra el dossier de un archivo indexado')
+    .option('--symbol <name>', 'muestra la ficha de un símbolo por nombre exacto o ID')
+    .option('--product', 'muestra el contexto de producto precalculado')
+    .option('--document <path>', 'muestra la ficha de un documento indexado')
     .option('--json', 'salida JSON cruda')
-    .action(async (options: { db: string; module?: string; json?: boolean }) => {
+    .action(async (options: { db: string; module?: string; file?: string; symbol?: string; product?: boolean; document?: string; json?: boolean }) => {
+      if ([options.module, options.file, options.symbol, options.product, options.document].filter(Boolean).length > 1) {
+        throw new Error('Usa solo uno de --module, --file, --symbol, --product o --document.');
+      }
       const store = await openStore(options.db);
+      try {
       const snapshot = store.getLatestSnapshot();
       if (!snapshot) {
         console.error('No hay snapshots: corre `repolead scan` primero.');
@@ -18,46 +28,43 @@ export function registerBrief(program: Command): void {
         return;
       }
 
-      let row: { content_json: string; model: string; created_at: string } | undefined;
-      if (options.module) {
-        const module = store.listModules(snapshot.id).find((entry) => entry.name === options.module);
-        if (!module) {
-          console.error(`Módulo desconocido: ${options.module}`);
-          console.error(`Disponibles: ${store.listModules(snapshot.id).map((entry) => entry.name).join(', ')}`);
-          process.exitCode = 1;
-          return;
+      let summary: SummaryDoc | null;
+      if (options.product) {
+        summary = store.listSummaries(snapshot.id, 'product').find((entry) => !entry.subjectId.includes('#synthesis:')) ?? null;
+      } else if (options.document) {
+        const document = store.listDocuments(snapshot.id).find((entry) => entry.path === options.document);
+        if (!document) { throw new Error('Documento no indexado; comprueba documentation.paths y ejecuta refresh.'); }
+        summary = store.getSummary(snapshot.id, document.id, 'document');
+      } else if (options.module) {
+        const matches = store.listModules(snapshot.id).filter((entry) => entry.name === options.module || entry.path === options.module);
+        if (matches.length !== 1) {
+          throw new Error(`Módulo desconocido o ambiguo: ${options.module}. Usa su ruta.`);
         }
-        row = store.db
-          .prepare(
-            "SELECT content_json, model, created_at FROM summaries WHERE snapshot_id = ? AND subject_id = ? AND level = 'module' ORDER BY created_at DESC LIMIT 1",
-          )
-          .get(snapshot.id, module.id) as typeof row;
+        summary = store.getSummary(snapshot.id, matches[0]!.id, 'module');
+      } else if (options.symbol) {
+        const matches = store.listSymbols(snapshot.id).filter((entry) => entry.id === options.symbol || entry.qualifiedName === options.symbol);
+        if (matches.length !== 1) { throw new Error('Símbolo desconocido o ambiguo; usa su ID.'); }
+        summary = store.getSummary(snapshot.id, matches[0]!.id, 'symbol');
+      } else if (options.file) {
+        const repo = store.getRepository(snapshot.repositoryId)!;
+        summary = store.getSummary(snapshot.id, fileUri(repo.name, options.file), 'file');
       } else {
-        row = store.db
-          .prepare(
-            "SELECT content_json, model, created_at FROM summaries WHERE snapshot_id = ? AND level = 'repository' ORDER BY created_at DESC LIMIT 1",
-          )
-          .get(snapshot.id) as typeof row;
+        summary = store.listSummaries(snapshot.id, 'repository').find((entry) => !entry.subjectId.includes('#synthesis:')) ?? null;
       }
-      store.close();
 
-      if (!row) {
-        console.error(
-          options.module
-            ? `El módulo ${options.module} no tiene dossier aún: corre \`repolead analyze --module ${options.module}\`.`
-            : 'No hay Repository Brief aún: corre `repolead analyze` (sin --module, para que sintetice el brief).',
-        );
+      if (!summary) {
+        console.error('No hay análisis para este objetivo en el snapshot actual: corre `repolead analyze`.');
         process.exitCode = 1;
         return;
       }
 
-      const content = JSON.parse(row.content_json) as Record<string, unknown>;
+      const content = JSON.parse(summary.contentJson) as Record<string, unknown>;
       if (options.json) {
         console.log(JSON.stringify(content, null, 2));
         return;
       }
 
-      console.log(`# ${options.module ?? 'Repository Brief'} · ${row.model} · ${row.created_at}\n`);
+      console.log(`# ${options.module ?? options.file ?? options.symbol ?? options.document ?? (options.product ? 'Product Context' : 'Repository Brief')} · ${summary.model} · ${summary.createdAt}\n`);
       for (const [section, value] of Object.entries(content)) {
         console.log(`## ${section}`);
         if (typeof value === 'string') {
@@ -67,9 +74,9 @@ export function registerBrief(program: Command): void {
             if (typeof item === 'string') {
               console.log(`- ${item}`);
             } else {
-              const entry = item as { claim?: string; severity?: string; evidence?: string[] };
+              const entry = item as { claim?: string; severity?: string; evidence?: string[]; evidenceIds?: string[] };
               console.log(`- ${entry.severity ? `[${entry.severity}] ` : ''}${entry.claim ?? JSON.stringify(item)}`);
-              for (const evidence of entry.evidence ?? []) {
+              for (const evidence of entry.evidenceIds ?? entry.evidence ?? []) {
                 console.log(`  · ${evidence}`);
               }
             }
@@ -79,5 +86,6 @@ export function registerBrief(program: Command): void {
         }
         console.log('');
       }
+      } finally { store.close(); }
     });
 }

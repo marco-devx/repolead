@@ -1,0 +1,17 @@
+id: QUALITY-COMPLEXITY-001
+version: 1
+name: Complex control flow
+severity: medium
+description: AST cyclomatic complexity flags control flow requiring review, not an automatic refactoring mandate.
+required_evidence: [location, metric, source_excerpt]
+candidate_detectors:
+  - name: metric_threshold
+    params:
+      metric: cyclomatic_complexity
+      threshold: 15
+llm_judgment:
+  question: >
+    Does this control flow obscure distinct responsibilities or untested paths?
+    Reject intentional parsers, dispatch tables and necessary domain cases when
+    the evidence does not establish a maintainability problem. Do not invent
+    missing tests or behavior beyond a truncated excerpt.

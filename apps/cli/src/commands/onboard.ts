@@ -3,15 +3,19 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import type { Command } from 'commander';
+import { Option } from 'commander';
 
 import { scanRepository } from '@repolead/code-graph';
+import { analysisBudget, loadConfig } from '@repolead/config';
 import { openStore } from '@repolead/knowledge-store';
 import { analyzeSnapshot } from '@repolead/lead-analyzer';
 import { loadPolicies, runPolicies } from '@repolead/policy-engine';
-import { QdrantRestClient, TeiEmbeddingsClient, indexSnapshot } from '@repolead/retrieval';
+import { QdrantRestClient, TeiEmbeddingsClient, defaultEmbeddingCollection, indexSnapshot } from '@repolead/retrieval';
 
-import { backendLabel, pickModel } from '../model-select';
+import { backendLabel, pickModel, pickAnalysisRouting } from '../model-select';
 import { tokenBudget } from './context';
+import { analyzeProductAndPrint } from './product-analysis';
+import { printVectorProgress } from './vector-progress';
 
 /**
  * Localiza el policy pack: --policies explícito, ./policies del repo objetivo,
@@ -46,30 +50,39 @@ async function reachable(url: string): Promise<boolean> {
 export function registerOnboard(program: Command): void {
   program
     .command('onboard')
-    .description('Alta completa de un repo: scan + reindex + analyze + audit en un comando')
+    .description('Alta completa de un repo: scan + analyze + audit + reindex en un comando')
     .argument('[path]', 'ruta del repositorio', '.')
     .option('--db <path>', 'ruta del archivo SQLite (default: <repo>/.repolead/repolead.db)')
     .option('--name <name>', 'nombre del repositorio')
     .option('--model <name>', 'modelo para analyze y audit')
-    .option('--backend <backend>', 'api | claude-code')
-    .option('--context-tokens <n>', 'presupuesto de evidencia por módulo (o200k_base)', tokenBudget, 4000)
+    .option('--backend <backend>', 'ollama (default) | api | claude-code')
+    .addOption(new Option('--analysis-mode <mode>', 'files (default): fuente completa por archivo; symbols: exhaustivo').choices(['files', 'symbols']))
+    .option('--context-tokens <n>', 'presupuesto por análisis (config o 120000; o200k_base)', tokenBudget)
     .option('--policies <dir>', 'directorio de policies (default: el pack de RepoLead)')
     .option('--no-scip', 'no ejecutar scip-typescript')
     .option('--no-analyze', 'saltar el análisis del Tech Lead')
+    .option('--no-product', 'saltar la preparación del contexto de producto')
     .option('--no-audit', 'saltar el policy audit')
+    .option('--no-vectors', 'aplazar embeddings/vectores hasta ejecutar reindex')
     .action(async (path: string, options: {
       db?: string;
       name?: string;
       model?: string;
       backend?: string;
+      analysisMode?: 'files' | 'symbols';
       policies?: string;
       scip: boolean;
       analyze: boolean;
+      product: boolean;
       audit: boolean;
-      contextTokens: number;
+      vectors: boolean;
+      contextTokens?: number;
     }) => {
       const rootPath = resolve(path);
+      const { config } = loadConfig(rootPath);
+      const analysisMode = options.analysisMode ?? config.analysis_mode;
       const dbPath = options.db ?? join(rootPath, '.repolead', 'repolead.db');
+      const model = options.analyze || options.audit ? await pickModel(options.backend ?? config.model.backend, options.model ?? config.model.name, config.local_model) : null;
 
       console.log('[1/4] scan — hechos determinísticos');
       const scan = await scanRepository({
@@ -84,36 +97,19 @@ export function registerOnboard(program: Command): void {
         } referencias SCIP · ${scan.counts.modules} módulos (${(scan.durationMs / 1000).toFixed(1)}s)`,
       );
 
-      console.log('\n[2/4] reindex — vectores semánticos');
-      const teiUrl = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
-      const qdrantUrl = process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333';
-      if ((await reachable(`${teiUrl}/health`)) && (await reachable(`${qdrantUrl}/healthz`))) {
-        const store = await openStore(dbPath);
-        const indexed = await indexSnapshot({
-          store,
-          snapshotId: scan.snapshotId,
-          repositoryName: scan.repositoryName,
-          collection: 'repolead-symbols',
-          embeddings: new TeiEmbeddingsClient(teiUrl),
-          qdrant: new QdrantRestClient(qdrantUrl),
-        });
-        store.close();
-        console.log(`✓ ${indexed} símbolos vectorizados`);
-      } else {
-        console.log('− saltado (TEI/Qdrant no disponibles: docker compose up -d)');
-      }
-
-      const model = options.analyze || options.audit ? pickModel(options.backend, options.model) : null;
-
-      console.log('\n[3/4] analyze — Tech Lead');
+      console.log('\n[2/4] analyze — Tech Lead');
       if (options.analyze && model) {
         console.log(`backend: ${backendLabel(model)} · ${model.name}`);
+        console.log(`modo: ${analysisMode}`);
         const store = await openStore(dbPath);
+        try {
         const analysis = await analyzeSnapshot({
+            ...await pickAnalysisRouting(config, model),
+          analysisMode,
           store,
           snapshotId: scan.snapshotId,
           model,
-          budget: { maxTokens: options.contextTokens },
+          budget: analysisBudget(config, options.contextTokens),
           onProgress: (progress) => {
             const mark = progress.outcome === 'cached' ? '↺' : '✓';
             const detail =
@@ -121,33 +117,68 @@ export function registerOnboard(program: Command): void {
             console.log(`${mark} [${progress.index}/${progress.total}] ${progress.subject} · ${detail}`);
           },
         });
-        store.close();
         console.log(
-          `✓ ${analysis.modulesAnalyzed} analizados, ${analysis.modulesCached} desde caché · ${analysis.inputTokens} in / ${analysis.outputTokens} out`,
+          `✓ ${analysis.symbolsAnalyzed} símbolos, ${analysis.filesAnalyzed} archivos, ${analysis.modulesAnalyzed} módulos analizados · ${analysis.symbolsCached + analysis.filesCached + analysis.modulesCached} desde caché · ${analysis.inputTokens} in / ${analysis.outputTokens} out`,
         );
+        if (options.product) {
+          await analyzeProductAndPrint({ store, snapshotId: scan.snapshotId, model, analysisMode, budget: analysisBudget(config, options.contextTokens),
+            onProgress: (p) => console.log(`${p.outcome === 'cached' ? '↺' : '✓'} producto [${p.index}/${p.total}] ${p.subject}`) });
+        }
+        } finally { store.close(); }
       } else {
         console.log('− saltado (--no-analyze)');
       }
 
-      console.log('\n[4/4] audit — policy pack');
+      console.log('\n[3/4] audit — policy pack');
       const policiesDir = resolvePoliciesDir(options.policies);
       if (options.audit && model && policiesDir) {
         const store = await openStore(dbPath);
+        try {
         const audit = await runPolicies({
           store,
           snapshotId: scan.snapshotId,
           policies: loadPolicies(policiesDir),
           model,
+          maxTokens: analysisBudget(config, options.contextTokens).maxTokens,
+          maxFindingsPerModule: config.analysis_budget.max_findings_per_module,
+          maxEvidencePerFinding: config.analysis_budget.max_evidence_per_finding,
         });
-        store.close();
         console.log(`✓ ${audit.candidates} candidatos → ${audit.confirmed.length} confirmados, ${audit.rejected} rechazados`);
+        console.log(`  caché: ${audit.cachedJudgments} · evidencia insuficiente: ${audit.missingEvidence} · omitidos: ${audit.omittedCandidates} candidatos / ${audit.omittedEvidence} evidencias · tokens ${audit.inputTokens} in / ${audit.outputTokens} out`);
         for (const finding of audit.confirmed) {
           console.log(`  [${finding.severity.toUpperCase()}] ${finding.ruleId}: ${finding.claim}`);
         }
+        } finally { store.close(); }
       } else {
         console.log(
           options.audit && !policiesDir ? '− saltado (no encontré el directorio de policies)' : '− saltado (--no-audit)',
         );
+      }
+
+      console.log('\n[4/4] reindex — vectores semánticos');
+      const teiUrl = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
+      const qdrantUrl = process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333';
+      if (!options.vectors) {
+        const store = await openStore(dbPath);
+        try { store.setSnapshotMetadata(scan.snapshotId, 'vector_refresh_pending', 'true'); }
+        finally { store.close(); }
+        console.log('− vectores aplazados (--no-vectors); ejecutar repolead reindex después del análisis');
+      } else if ((await reachable(`${teiUrl}/health`)) && (await reachable(`${qdrantUrl}/healthz`))) {
+        const store = await openStore(dbPath);
+        const embeddings = new TeiEmbeddingsClient(teiUrl);
+        const indexed = await indexSnapshot({
+          store,
+          snapshotId: scan.snapshotId,
+          repositoryName: scan.repositoryName,
+          collection: await defaultEmbeddingCollection(embeddings),
+          embeddings,
+          qdrant: new QdrantRestClient(qdrantUrl),
+          onProgress: printVectorProgress,
+        });
+        store.close();
+        console.log(`✓ ${indexed} elementos de conocimiento vectorizados`);
+      } else {
+        console.log('− saltado (TEI/Qdrant no disponibles: docker compose up -d)');
       }
 
       const installRoot = policiesDir ? dirname(policiesDir) : null;

@@ -14,15 +14,36 @@
     "build": "bun run --cwd apps/cli build",
     "test": "rstest run",
     "lint": "rslint",
-    "typecheck": "rslint --type-check-only",
-    "check": "bun run lint && bun run typecheck && bun run test && bun run build"
+    "typecheck": "rslint --type-check-only && tsc --noEmit",
+    "check": "bun run lint && bun run typecheck && bun run test && bun run build",
+    "verify-memory": "bun run build && bun scripts/verify-memory.ts",
+    "verify-evidence-reuse": "bun run build && bun scripts/verify-evidence-reuse.ts",
+    "verify-retrieval": "bun run build && bun scripts/verify-retrieval.ts",
+    "verify-deterministic": "bun run build && bun scripts/verify-deterministic.ts",
+    "verify-incremental": "bun run build && bun scripts/verify-incremental.ts",
+    "verify-quality": "bun run build && bun scripts/verify-quality.ts",
+    "verify-policy-quality": "bun scripts/verify-policy-quality.ts --real",
+    "verify-mcp-http": "bun run build && bun scripts/verify-mcp-http.ts",
+    "verify-change-analysis": "bun run build && bun scripts/verify-change-analysis.ts",
+    "verify-prioritization": "bun run build && bun scripts/verify-prioritization.ts",
+    "verify-mutation": "bun run build && bun scripts/verify-mutation.ts",
+    "verify-python": "bun run build && bun scripts/verify-python.ts",
+    "verify-clean-install": "bun scripts/verify-clean-install.ts",
+    "verify-joern": "bun run build && bun scripts/verify-joern.ts",
+    "verify-generative": "bun scripts/verify-generative.ts --real",
+    "verify-local-backend": "bun run build && bun scripts/verify-local-backend.ts --real",
+    "verify-file-mode": "bun run build && bun scripts/verify-file-mode.ts --real",
+    "verify-token-workflow": "bun run build && bun scripts/verify-token-workflow.ts --real",
+    "verify-repo-workflow": "bun run build && bun scripts/verify-repo-workflow.ts --real"
   },
   "devDependencies": {
     "@rslint/core": "^0.7.3",
     "@rstest/core": "^0.11.6",
     "@sourcegraph/scip-python": "^0.6.6",
     "@sourcegraph/scip-typescript": "^0.4.0",
+    "@stryker-mutator/core": "10.1.1",
     "@types/node": "^24.0.0",
+    "jscpd": "5.4.2",
     "typescript": "^5.9.0"
   }
 }

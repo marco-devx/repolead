@@ -1,0 +1,334 @@
+{
+  "generatedAt": "2026-11-01T00:55:26.366Z",
+  "fixture": "Same authored repository and changed snapshot in both arms; no minimum reads or artificial baseline padding",
+  "question": "Explica el flujo de invoice: quién calcula el total, multiplicador actual y documentado, moneda y qué ocurre con importes negativos. ¿PDF está implementado? Señala discrepancias entre documentación y código. Incluye rutas en flow y citas path/línea verificadas. No asumas que documentación prueba implementación.",
+  "toolProfile": "context",
+  "guided": true,
+  "guidance": " Empieza por repo_overview audience=product para consumir el contexto precargado. Comprueba las afirmaciones necesarias con get_evidence ranges, agrupando las fuentes. No repitas búsquedas si ya tienes evidencia suficiente.",
+  "manual": {
+    "mode": "manual",
+    "durationMs": 24407,
+    "inputTokens": 24673,
+    "outputTokens": 2040,
+    "estimatedCostUsd": 0.05264629999999999,
+    "models": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "answer": {
+      "calculationMultiplier": 1.2,
+      "documentedMultiplier": 1.18,
+      "rejectsNegative": true,
+      "errorType": "RangeError",
+      "currency": "PEN",
+      "pdfImplemented": false,
+      "flow": [
+        "src/app/invoice.ts:1-2 — invoice(amount) importa price() y construye { total, currency: \"PEN\" }",
+        "src/domain/price.ts:1-4 — price(amount) valida amount<0 (lanza RangeError) y calcula amount * 1.20"
+      ],
+      "explanation": "Flujo: invoice(amount) en src/app/invoice.ts llama a price(amount) de src/domain/price.ts, que es la única función que calcula el total, y devuelve { total, currency: \\\"PEN\\\" }. price() valida primero que amount no sea negativo (if (amount < 0) throw new RangeError(\\\"negative amount\\\")) y, de ser válido, retorna amount * 1.20. Por tanto el cálculo real aplica un multiplicador de 1.20 (20% de recargo) y el objeto resultante siempre usa la moneda fija \\\"PEN\\\" (no configurable, hardcodeada en invoice.ts línea 2). Los importes negativos no se \\\"rechazan silenciosamente\\\": se lanza una excepción (RangeError) que detiene la ejecución; no hay manejo/catch visible en el repo, así que el llamador debe capturarla.\\n\\nLa documentación (docs/product.md) describe \\\"an 18% surcharge\\\" (equivalente a un multiplicador de 1.18) y afirma que los montos negativos \\\"son rechazados\\\" (consistente con el throw, aunque no detalla el tipo de error). Esto es una discrepancia clara entre documentación y código: el código implementado usa 1.20 (20%), no 1.18 (18%) como dice la doc.\\n\\nSobre PDF: docs/product.md línea 5 indica explícitamente \\\"PDF export is planned, not implemented in this version\\\" — es decir, la propia documentación ya aclara que no está implementado. Verificación en código: no se encontró ningún archivo, función, dependencia ni referencia a generación de PDF en src/ (búsqueda de \\\"pdf\\\" solo coincide en docs/product.md). Por tanto se confirma, por ausencia de evidencia en el código (no solo por la doc), que el PDF NO está implementado — la documentación en este punto sí es coherente con el código, pero la verificación se hizo inspeccionando el árbol de archivos y no asumiendo que el texto de la doc fuera prueba suficiente.\\n\\nResumen de discrepancias encontradas:\\n1. Multiplicador: doc dice 18% (x1.18); código implementa x1.20 (20%). Discrepancia confirmada.\\n2. Rechazo de negativos: doc dice \\\"rejected\\\", código lanza RangeError — consistente, aunque la doc no especifica el mecanismo exacto (excepción no capturada).\\n3. Moneda: doc dice PEN; código fija \\\"PEN\\\" como string literal en invoice.ts — consistente, sin lógica de conversión ni configuración.\\n4. PDF: doc dice no implementado; código no contiene ningún artefacto de PDF — consistente.",
+      "citations": [
+        {
+          "path": "src/app/invoice.ts",
+          "line": 1
+        },
+        {
+          "path": "src/app/invoice.ts",
+          "line": 2
+        },
+        {
+          "path": "src/domain/price.ts",
+          "line": 2
+        },
+        {
+          "path": "src/domain/price.ts",
+          "line": 3
+        },
+        {
+          "path": "docs/product.md",
+          "line": 2
+        },
+        {
+          "path": "docs/product.md",
+          "line": 5
+        }
+      ]
+    },
+    "checks": {
+      "currentMultiplier": true,
+      "documentedMultiplier": true,
+      "negativeAmounts": true,
+      "currency": true,
+      "pdfNotImplemented": true,
+      "flow": true,
+      "citations": true
+    },
+    "correct": true,
+    "calls": [
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "invoice",
+          "output_mode": "files_with_matches",
+          "-i": true
+        }
+      },
+      {
+        "name": "Glob",
+        "input": {
+          "pattern": "**/*.md"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/tmp/repolead-generative-sttQWQ/src/app/invoice.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/tmp/repolead-generative-sttQWQ/docs/product.md"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/tmp/repolead-generative-sttQWQ/src/domain/price.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "pdf",
+          "output_mode": "files_with_matches",
+          "-i": true
+        }
+      },
+      {
+        "name": "Glob",
+        "input": {
+          "pattern": "**/*"
+        }
+      },
+      {
+        "name": "StructuredOutput",
+        "input": {
+          "calculationMultiplier": 1.2,
+          "documentedMultiplier": 1.18,
+          "rejectsNegative": true,
+          "errorType": "RangeError",
+          "currency": "PEN",
+          "pdfImplemented": false,
+          "flow": [
+            "src/app/invoice.ts:1-2 — invoice(amount) importa price() y construye { total, currency: \"PEN\" }",
+            "src/domain/price.ts:1-4 — price(amount) valida amount<0 (lanza RangeError) y calcula amount * 1.20"
+          ],
+          "explanation": "Flujo: invoice(amount) en src/app/invoice.ts llama a price(amount) de src/domain/price.ts, que es la única función que calcula el total, y devuelve { total, currency: \\\"PEN\\\" }. price() valida primero que amount no sea negativo (if (amount < 0) throw new RangeError(\\\"negative amount\\\")) y, de ser válido, retorna amount * 1.20. Por tanto el cálculo real aplica un multiplicador de 1.20 (20% de recargo) y el objeto resultante siempre usa la moneda fija \\\"PEN\\\" (no configurable, hardcodeada en invoice.ts línea 2). Los importes negativos no se \\\"rechazan silenciosamente\\\": se lanza una excepción (RangeError) que detiene la ejecución; no hay manejo/catch visible en el repo, así que el llamador debe capturarla.\\n\\nLa documentación (docs/product.md) describe \\\"an 18% surcharge\\\" (equivalente a un multiplicador de 1.18) y afirma que los montos negativos \\\"son rechazados\\\" (consistente con el throw, aunque no detalla el tipo de error). Esto es una discrepancia clara entre documentación y código: el código implementado usa 1.20 (20%), no 1.18 (18%) como dice la doc.\\n\\nSobre PDF: docs/product.md línea 5 indica explícitamente \\\"PDF export is planned, not implemented in this version\\\" — es decir, la propia documentación ya aclara que no está implementado. Verificación en código: no se encontró ningún archivo, función, dependencia ni referencia a generación de PDF en src/ (búsqueda de \\\"pdf\\\" solo coincide en docs/product.md). Por tanto se confirma, por ausencia de evidencia en el código (no solo por la doc), que el PDF NO está implementado — la documentación en este punto sí es coherente con el código, pero la verificación se hizo inspeccionando el árbol de archivos y no asumiendo que el texto de la doc fuera prueba suficiente.\\n\\nResumen de discrepancias encontradas:\\n1. Multiplicador: doc dice 18% (x1.18); código implementa x1.20 (20%). Discrepancia confirmada.\\n2. Rechazo de negativos: doc dice \\\"rejected\\\", código lanza RangeError — consistente, aunque la doc no especifica el mecanismo exacto (excepción no capturada).\\n3. Moneda: doc dice PEN; código fija \\\"PEN\\\" como string literal en invoice.ts — consistente, sin lógica de conversión ni configuración.\\n4. PDF: doc dice no implementado; código no contiene ningún artefacto de PDF — consistente.",
+          "citations": [
+            {
+              "path": "src/app/invoice.ts",
+              "line": 1
+            },
+            {
+              "path": "src/app/invoice.ts",
+              "line": 2
+            },
+            {
+              "path": "src/domain/price.ts",
+              "line": 2
+            },
+            {
+              "path": "src/domain/price.ts",
+              "line": 3
+            },
+            {
+              "path": "docs/product.md",
+              "line": 2
+            },
+            {
+              "path": "docs/product.md",
+              "line": 5
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "repolead": {
+    "mode": "repolead",
+    "durationMs": 33799,
+    "inputTokens": 53669,
+    "outputTokens": 3258,
+    "estimatedCostUsd": 0.165355,
+    "models": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "answer": {
+      "calculationMultiplier": 1.2,
+      "documentedMultiplier": 1.18,
+      "rejectsNegative": true,
+      "errorType": "RangeError",
+      "currency": "PEN",
+      "pdfImplemented": false,
+      "flow": [
+        "docs/product.md",
+        "src/app/invoice.ts",
+        "src/domain/price.ts"
+      ],
+      "explanation": "Flujo del invoice:\n\n1. Punto de entrada: `invoice(amount)` en src/app/invoice.ts (línea 2). Esta función importa `price` desde el dominio, construye el objeto resultado `{ total, currency }` y fija la moneda de forma literal como `\"PEN\"` (hardcodeada, no calculada).\n\n2. Cálculo real del total: delegado a `price(amount)` en src/domain/price.ts. Esta función es la única responsable de calcular el `total`:\n   - Primero valida: `if (amount < 0) throw new RangeError(\"negative amount\")` (línea 2). Es decir, los importes negativos SÍ son rechazados, lanzando una excepción de tipo `RangeError` con mensaje \"negative amount\". Esto coincide con lo documentado en docs/product.md (\"Negative amounts are rejected\").\n   - Luego calcula: `return amount * 1.20;` (línea 3) — el multiplicador implementado en código es **1.20** (equivalente a un recargo del 20%).\n\n3. Documentación (docs/product.md, línea 2): \"A merchant enters an amount and receives an invoice total in PEN with an 18% surcharge.\" Esto documenta un recargo del **18%**, es decir un multiplicador de **1.18**.\n\n**Discrepancia confirmada**: el código implementa un multiplicador de 1.20 (20% de recargo) mientras la documentación describe 18% (1.18). Esta es una discrepancia material entre documentación y código: la documentación NO prueba el comportamiento real, y en este caso lo contradice. El multiplicador real aplicado es 1.20, no 1.18.\n\n**Moneda**: PEN en ambos lados (código y doc) — sin discrepancia aquí. Pero notar que la moneda está hardcodeada en `invoice.ts` y no proviene de ningún cálculo o parámetro, por lo que no hay soporte real multi-moneda a pesar de \"presentarse en PEN\" como regla de negocio.\n\n**PDF**: la documentación (docs/product.md, línea 5) indica explícitamente \"PDF export is planned, not implemented in this version.\" Se buscó en todo el repositorio (búsqueda por \"pdf export format\" y revisión del módulo de formatting) y no se encontró ningún código relacionado con generación de PDF. El único archivo del módulo \"formatting\" (src/unrelated/format.ts) solo contiene `function format(value: number) { return String(value); }` — una conversión trivial a string, sin relación con PDF. Por lo tanto se confirma que PDF NO está implementado, consistente con lo documentado (en este caso documentación y ausencia de código coinciden).\n\n**Resumen de responsabilidades**:\n- `invoice()` (app): orquesta, fija moneda, construye el resultado.\n- `price()` (domain): valida entrada (rechaza negativos) y calcula el total aplicando el multiplicador.\n- No existe módulo de PDF implementado; el módulo \"formatting\" solo convierte números a string, no genera documentos.\n\nNota: la documentación no es prueba de implementación; en el caso del multiplicador se verificó directamente el código fuente y se encontró una discrepancia real frente a lo documentado.",
+      "citations": [
+        {
+          "path": "docs/product.md",
+          "line": 2
+        },
+        {
+          "path": "docs/product.md",
+          "line": 5
+        },
+        {
+          "path": "src/app/invoice.ts",
+          "line": 2
+        },
+        {
+          "path": "src/domain/price.ts",
+          "line": 2
+        },
+        {
+          "path": "src/domain/price.ts",
+          "line": 3
+        },
+        {
+          "path": "src/unrelated/format.ts",
+          "line": 1
+        }
+      ]
+    },
+    "checks": {
+      "currentMultiplier": true,
+      "documentedMultiplier": true,
+      "negativeAmounts": true,
+      "currency": true,
+      "pdfNotImplemented": true,
+      "flow": true,
+      "citations": true
+    },
+    "correct": true,
+    "calls": [
+      {
+        "name": "mcp__repolead__repo_overview",
+        "input": {
+          "audience": "product"
+        }
+      },
+      {
+        "name": "mcp__repolead__context_pack",
+        "input": {
+          "query": "invoice total calculation multiplier surcharge PEN negative amount PDF",
+          "includeSource": true,
+          "maxTokens": 8000
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "documentId": "docs/product.md",
+          "path": "docs/product.md",
+          "maxTokens": 4000
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "src/domain/price.ts",
+          "startLine": 1,
+          "endLine": 10
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "src/app/invoice.ts",
+          "startLine": 1,
+          "endLine": 10
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "pdf export format"
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "src/unrelated/format.ts",
+          "startLine": 1,
+          "endLine": 30
+        }
+      },
+      {
+        "name": "StructuredOutput",
+        "input": {
+          "calculationMultiplier": 1.2,
+          "documentedMultiplier": 1.18,
+          "rejectsNegative": true,
+          "errorType": "RangeError",
+          "currency": "PEN",
+          "pdfImplemented": false,
+          "flow": [
+            "docs/product.md",
+            "src/app/invoice.ts",
+            "src/domain/price.ts"
+          ],
+          "explanation": "Flujo del invoice:\n\n1. Punto de entrada: `invoice(amount)` en src/app/invoice.ts (línea 2). Esta función importa `price` desde el dominio, construye el objeto resultado `{ total, currency }` y fija la moneda de forma literal como `\"PEN\"` (hardcodeada, no calculada).\n\n2. Cálculo real del total: delegado a `price(amount)` en src/domain/price.ts. Esta función es la única responsable de calcular el `total`:\n   - Primero valida: `if (amount < 0) throw new RangeError(\"negative amount\")` (línea 2). Es decir, los importes negativos SÍ son rechazados, lanzando una excepción de tipo `RangeError` con mensaje \"negative amount\". Esto coincide con lo documentado en docs/product.md (\"Negative amounts are rejected\").\n   - Luego calcula: `return amount * 1.20;` (línea 3) — el multiplicador implementado en código es **1.20** (equivalente a un recargo del 20%).\n\n3. Documentación (docs/product.md, línea 2): \"A merchant enters an amount and receives an invoice total in PEN with an 18% surcharge.\" Esto documenta un recargo del **18%**, es decir un multiplicador de **1.18**.\n\n**Discrepancia confirmada**: el código implementa un multiplicador de 1.20 (20% de recargo) mientras la documentación describe 18% (1.18). Esta es una discrepancia material entre documentación y código: la documentación NO prueba el comportamiento real, y en este caso lo contradice. El multiplicador real aplicado es 1.20, no 1.18.\n\n**Moneda**: PEN en ambos lados (código y doc) — sin discrepancia aquí. Pero notar que la moneda está hardcodeada en `invoice.ts` y no proviene de ningún cálculo o parámetro, por lo que no hay soporte real multi-moneda a pesar de \"presentarse en PEN\" como regla de negocio.\n\n**PDF**: la documentación (docs/product.md, línea 5) indica explícitamente \"PDF export is planned, not implemented in this version.\" Se buscó en todo el repositorio (búsqueda por \"pdf export format\" y revisión del módulo de formatting) y no se encontró ningún código relacionado con generación de PDF. El único archivo del módulo \"formatting\" (src/unrelated/format.ts) solo contiene `function format(value: number) { return String(value); }` — una conversión trivial a string, sin relación con PDF. Por lo tanto se confirma que PDF NO está implementado, consistente con lo documentado (en este caso documentación y ausencia de código coinciden).\n\n**Resumen de responsabilidades**:\n- `invoice()` (app): orquesta, fija moneda, construye el resultado.\n- `price()` (domain): valida entrada (rechaza negativos) y calcula el total aplicando el multiplicador.\n- No existe módulo de PDF implementado; el módulo \"formatting\" solo convierte números a string, no genera documentos.\n\nNota: la documentación no es prueba de implementación; en el caso del multiplicador se verificó directamente el código fuente y se encontró una discrepancia real frente a lo documentado.",
+          "citations": [
+            {
+              "path": "docs/product.md",
+              "line": 2
+            },
+            {
+              "path": "docs/product.md",
+              "line": 5
+            },
+            {
+              "path": "src/app/invoice.ts",
+              "line": 2
+            },
+            {
+              "path": "src/domain/price.ts",
+              "line": 2
+            },
+            {
+              "path": "src/domain/price.ts",
+              "line": 3
+            },
+            {
+              "path": "src/unrelated/format.ts",
+              "line": 1
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "preparation": {
+    "localTokens": 1762,
+    "remoteTokens": 726657
+  },
+  "baselineTokens": 26713,
+  "assistedTokens": 56927,
+  "reductionPercent": -113.105978362595,
+  "ratio": 2.13105978362595,
+  "correctnessPreserved": true,
+  "f7LessTokens": false,
+  "roadmapUnderTenPercent": false,
+  "breakEvenQueries": null,
+  "limits": [
+    "Single small fixture and one run per arm; model behavior, ordering and prompt caching vary.",
+    "Provider SDK token totals include cached input and auxiliary calls; estimated cost is not a subscription invoice.",
+    "Preparation is reported separately and included in break-even; vectors were not needed for this FTS/graph/document workflow.",
+    "Not an Astra/Fable measurement. Correctness checks cover prescribed facts, not every sentence."
+  ]
+}

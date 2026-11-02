@@ -1,0 +1,172 @@
+{
+  "generatedAt": "2026-10-31T23:21:03.976Z",
+  "runtime": {
+    "bun": "1.3.13",
+    "platform": "linux"
+  },
+  "fixture": "Real TypeScript SCIP references, imported HTTP handler alias, two call branches, reference-only callback, public/private members and linked test",
+  "flow": {
+    "paths": [
+      [
+        "POST /payments",
+        "handlePayment",
+        "primary",
+        "OrderRepository.save",
+        "persistOrder"
+      ],
+      [
+        "POST /payments",
+        "handlePayment",
+        "secondary",
+        "OrderRepository.save",
+        "persistOrder"
+      ]
+    ],
+    "allHopsStored": true,
+    "callbackNotTreatedAsCall": true
+  },
+  "impact": {
+    "affectedSymbols": 6,
+    "relevantTests": 1,
+    "publicContracts": 6,
+    "score": {
+      "version": "observed-impact-v1",
+      "observed": 18,
+      "range": {
+        "minimum": 18,
+        "maximum": 76
+      },
+      "factors": [
+        {
+          "id": "affected_symbols",
+          "weight": 10,
+          "value": 6,
+          "points": 3,
+          "maximum": 3,
+          "status": "observed",
+          "reason": "Potential affected symbols; saturates at 20."
+        },
+        {
+          "id": "transitive_dependents",
+          "weight": 10,
+          "value": 5,
+          "points": 2,
+          "maximum": 2,
+          "status": "observed",
+          "reason": "Reachable symbols outside the directly selected declarations; saturates at 40."
+        },
+        {
+          "id": "public_api",
+          "weight": 10,
+          "value": true,
+          "points": 10,
+          "maximum": 10,
+          "status": "observed",
+          "reason": "Public exports, routes or public methods are exposed in the scope; actual compatibility changes require review."
+        },
+        {
+          "id": "schema",
+          "weight": 10,
+          "value": null,
+          "points": null,
+          "maximum": 10,
+          "status": "unknown",
+          "reason": "Schema artifact exposure is a risk signal; schema migration semantics are not inferred."
+        },
+        {
+          "id": "contract",
+          "weight": 10,
+          "value": null,
+          "points": null,
+          "maximum": 10,
+          "status": "unknown",
+          "reason": "Type/interface contract exposure; a breaking contract change is not established."
+        },
+        {
+          "id": "authorization",
+          "weight": 10,
+          "value": null,
+          "points": null,
+          "maximum": 10,
+          "status": "unknown",
+          "reason": "Authorization/security impact requires explicit change context; names alone are insufficient."
+        },
+        {
+          "id": "concurrency",
+          "weight": 8,
+          "value": null,
+          "points": null,
+          "maximum": 8,
+          "status": "unknown",
+          "reason": "Concurrency consequences are not inferred from async syntax or static calls."
+        },
+        {
+          "id": "external_effects",
+          "weight": 8,
+          "value": null,
+          "points": null,
+          "maximum": 8,
+          "status": "unknown",
+          "reason": "Only recorded effect edges establish observed effect exposure; other external effects remain unknown."
+        },
+        {
+          "id": "persistence",
+          "weight": 8,
+          "value": null,
+          "points": null,
+          "maximum": 8,
+          "status": "unknown",
+          "reason": "Recorded reads/writes indicate storage/resource exposure, not transaction correctness."
+        },
+        {
+          "id": "coverage_gap",
+          "weight": 8,
+          "value": 1,
+          "points": 0,
+          "maximum": 0,
+          "status": "reported",
+          "reason": "Line-weighted coverage of affected code files, only with matching snapshot hashes and verified reported lines. This does not prove whole-build freshness or test assertions."
+        },
+        {
+          "id": "irreversibility",
+          "weight": 4,
+          "value": null,
+          "points": null,
+          "maximum": 4,
+          "status": "unknown",
+          "reason": "Rollback/reversibility requires explicit change context."
+        },
+        {
+          "id": "modules",
+          "weight": 4,
+          "value": 3,
+          "points": 3,
+          "maximum": 3,
+          "status": "observed",
+          "reason": "Distinct owning modules; saturates at four."
+        }
+      ],
+      "interpretation": "Versioned prioritization heuristic, not a defect probability or calibrated effort estimate. Unknown factors contribute no observed points and retain their weight in the upper bound."
+    },
+    "coverage": "Synthetic LCOV with MD5 source-line checksums; reported execution counts are prescribed, tests not executed."
+  },
+  "delivery": {
+    "compiledCli": true,
+    "realMcpStdio": true,
+    "noSource": true,
+    "currentSnapshotVerified": true,
+    "verifiedCalls": 4
+  },
+  "tokenSizes": {
+    "tokenizer": "o200k_base proxy, response JSON only",
+    "trace": 1957,
+    "impact": 4428
+  },
+  "limits": [
+    "Static shortest call paths, not runtime/data-flow proof; longer alternative paths are not enumerated.",
+    "No arbitrary external side-effect classification; persistence and unrecorded effects stay unknown unless supplied as change facts or recorded by an analyzer.",
+    "Workflow is a provisional recommendation; no collaborating agents, target tests or target source code were executed.",
+    "No real LLM answer quality, provider usage or end-to-end token savings measured."
+  ],
+  "scriptHash": "f9db3a202e70209ba0de80081d972e7c9b52c54d95a54b94b4819885c4aa4753"
+}

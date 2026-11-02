@@ -1,8 +1,12 @@
 id: ARCH-CYCLE-001
+version: 2
+required_evidence: [location, dependency_path]
 name: Module dependency cycle
 description: >
-  Two modules that import each other form a cycle: neither can be understood,
-  tested or replaced in isolation, and the boundary between them is fictional.
+  A closed import path through two or more modules is a dependency cycle.
+  Determine whether it obstructs intended boundaries or initialization; some
+  type-only/reexport cycles are harmless. The path is an observed witness,
+  not an exhaustive enumeration of all possible cycles.
 severity: high
 candidate_detectors:
   - module_cycle

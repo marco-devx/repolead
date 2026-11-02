@@ -2,6 +2,7 @@ import { existsSync, readdirSync, statSync } from 'node:fs';
 import { basename, join, resolve } from 'node:path';
 
 import type { Command } from 'commander';
+import { Option } from 'commander';
 
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { openStore } from '@repolead/knowledge-store';
@@ -31,17 +32,27 @@ export function registerServe(program: Command): void {
     .option('--dir <path>', 'sirve todos los repos con .repolead/repolead.db bajo este directorio')
     .option('--http', 'sirve por HTTP (Streamable HTTP) en vez de stdio')
     .option('--port <port>', 'puerto HTTP', '3939')
+    .option('--host <host>', 'interfaz HTTP; usa 0.0.0.0 para despliegue remoto', '127.0.0.1')
+    .option('--allow-origin <origin>', 'origen HTTP(S) permitido; repetible para clientes de navegador', (value: string, previous: string[]) => [...previous, value], [])
     .option('--token <token>', 'bearer token para HTTP (o env REPOLEAD_TOKEN)')
     .option('--no-source', 'modo producto: nunca servir código fuente crudo')
+    .addOption(new Option('--tool-profile <profile>', 'catálogo MCP: completo o solo contexto (4 herramientas)').choices(['all', 'context']).default('all'))
     .action(async (options: {
       db: string;
       dir?: string;
       http?: boolean;
       port: string;
+      host: string;
+      allowOrigin: string[];
       token?: string;
       source: boolean;
+      toolProfile: 'all' | 'context';
     }) => {
       const repos: ServedRepo[] = [];
+      let closed = false;
+      const closeStores = () => { if (!closed) { closed = true; for (const repo of repos) { repo.store.close(); } } };
+      let serving = false;
+      try {
       if (options.dir) {
         for (const found of discoverDatabases(options.dir)) {
           repos.push({ name: found.name, store: await openStore(found.dbPath) });
@@ -66,16 +77,24 @@ export function registerServe(program: Command): void {
           return;
         }
         const port = Number(options.port);
-        await startHttpServer(repos, { port, token, exposeSource: options.source });
+        const listening = await startHttpServer(repos, { port, host: options.host, allowedOrigins: options.allowOrigin, token, exposeSource: options.source, toolProfile: options.toolProfile });
+        listening.once('close', closeStores);
+        serving = true;
+        const address = listening.address();
+        const actualPort = typeof address === 'object' && address ? address.port : port;
         console.error(
-          `RepoLead MCP server listo (http://0.0.0.0:${port}/mcp) · ${repos.map((repo) => repo.name).join(', ')}${options.source ? '' : ' · sin código fuente'}`,
+          `RepoLead MCP server listo (http://${options.host}:${actualPort}/mcp) · ${repos.map((repo) => repo.name).join(', ')}${options.source ? '' : ' · sin código fuente'}`,
         );
         return;
       }
 
-      const server = createServer(repos, { exposeSource: options.source });
+      const server = createServer(repos, { exposeSource: options.source, toolProfile: options.toolProfile });
       // stdout es el canal MCP: cualquier log va a stderr.
       console.error(`RepoLead MCP server listo (stdio) · ${repos.map((repo) => repo.name).join(', ')}`);
-      await server.connect(new StdioServerTransport());
+      const transport = new StdioServerTransport();
+      transport.onclose = closeStores;
+      await server.connect(transport);
+      serving = true;
+      } finally { if (!serving) { closeStores(); } }
     });
 }

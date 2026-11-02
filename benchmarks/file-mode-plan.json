@@ -1,0 +1,18 @@
+{
+  "generatedAt": "2026-11-01T23:28:18.953Z",
+  "repository": "access-service",
+  "snapshotId": "snap_c9fb8744-f057-4a19-8be7-4cf1d3ed302d",
+  "readOnly": true,
+  "modelCalls": 0,
+  "symbols": 5806,
+  "files": 856,
+  "sourceLines": 78459,
+  "sourceSections": 868,
+  "fileSyntheses": 10,
+  "modules": 1,
+  "oldTechnicalTasks": 6664,
+  "newTechnicalMinimumTasks": 880,
+  "minimumTaskReductionPercent": 86.79471788715486,
+  "planningMs": 4147,
+  "limits": "Task plan only, no inference on WLT. Recursive synthesis can add calls. Not a runtime or semantic-quality benchmark."
+}

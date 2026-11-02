@@ -1,0 +1,1001 @@
+{
+  "generatedAt": "2026-11-01T00:44:24.036Z",
+  "fixtureRoot": "/tmp/repolead-repo-workflow-jNJTOF",
+  "sourceManifestHash": "328c782944fa6161b303f03cb00f0ec88b3f6f6b330f7d46b6ad0a864dbe1bd1",
+  "files": 217,
+  "preparation": {
+    "generativeTokens": 0,
+    "scanMs": 517,
+    "scip": false,
+    "rationale": "Deterministic snapshot only; lexical/graph retrieval and captured source. Neither arm receives generative dossiers."
+  },
+  "question": "Revisa la implementación actual de RepoLead. Explica con evidencia cómo refresh --analyze detecta cambios sin commit, reutiliza el parseo, invalida las fichas y síntesis técnicas/de producto, y decide qué embeddings recalcular. Identifica el límite de profundidad predeterminado, qué pasa si nada cambió, si puede omitir producto, qué identidad usa la caché de resúmenes y si solo un cambio de líneas obliga a regenerar una ficha. No respondas solo desde README: cita las funciones de implementación que sustentan cada respuesta.",
+  "manual": {
+    "mode": "manual",
+    "inputTokens": 328353,
+    "outputTokens": 13106,
+    "estimatedCostUsd": 0.5972716,
+    "durationMs": 140345,
+    "models": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "answer": {
+      "worksWithoutCommit": true,
+      "reusesUnchangedFileParse": true,
+      "defaultDependencyDepth": 3,
+      "unchangedAnalyzeUsesCache": true,
+      "canSkipProduct": true,
+      "regeneratesEveryEmbedding": false,
+      "lineMoveAlwaysRegeneratesSymbol": false,
+      "summaryCacheIdentity": [
+        "subject_id",
+        "level",
+        "content_hash (hash del evidence pack)",
+        "prompt_version",
+        "model"
+      ],
+      "explanation": "1) Detección de cambios sin commit\n`refreshRepository` (packages/code-graph/src/refresh.ts:27-68) no depende de `git diff`/commit: lee el contenido real de cada archivo trackeado en disco (`readFileSync` + `contentHash`, líneas 59-66) y lo compara contra el `content_hash` guardado en la tabla `files` del snapshot anterior (líneas 53-56, 67-68). Así detecta working-tree \"dirty\" aunque el HEAD no haya cambiado. Además compara `configuration_hash` y `extraction_version/scip_enabled` como metadatos del snapshot (líneas 48-50), de modo que un cambio de config o de versión del extractor también cuenta como \"cambio\" aunque ningún archivo se edite.\n\n2) Reutilización del parseo\n`scanRepository` (packages/code-graph/src/scan.ts) carga `file_extractions` del snapshot previo filtradas por `analyzer_version = EXTRACTION_VERSION` (líneas 154-157) y, por archivo, si `cached.content_hash === hash` actual reutiliza el JSON ya parseado sin volver a invocar `extractFromSource`/`extractPythonSource` (líneas 229-239), incrementando `parsing.reusedFiles`. Esto es lo que `refresh` imprime como \"parseo: N archivos · M reutilizados\" (apps/cli/src/commands/refresh.ts:60).\n\n3) Invalidación de fichas y síntesis técnica/producto\n- Fichas de símbolo: `changedSymbolIds` compara el `contentHash` de cada símbolo actual contra el mismo id en el snapshot previo (refresh.ts:85-88); como el id (`stableSymbolId`, scan.ts:246-252) no incluye líneas, mover código sin tocar su cuerpo no cambia el id ni (normalmente) el `contentHash` (scan.ts:269).\n- `removedSymbolIds` = ids previos que ya no existen (refresh.ts:89).\n- `affectedModules`: módulos dueños de archivos cambiados + un BFS sobre aristas `DEPENDS_ON/CALLS/...` entrantes desde símbolos/archivos cambiados/eliminados, acotado por `max_reanalysis_depth` (refresh.ts:93-124). Si cambió la config o la versión de extracción, se marcan **todos** los módulos como afectados (refresh.ts:125-127).\n- Cascada de síntesis: `analyzeSnapshot` (packages/lead-analyzer/src/analyze.ts:246-277) reconstruye primero símbolos, luego dossiers de archivo (con los hijos-símbolo ya recalculados), luego módulo (con los hijos-archivo) y finalmente el brief del repositorio (con los módulos); cada pack incluye el contenido/hash actual de sus hijos, así que un cambio de nivel bajo se propaga automáticamente hacia arriba cuando el hash del pack cambia.\n\n4) Qué embeddings recalcular\n`refresh` pasa `symbolIds: new Set(result.changedSymbolIds)` a `indexSnapshot` (apps/cli/src/commands/refresh.ts:107), pero ese campo es sólo un \"compatibility hint\" que **no se usa** dentro de `indexSnapshot` (packages/retrieval/src/indexer.ts:27-28). La decisión real es por ítem reconstruido vía `store.rebuildSearchIndex`: se compara el payload existente en Qdrant (`embedding_model`, `embedding_hash`) contra el `contentHash` actual del ítem; sólo los que no coinciden pasan por `embeddings.embed()` (indexer.ts:89-96, 98-121); el resto se marca `reused`. Es decir, la invalidación de vectores es 100% por content-hash sobre todo el índice de conocimiento, no limitada al set de símbolos cambiados.\n\n5) Profundidad predeterminada\n`analysis_budget.max_reanalysis_depth` default **3**, validado 0-32 (packages/config/src/index.ts:33). Se usa tanto para acotar el BFS de módulos afectados en `refresh` (code-graph/refresh.ts:109) como para acotar el alcance de dependencias incluido en cada pack de evidencia (`validateReanalysisDepth`, lead-analyzer/analyze.ts:200; `forSubjects(..., maxReanalysisDepth)` en hierarchy.ts:131,214).\n\n6) Si nada cambió\nSi hay snapshot previo, el HEAD es igual, no hay `changedFiles` y no cambiaron config/versión de extracción, `refreshRepository` retorna `upToDate: true` **sin** correr `scanRepository` ni crear snapshot nuevo, aunque sí refresca métricas de calidad y oportunidades de priorización sobre el snapshot existente (refresh.ts:69-80). La CLI imprime \"Sin cambios...\" y corta ahí **salvo** que se pase `--analyze` (apps/cli/refresh.ts:52-54); en ese caso sigue adelante y llama a `analyzeSnapshot`, pero como ningún pack cambió, `findCachedSummary` encuentra hit en todos los niveles (todo sale como \"cached\", sin tokens).\n\n7) ¿Puede omitir producto?\nSí: la opción `--no-product` fija `options.product=false`, y `refresh` sólo invoca `analyzeProductAndPrint`/`analyzeProductContext` si `options.product` es verdadero (apps/cli/refresh.ts:30, 88-90). El análisis técnico (`analyzeSnapshot`) es independiente y siempre corre con `--analyze`.\n\n8) Identidad de la caché de resúmenes\n`KnowledgeStore.findCachedSummary` busca por `(subject_id, level, content_hash, prompt_version, model)` **sin** filtrar por `snapshot_id` (packages/knowledge-store/src/store.ts:740-754, comentario explicativo 735-739: \"busca un summary previo del mismo subject... en cualquier snapshot\"). Esto permite que una ficha sobreviva entre snapshots/commits mientras el hash del pack de evidencia, el prompt y el modelo no cambien.\n\n9) ¿Un simple cambio de líneas obliga a regenerar una ficha?\nNo necesariamente, a nivel símbolo. `buildSymbolPack` construye un `cacheBinding.fingerprint` que normaliza las posiciones de evidencia **relativas** al `startLine` del propio símbolo y excluye coordenadas absolutas de la identidad \"semántica\" de caché (hierarchy.ts:150-176, comentario 151-152: \"Only explicitly understood source/metadata coordinates are removed from the semantic cache identity\"). Como el id del símbolo y su `contentHash` tampoco dependen de la línea (scan.ts:246-252, 269), un desplazamiento puro (p.ej. insertar líneas antes del símbolo) deja el `packHash` igual: `analyzeSubject` encuentra el cache hit y sólo remapea los ids `ev_...` a las nuevas evidencias en vez de llamar al modelo (analyze.ts:88-110) — **excepto** si el texto cacheado ya contiene referencias explícitas a líneas/ubicaciones (`hasWrittenLocations`, línea 94), en cuyo caso la reubicación se rechaza y la ficha se regenera para no dejar prosa con una línea obsoleta (líneas 92-99).\nEn cambio, a nivel archivo/módulo/repositorio no existe ese `cacheBinding` normalizado: `buildFilePack` arma el pack directo con `fitHierarchyPack` (hierarchy.ts:209-281) y las entradas de evidencia de las \"zonas fuera de símbolos\" incluyen `startLine/endLine` absolutos dentro del hash del id de evidencia (`evidenceEntry`, hierarchy.ts:24-31). Por eso, aunque el cuerpo del símbolo no cambie, cualquier desplazamiento dentro del archivo altera el `file.contentHash` (hash de archivo completo) y las evidencias de \"gap\", invalidando el dossier de archivo y propagando la invalidación hacia módulo y repositorio.",
+      "citations": [
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 48
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 59
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 67
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 69
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 85
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 93
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 109
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 125
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 154
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 229
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 246
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 269
+        },
+        {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "line": 52
+        },
+        {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "line": 60
+        },
+        {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "line": 88
+        },
+        {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "line": 107
+        },
+        {
+          "path": "packages/retrieval/src/indexer.ts",
+          "line": 27
+        },
+        {
+          "path": "packages/retrieval/src/indexer.ts",
+          "line": 91
+        },
+        {
+          "path": "packages/knowledge-store/src/store.ts",
+          "line": 740
+        },
+        {
+          "path": "packages/config/src/index.ts",
+          "line": 33
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 88
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 200
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 246
+        },
+        {
+          "path": "packages/lead-analyzer/src/hierarchy.ts",
+          "line": 24
+        },
+        {
+          "path": "packages/lead-analyzer/src/hierarchy.ts",
+          "line": 150
+        },
+        {
+          "path": "packages/lead-analyzer/src/hierarchy.ts",
+          "line": 169
+        },
+        {
+          "path": "packages/lead-analyzer/src/hierarchy.ts",
+          "line": 209
+        }
+      ]
+    },
+    "checks": {
+      "workingTree": true,
+      "parseReuse": true,
+      "depth": true,
+      "unchangedCache": true,
+      "productOption": true,
+      "selectiveVectors": true,
+      "relocation": true,
+      "cacheIdentity": false,
+      "citations": true
+    },
+    "correct": false,
+    "calls": [
+      {
+        "name": "Glob",
+        "input": {
+          "pattern": "**/*.{ts,js,py}"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "refresh",
+          "output_mode": "files_with_matches"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/repo/apps/cli/src/commands/refresh.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/repo/packages/code-graph/src/refresh.ts"
+        }
+      },
+      {
+        "name": "Glob",
+        "input": {
+          "pattern": "**/refresh.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "apps/cli/src/commands/refresh.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "packages/code-graph/src/refresh.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "max_reanalysis_depth",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "packages/lead-analyzer/src/analyze.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "packages/code-graph/src/scan.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "findCachedSummary|contentHash\\s*\\(\" + \"`|packHash",
+          "path": "packages/knowledge-store/src/store.ts",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "packages/knowledge-store/src/store.ts",
+          "offset": 725,
+          "limit": 30
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "apps/cli/src/commands/product-analysis.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "packages/lead-analyzer/src/hierarchy.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "export async function indexSnapshot|symbolIds",
+          "path": "packages/retrieval/src/search.ts",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "analyzeProductContext",
+          "path": "packages/lead-analyzer/src",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "export async function indexSnapshot",
+          "path": "packages/retrieval/src",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Glob",
+        "input": {
+          "pattern": "packages/retrieval/src/*.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "packages/retrieval/src/indexer.ts"
+        }
+      },
+      {
+        "name": "StructuredOutput",
+        "input": {
+          "worksWithoutCommit": true,
+          "reusesUnchangedFileParse": true,
+          "defaultDependencyDepth": 3,
+          "unchangedAnalyzeUsesCache": true,
+          "canSkipProduct": true,
+          "regeneratesEveryEmbedding": false,
+          "lineMoveAlwaysRegeneratesSymbol": false,
+          "summaryCacheIdentity": [
+            "subject_id",
+            "level",
+            "content_hash (hash del evidence pack)",
+            "prompt_version",
+            "model"
+          ],
+          "explanation": "1) Detección de cambios sin commit\n`refreshRepository` (packages/code-graph/src/refresh.ts:27-68) no depende de `git diff`/commit: lee el contenido real de cada archivo trackeado en disco (`readFileSync` + `contentHash`, líneas 59-66) y lo compara contra el `content_hash` guardado en la tabla `files` del snapshot anterior (líneas 53-56, 67-68). Así detecta working-tree \"dirty\" aunque el HEAD no haya cambiado. Además compara `configuration_hash` y `extraction_version/scip_enabled` como metadatos del snapshot (líneas 48-50), de modo que un cambio de config o de versión del extractor también cuenta como \"cambio\" aunque ningún archivo se edite.\n\n2) Reutilización del parseo\n`scanRepository` (packages/code-graph/src/scan.ts) carga `file_extractions` del snapshot previo filtradas por `analyzer_version = EXTRACTION_VERSION` (líneas 154-157) y, por archivo, si `cached.content_hash === hash` actual reutiliza el JSON ya parseado sin volver a invocar `extractFromSource`/`extractPythonSource` (líneas 229-239), incrementando `parsing.reusedFiles`. Esto es lo que `refresh` imprime como \"parseo: N archivos · M reutilizados\" (apps/cli/src/commands/refresh.ts:60).\n\n3) Invalidación de fichas y síntesis técnica/producto\n- Fichas de símbolo: `changedSymbolIds` compara el `contentHash` de cada símbolo actual contra el mismo id en el snapshot previo (refresh.ts:85-88); como el id (`stableSymbolId`, scan.ts:246-252) no incluye líneas, mover código sin tocar su cuerpo no cambia el id ni (normalmente) el `contentHash` (scan.ts:269).\n- `removedSymbolIds` = ids previos que ya no existen (refresh.ts:89).\n- `affectedModules`: módulos dueños de archivos cambiados + un BFS sobre aristas `DEPENDS_ON/CALLS/...` entrantes desde símbolos/archivos cambiados/eliminados, acotado por `max_reanalysis_depth` (refresh.ts:93-124). Si cambió la config o la versión de extracción, se marcan **todos** los módulos como afectados (refresh.ts:125-127).\n- Cascada de síntesis: `analyzeSnapshot` (packages/lead-analyzer/src/analyze.ts:246-277) reconstruye primero símbolos, luego dossiers de archivo (con los hijos-símbolo ya recalculados), luego módulo (con los hijos-archivo) y finalmente el brief del repositorio (con los módulos); cada pack incluye el contenido/hash actual de sus hijos, así que un cambio de nivel bajo se propaga automáticamente hacia arriba cuando el hash del pack cambia.\n\n4) Qué embeddings recalcular\n`refresh` pasa `symbolIds: new Set(result.changedSymbolIds)` a `indexSnapshot` (apps/cli/src/commands/refresh.ts:107), pero ese campo es sólo un \"compatibility hint\" que **no se usa** dentro de `indexSnapshot` (packages/retrieval/src/indexer.ts:27-28). La decisión real es por ítem reconstruido vía `store.rebuildSearchIndex`: se compara el payload existente en Qdrant (`embedding_model`, `embedding_hash`) contra el `contentHash` actual del ítem; sólo los que no coinciden pasan por `embeddings.embed()` (indexer.ts:89-96, 98-121); el resto se marca `reused`. Es decir, la invalidación de vectores es 100% por content-hash sobre todo el índice de conocimiento, no limitada al set de símbolos cambiados.\n\n5) Profundidad predeterminada\n`analysis_budget.max_reanalysis_depth` default **3**, validado 0-32 (packages/config/src/index.ts:33). Se usa tanto para acotar el BFS de módulos afectados en `refresh` (code-graph/refresh.ts:109) como para acotar el alcance de dependencias incluido en cada pack de evidencia (`validateReanalysisDepth`, lead-analyzer/analyze.ts:200; `forSubjects(..., maxReanalysisDepth)` en hierarchy.ts:131,214).\n\n6) Si nada cambió\nSi hay snapshot previo, el HEAD es igual, no hay `changedFiles` y no cambiaron config/versión de extracción, `refreshRepository` retorna `upToDate: true` **sin** correr `scanRepository` ni crear snapshot nuevo, aunque sí refresca métricas de calidad y oportunidades de priorización sobre el snapshot existente (refresh.ts:69-80). La CLI imprime \"Sin cambios...\" y corta ahí **salvo** que se pase `--analyze` (apps/cli/refresh.ts:52-54); en ese caso sigue adelante y llama a `analyzeSnapshot`, pero como ningún pack cambió, `findCachedSummary` encuentra hit en todos los niveles (todo sale como \"cached\", sin tokens).\n\n7) ¿Puede omitir producto?\nSí: la opción `--no-product` fija `options.product=false`, y `refresh` sólo invoca `analyzeProductAndPrint`/`analyzeProductContext` si `options.product` es verdadero (apps/cli/refresh.ts:30, 88-90). El análisis técnico (`analyzeSnapshot`) es independiente y siempre corre con `--analyze`.\n\n8) Identidad de la caché de resúmenes\n`KnowledgeStore.findCachedSummary` busca por `(subject_id, level, content_hash, prompt_version, model)` **sin** filtrar por `snapshot_id` (packages/knowledge-store/src/store.ts:740-754, comentario explicativo 735-739: \"busca un summary previo del mismo subject... en cualquier snapshot\"). Esto permite que una ficha sobreviva entre snapshots/commits mientras el hash del pack de evidencia, el prompt y el modelo no cambien.\n\n9) ¿Un simple cambio de líneas obliga a regenerar una ficha?\nNo necesariamente, a nivel símbolo. `buildSymbolPack` construye un `cacheBinding.fingerprint` que normaliza las posiciones de evidencia **relativas** al `startLine` del propio símbolo y excluye coordenadas absolutas de la identidad \"semántica\" de caché (hierarchy.ts:150-176, comentario 151-152: \"Only explicitly understood source/metadata coordinates are removed from the semantic cache identity\"). Como el id del símbolo y su `contentHash` tampoco dependen de la línea (scan.ts:246-252, 269), un desplazamiento puro (p.ej. insertar líneas antes del símbolo) deja el `packHash` igual: `analyzeSubject` encuentra el cache hit y sólo remapea los ids `ev_...` a las nuevas evidencias en vez de llamar al modelo (analyze.ts:88-110) — **excepto** si el texto cacheado ya contiene referencias explícitas a líneas/ubicaciones (`hasWrittenLocations`, línea 94), en cuyo caso la reubicación se rechaza y la ficha se regenera para no dejar prosa con una línea obsoleta (líneas 92-99).\nEn cambio, a nivel archivo/módulo/repositorio no existe ese `cacheBinding` normalizado: `buildFilePack` arma el pack directo con `fitHierarchyPack` (hierarchy.ts:209-281) y las entradas de evidencia de las \"zonas fuera de símbolos\" incluyen `startLine/endLine` absolutos dentro del hash del id de evidencia (`evidenceEntry`, hierarchy.ts:24-31). Por eso, aunque el cuerpo del símbolo no cambie, cualquier desplazamiento dentro del archivo altera el `file.contentHash` (hash de archivo completo) y las evidencias de \"gap\", invalidando el dossier de archivo y propagando la invalidación hacia módulo y repositorio.",
+          "citations": [
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 48
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 59
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 67
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 69
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 85
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 93
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 109
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 125
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 154
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 229
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 246
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 269
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 52
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 60
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 88
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 107
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "line": 27
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "line": 91
+            },
+            {
+              "path": "packages/knowledge-store/src/store.ts",
+              "line": 740
+            },
+            {
+              "path": "packages/config/src/index.ts",
+              "line": 33
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 88
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 200
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 246
+            },
+            {
+              "path": "packages/lead-analyzer/src/hierarchy.ts",
+              "line": 24
+            },
+            {
+              "path": "packages/lead-analyzer/src/hierarchy.ts",
+              "line": 150
+            },
+            {
+              "path": "packages/lead-analyzer/src/hierarchy.ts",
+              "line": 169
+            },
+            {
+              "path": "packages/lead-analyzer/src/hierarchy.ts",
+              "line": 209
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "repolead": {
+    "mode": "repolead",
+    "inputTokens": 626473,
+    "outputTokens": 13682,
+    "estimatedCostUsd": 0.7942875,
+    "durationMs": 145361,
+    "models": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "answer": {
+      "worksWithoutCommit": true,
+      "reusesUnchangedFileParse": true,
+      "defaultDependencyDepth": 3,
+      "unchangedAnalyzeUsesCache": true,
+      "canSkipProduct": true,
+      "regeneratesEveryEmbedding": false,
+      "lineMoveAlwaysRegeneratesSymbol": false,
+      "summaryCacheIdentity": [
+        "pack.subject.id",
+        "level (symbol|file|module|document|product|repository)",
+        "packHash = contentHash(cacheBinding.fingerprint ?? packJson + PROMPT_VERSION + EVIDENCE_ENCODING_VERSION + policyVersion + model.name)",
+        "PROMPT_VERSION",
+        "model.name"
+      ],
+      "explanation": "refreshRepository (packages/code-graph/src/refresh.ts) compara content_hash de bytes leídos del working tree contra los hashes almacenados por archivo en la última snapshot, no git status/diff contra un commit, por lo que detecta ediciones sin commitear (comentario explícito 'including an already-indexed dirty working tree'). scanRepository (packages/code-graph/src/scan.ts) reutiliza la extracción tree-sitter/python previa cuando content_hash del archivo coincide, incrementando reusedFiles; si no coincide, reparsea. refreshRepository luego calcula changedSymbolIds/removedSymbolIds por contentHash de símbolo y recorre el grafo de dependencias entrantes hasta analysis_budget.max_reanalysis_depth saltos para marcar affectedModules; si cambió la config o la versión de extracción, invalida todos los módulos. analyzeSubject (packages/lead-analyzer/src/analyze.ts) decide reuso de fichas/síntesis vía store.findCachedSummary con una clave compuesta por subjectId+level+packHash(fingerprint+PROMPT_VERSION+EVIDENCE_ENCODING_VERSION+policyVersion+model.name)+model.name; cuando solo cambian coordenadas (líneas) por un desplazamiento, se rebinde el evidenceId sin llamar al modelo, salvo que el texto cacheado ya contenga referencias absolutas a líneas, en cuyo caso se fuerza regeneración. validateReanalysisDepth(value=3) en packages/lead-analyzer/src/dependencies.ts fija la profundidad predeterminada de invalidación por dependencias en 3. Si nada cambió, refreshRepository retorna upToDate=true tempranamente (solo corre collectQuality/refreshOpportunities) y el CLI (apps/cli/src/commands/refresh.ts) corta sin analizar si no se pasó --analyze; con --analyze, analyzeSnapshot resuelve todo desde caché. --no-product controla si se omite la síntesis de producto cuando se usa --analyze. Finalmente, indexSnapshot (packages/retrieval/src/indexer.ts) decide qué embeddings recalcular por ítem comparando embedding_model y embedding_hash del payload Qdrant existente contra el modelo/hash actuales -el parámetro symbolIds de refresh es solo un hint de compatibilidad, los hashes son la fuente de verdad-, reembebiendo solo lo que cambió de contenido o de modelo de embeddings.",
+      "citations": [
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 26
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 59
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 69
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 101
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 109
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 125
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 229
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 232
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 234
+        },
+        {
+          "path": "packages/code-graph/src/refresh.test.ts",
+          "line": 41
+        },
+        {
+          "path": "packages/code-graph/src/refresh.test.ts",
+          "line": 55
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 81
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 88
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 92
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 94
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 99
+        },
+        {
+          "path": "packages/lead-analyzer/src/dependencies.ts",
+          "line": 5
+        },
+        {
+          "path": "packages/lead-analyzer/src/dependencies.ts",
+          "line": 32
+        },
+        {
+          "path": "packages/lead-analyzer/src/dependencies.ts",
+          "line": 61
+        },
+        {
+          "path": "packages/lead-analyzer/src/evidence.ts",
+          "line": 12
+        },
+        {
+          "path": "packages/lead-analyzer/src/incremental.test.ts",
+          "line": 15
+        },
+        {
+          "path": "packages/lead-analyzer/src/incremental.test.ts",
+          "line": 30
+        },
+        {
+          "path": "packages/lead-analyzer/src/incremental.test.ts",
+          "line": 41
+        },
+        {
+          "path": "packages/lead-analyzer/src/incremental.test.ts",
+          "line": 57
+        },
+        {
+          "path": "packages/lead-analyzer/src/incremental.test.ts",
+          "line": 89
+        },
+        {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "line": 30
+        },
+        {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "line": 52
+        },
+        {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "line": 70
+        },
+        {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "line": 88
+        },
+        {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "line": 107
+        },
+        {
+          "path": "packages/retrieval/src/indexer.ts",
+          "line": 27
+        },
+        {
+          "path": "packages/retrieval/src/indexer.ts",
+          "line": 65
+        },
+        {
+          "path": "packages/retrieval/src/indexer.ts",
+          "line": 90
+        },
+        {
+          "path": "packages/retrieval/src/indexer.ts",
+          "line": 98
+        },
+        {
+          "path": "packages/retrieval/src/search.test.ts",
+          "line": 188
+        },
+        {
+          "path": "packages/retrieval/src/search.test.ts",
+          "line": 203
+        },
+        {
+          "path": "packages/retrieval/src/search.test.ts",
+          "line": 210
+        }
+      ]
+    },
+    "checks": {
+      "workingTree": true,
+      "parseReuse": true,
+      "depth": true,
+      "unchangedCache": true,
+      "productOption": true,
+      "selectiveVectors": true,
+      "relocation": true,
+      "cacheIdentity": true,
+      "citations": false
+    },
+    "correct": false,
+    "calls": [
+      {
+        "name": "mcp__repolead__context_pack",
+        "input": {
+          "query": "refresh --analyze detect uncommitted changes reuse parse invalidate cache embeddings",
+          "maxTokens": 3000
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "refresh analyze uncommitted changes"
+        }
+      },
+      {
+        "name": "mcp__repolead__context_pack",
+        "input": {
+          "query": "detect changes without commit working tree diff git status uncommitted",
+          "maxTokens": 3000,
+          "includeSource": true
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "dependency depth default invalidate symbol summary cache identity"
+        }
+      },
+      {
+        "name": "mcp__repolead__context_pack",
+        "input": {
+          "query": "refresh repository uncommitted working tree status hashFile unchanged skip parse",
+          "maxTokens": 3000,
+          "includeSource": true
+        }
+      },
+      {
+        "name": "mcp__repolead__symbol_context",
+        "input": {
+          "symbol": "sym_53b0a9ff7943399e07c917b3b195f789"
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "startLine": 1,
+          "endLine": 285
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "dependencyDepth default 2 incremental analyze"
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "startLine": 140,
+          "endLine": 285
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/lead-analyzer/src/dependencies.ts",
+          "startLine": 1,
+          "endLine": 69
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "startLine": 1,
+          "endLine": 117
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "apps/cli/src/commands/analyze.ts",
+          "startLine": 1,
+          "endLine": 121
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "refreshRepository function changedFiles upToDate scan reuse"
+        }
+      },
+      {
+        "name": "mcp__repolead__context_pack",
+        "input": {
+          "query": "refreshRepository implementation code-graph",
+          "module": "packages/code-graph",
+          "maxTokens": 2500
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/code-graph/src/refresh.ts",
+          "startLine": 1,
+          "endLine": 131
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/code-graph/src/refresh.test.ts",
+          "startLine": 1,
+          "endLine": 95
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/lead-analyzer/src/incremental.test.ts",
+          "startLine": 1,
+          "endLine": 136
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/retrieval/src/search.test.ts",
+          "startLine": 183,
+          "endLine": 213
+        }
+      },
+      {
+        "name": "mcp__repolead__context_pack",
+        "input": {
+          "query": "scanRepository parse reuse unchanged file content hash skip tree-sitter",
+          "symbols": [
+            "scanRepository"
+          ],
+          "maxTokens": 3000,
+          "includeSource": true
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "parsedFiles reusedFiles previousSnapshotId content hash reuse parse decision"
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/lead-analyzer/src/incremental.test.ts",
+          "startLine": 106,
+          "endLine": 136
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/code-graph/src/scan.ts",
+          "startLine": 131,
+          "endLine": 260
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/lead-analyzer/src/evidence.ts",
+          "startLine": 1,
+          "endLine": 20
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "analysis_budget max_reanalysis_depth default config schema"
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "function indexSnapshot embeddings cacheKey symbolIds"
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/retrieval/src/indexer.ts",
+          "startLine": 41,
+          "endLine": 162
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "path": "packages/retrieval/src/indexer.ts",
+          "startLine": 1,
+          "endLine": 40
+        }
+      },
+      {
+        "name": "StructuredOutput",
+        "input": {
+          "worksWithoutCommit": true,
+          "reusesUnchangedFileParse": true,
+          "defaultDependencyDepth": 3,
+          "unchangedAnalyzeUsesCache": true,
+          "canSkipProduct": true,
+          "regeneratesEveryEmbedding": false,
+          "lineMoveAlwaysRegeneratesSymbol": false,
+          "summaryCacheIdentity": [
+            "pack.subject.id",
+            "level (symbol|file|module|document|product|repository)",
+            "packHash = contentHash(cacheBinding.fingerprint ?? packJson + PROMPT_VERSION + EVIDENCE_ENCODING_VERSION + policyVersion + model.name)",
+            "PROMPT_VERSION",
+            "model.name"
+          ],
+          "explanation": "refreshRepository (packages/code-graph/src/refresh.ts) compara content_hash de bytes leídos del working tree contra los hashes almacenados por archivo en la última snapshot, no git status/diff contra un commit, por lo que detecta ediciones sin commitear (comentario explícito 'including an already-indexed dirty working tree'). scanRepository (packages/code-graph/src/scan.ts) reutiliza la extracción tree-sitter/python previa cuando content_hash del archivo coincide, incrementando reusedFiles; si no coincide, reparsea. refreshRepository luego calcula changedSymbolIds/removedSymbolIds por contentHash de símbolo y recorre el grafo de dependencias entrantes hasta analysis_budget.max_reanalysis_depth saltos para marcar affectedModules; si cambió la config o la versión de extracción, invalida todos los módulos. analyzeSubject (packages/lead-analyzer/src/analyze.ts) decide reuso de fichas/síntesis vía store.findCachedSummary con una clave compuesta por subjectId+level+packHash(fingerprint+PROMPT_VERSION+EVIDENCE_ENCODING_VERSION+policyVersion+model.name)+model.name; cuando solo cambian coordenadas (líneas) por un desplazamiento, se rebinde el evidenceId sin llamar al modelo, salvo que el texto cacheado ya contenga referencias absolutas a líneas, en cuyo caso se fuerza regeneración. validateReanalysisDepth(value=3) en packages/lead-analyzer/src/dependencies.ts fija la profundidad predeterminada de invalidación por dependencias en 3. Si nada cambió, refreshRepository retorna upToDate=true tempranamente (solo corre collectQuality/refreshOpportunities) y el CLI (apps/cli/src/commands/refresh.ts) corta sin analizar si no se pasó --analyze; con --analyze, analyzeSnapshot resuelve todo desde caché. --no-product controla si se omite la síntesis de producto cuando se usa --analyze. Finalmente, indexSnapshot (packages/retrieval/src/indexer.ts) decide qué embeddings recalcular por ítem comparando embedding_model y embedding_hash del payload Qdrant existente contra el modelo/hash actuales -el parámetro symbolIds de refresh es solo un hint de compatibilidad, los hashes son la fuente de verdad-, reembebiendo solo lo que cambió de contenido o de modelo de embeddings.",
+          "citations": [
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 26
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 59
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 69
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 101
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 109
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 125
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 229
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 232
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 234
+            },
+            {
+              "path": "packages/code-graph/src/refresh.test.ts",
+              "line": 41
+            },
+            {
+              "path": "packages/code-graph/src/refresh.test.ts",
+              "line": 55
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 81
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 88
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 92
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 94
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 99
+            },
+            {
+              "path": "packages/lead-analyzer/src/dependencies.ts",
+              "line": 5
+            },
+            {
+              "path": "packages/lead-analyzer/src/dependencies.ts",
+              "line": 32
+            },
+            {
+              "path": "packages/lead-analyzer/src/dependencies.ts",
+              "line": 61
+            },
+            {
+              "path": "packages/lead-analyzer/src/evidence.ts",
+              "line": 12
+            },
+            {
+              "path": "packages/lead-analyzer/src/incremental.test.ts",
+              "line": 15
+            },
+            {
+              "path": "packages/lead-analyzer/src/incremental.test.ts",
+              "line": 30
+            },
+            {
+              "path": "packages/lead-analyzer/src/incremental.test.ts",
+              "line": 41
+            },
+            {
+              "path": "packages/lead-analyzer/src/incremental.test.ts",
+              "line": 57
+            },
+            {
+              "path": "packages/lead-analyzer/src/incremental.test.ts",
+              "line": 89
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 30
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 52
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 70
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 88
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 107
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "line": 27
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "line": 65
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "line": 90
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "line": 98
+            },
+            {
+              "path": "packages/retrieval/src/search.test.ts",
+              "line": 188
+            },
+            {
+              "path": "packages/retrieval/src/search.test.ts",
+              "line": 203
+            },
+            {
+              "path": "packages/retrieval/src/search.test.ts",
+              "line": 210
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "baselineTokens": 341459,
+  "assistedTokens": 640155,
+  "reductionPercent": -87.47638808758884,
+  "f7LessTokens": false,
+  "roadmapUnderTenPercent": false,
+  "limits": [
+    "One matched run per arm on actual RepoLead source; no required minimum manual reads or padded source.",
+    "Answers checked against prescribed implementation facts and valid source citations; not every sentence is automatically verified.",
+    "Real SDK pipeline totals include cached input/auxiliary calls; not Astra/Fable tokens or subscription invoices.",
+    "SCIP disabled for this isolated source capture; semantic compiler acceptance is verified separately."
+  ]
+}

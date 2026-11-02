@@ -1,0 +1,186 @@
+{
+  "generatedAt": "2026-10-31T23:21:03.632Z",
+  "scriptHash": "5145235d0aaa74b0118b4b79b7bae92bc2e7efadf196436d305758a1e33983ac",
+  "runtime": {
+    "bun": "1.3.13",
+    "typescriptLanguageService": "5.9.3"
+  },
+  "references": {
+    "comparedSymbols": 20,
+    "checks": [
+      {
+        "symbol": "compute00",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute01",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute02",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute03",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute04",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute05",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute06",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute07",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute08",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute09",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute10",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute11",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute12",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute13",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute14",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute15",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute16",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute17",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute18",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      },
+      {
+        "symbol": "compute19",
+        "exactReferences": 3,
+        "calls": 1,
+        "matchesLanguageService": true
+      }
+    ],
+    "scanMs": 459,
+    "diagnostics": {
+      "extraction": 0,
+      "scipUnmapped": 42,
+      "indexers": [
+        {
+          "tool": "scip-typescript",
+          "status": "complete",
+          "message": "2 documents indexed",
+          "durationMs": 399
+        }
+      ]
+    },
+    "mcpPagination": true,
+    "compiledDoctorDiagnostics": true
+  },
+  "realRepository": {
+    "trackedFiles": 110,
+    "counts": {
+      "files": 110,
+      "symbols": 413,
+      "edges": 1026,
+      "modules": 24,
+      "tests": 80,
+      "metrics": 4562
+    },
+    "durationMs": 285,
+    "inspectedSymbols": {
+      "packages/domain/src/ids.ts": [
+        "sha256",
+        "normalizeRepoPath",
+        "fileUri",
+        "symbolUri",
+        "SymbolIdentity",
+        "stableSymbolId",
+        "moduleUri",
+        "stableRepositoryId",
+        "contentHash"
+      ],
+      "packages/retrieval/src/tokens.ts": [
+        "TOKENIZER",
+        "countTokens",
+        "validateTokenBudget"
+      ]
+    },
+    "exports": 253,
+    "exactSourceHashes": true,
+    "scip": false
+  },
+  "limits": [
+    "TypeScript language service comparison covers 20 functions with imports, direct calls, callback references and Unicode columns; it is not a full language conformance suite.",
+    "RepoLead scan covers Git-tracked working-tree files; newly created untracked files are intentionally excluded.",
+    "Python SCIP references, generated routes and arbitrary dynamic framework composition need separate acceptance."
+  ]
+}

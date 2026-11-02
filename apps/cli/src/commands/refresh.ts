@@ -1,12 +1,17 @@
 import type { Command } from 'commander';
+import { Option } from 'commander';
+import { join, resolve } from 'node:path';
 
 import { refreshRepository } from '@repolead/code-graph';
+import { analysisBudget, loadConfig } from '@repolead/config';
 import { openStore } from '@repolead/knowledge-store';
 import { analyzeSnapshot } from '@repolead/lead-analyzer';
-import { QdrantRestClient, TeiEmbeddingsClient, indexSnapshot } from '@repolead/retrieval';
+import { QdrantRestClient, TeiEmbeddingsClient, defaultEmbeddingCollection, indexSnapshot } from '@repolead/retrieval';
 
-import { backendLabel, pickModel } from '../model-select';
+import { backendLabel, pickModel, pickAnalysisRouting } from '../model-select';
 import { tokenBudget } from './context';
+import { analyzeProductAndPrint } from './product-analysis';
+import { printVectorProgress } from './vector-progress';
 
 async function reachable(url: string): Promise<boolean> {
   try {
@@ -16,25 +21,34 @@ async function reachable(url: string): Promise<boolean> {
   }
 }
 
-export function registerRefresh(program: Command): void {
+export function registerRefresh(program: Command, modelFactory = pickModel): void {
   program
     .command('refresh')
     .description('Actualiza el índice incrementalmente: git diff → símbolos → módulos afectados')
     .argument('[path]', 'ruta del repositorio', '.')
     .option('--db <path>', 'ruta del archivo SQLite')
     .option('--analyze', 're-analiza con el Tech Lead (solo módulos invalidados, vía caché)')
+    .option('--no-product', 'omitir contexto de producto al usar --analyze')
     .option('--model <name>', 'modelo para --analyze')
-    .option('--backend <backend>', 'api | claude-code')
-    .option('--context-tokens <n>', 'presupuesto de evidencia por módulo (o200k_base)', tokenBudget, 4000)
+    .option('--backend <backend>', 'ollama (default) | api | claude-code')
+    .addOption(new Option('--analysis-mode <mode>', 'files: fuente completa por archivo; symbols: fichas individuales').choices(['files', 'symbols']))
+    .option('--context-tokens <n>', 'presupuesto por análisis (config o 120000; o200k_base)', tokenBudget)
     .option('--no-scip', 'no ejecutar scip-typescript')
+    .option('--no-vectors', 'aplazar embeddings/vectores hasta ejecutar reindex')
     .action(async (path: string, options: {
       db?: string;
       analyze?: boolean;
+      product: boolean;
       model?: string;
       backend?: string;
+      analysisMode?: 'files' | 'symbols';
       scip: boolean;
-      contextTokens: number;
+      vectors: boolean;
+      contextTokens?: number;
     }) => {
+      const started = Date.now();
+      const { config } = loadConfig(path);
+      const analysisMode = options.analysisMode ?? config.analysis_mode;
       const result = await refreshRepository({
         rootPath: path,
         dbPath: options.db,
@@ -43,62 +57,77 @@ export function registerRefresh(program: Command): void {
 
       if (result.upToDate) {
         console.log(`✓ Sin cambios desde el último snapshot (${(result.durationMs / 1000).toFixed(1)}s)`);
-        return;
-      }
-
-      console.log(`✓ ${String(result.changedFiles.length).padStart(6)} archivos cambiados`);
-      console.log(`✓ ${String(result.changedSymbolIds.length).padStart(6)} símbolos invalidados`);
-      console.log(`✓ ${String(result.removedSymbolIds.length).padStart(6)} símbolos eliminados`);
-      console.log(`✓ módulos afectados: ${result.affectedModules.join(', ') || '(ninguno)'}`);
-
-      const scan = result.scan!;
-      const dbPath = scan.dbPath;
-
-      const teiUrl = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
-      const qdrantUrl = process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333';
-      const [teiUp, qdrantUp] = await Promise.all([
-        reachable(`${teiUrl}/health`),
-        reachable(`${qdrantUrl}/healthz`),
-      ]);
-      if (teiUp && qdrantUp) {
-        const store = await openStore(dbPath);
-        const indexed = await indexSnapshot({
-          store,
-          snapshotId: scan.snapshotId,
-          repositoryName: scan.repositoryName,
-          collection: 'repolead-symbols',
-          embeddings: new TeiEmbeddingsClient(teiUrl),
-          qdrant: new QdrantRestClient(qdrantUrl),
-          symbolIds: new Set(result.changedSymbolIds),
-          onProgress: ({ embedded, reused }) => console.log(`  embeddings: ${embedded} nuevos · ${reused} reutilizados`),
-        });
-        store.close();
-        console.log(`✓ ${String(indexed).padStart(6)} vectores asociados al snapshot actual`);
+        if (!options.analyze) { return; }
       } else {
-        console.log('− vectores sin actualizar (TEI/Qdrant no disponibles o sin cambios)');
+        console.log(`✓ ${String(result.changedFiles.length).padStart(6)} archivos cambiados`);
+        console.log(`✓ ${String(result.changedSymbolIds.length).padStart(6)} símbolos invalidados`);
+        console.log(`✓ ${String(result.removedSymbolIds.length).padStart(6)} símbolos eliminados`);
+        console.log(`✓ módulos afectados: ${result.affectedModules.join(', ') || '(ninguno)'}`);
+        console.log(`✓ parseo: ${result.scan!.parsing.parsedFiles} archivos · ${result.scan!.parsing.reusedFiles} reutilizados`);
       }
 
-      if (options.analyze) {
-        const model = pickModel(options.backend, options.model);
-        console.log(`analyze: ${backendLabel(model)} · ${model.name}`);
-        const store = await openStore(dbPath);
-        const analysis = await analyzeSnapshot({
-          store,
-          snapshotId: scan.snapshotId,
-          model,
-          budget: { maxTokens: options.contextTokens },
-          onProgress: (progress) =>
-            console.log(
-              `${progress.outcome === 'cached' ? '\u21ba' : '\u2713'} [${progress.index}/${progress.total}] ${progress.subject}`,
-            ),
-        });
-        store.close();
-        console.log(
-          `✓ ${analysis.modulesAnalyzed} módulos re-analizados, ${analysis.modulesCached} desde caché · brief ${analysis.briefCached ? 'desde caché' : 'regenerado'}`,
-        );
-        console.log(`  tokens: ${analysis.inputTokens} in / ${analysis.outputTokens} out`);
-      }
+      const dbPath = result.scan?.dbPath ?? options.db ?? join(resolve(path), '.repolead', 'repolead.db');
+      const store = await openStore(dbPath);
+      try {
+        const snapshot = store.getLatestSnapshot();
+        if (!snapshot) { throw new Error('No indexed snapshot is available after refresh.'); }
+        const repository = store.getRepository(snapshot.repositoryId)!;
 
-      console.log(`\nDone in ${(result.durationMs / 1000).toFixed(1)}s`);
+        if (options.analyze) {
+          const model = await modelFactory(options.backend ?? config.model.backend, options.model ?? config.model.name, config.local_model);
+          console.log(`analyze: ${backendLabel(model)} · ${model.name}`);
+          console.log(`modo: ${analysisMode} · ${analysisMode === 'files' ? 'código completo por archivo; secciones y síntesis adicionales si hacen falta' : 'fichas individuales por símbolo'}`);
+          const analysis = await analyzeSnapshot({
+            ...await pickAnalysisRouting(config, model),
+            analysisMode,
+            store,
+            snapshotId: snapshot.id,
+            model,
+            budget: analysisBudget(config, options.contextTokens),
+            onProgress: (progress) =>
+              console.log(
+                `${progress.outcome === 'cached' ? '\u21ba' : '\u2713'} [${progress.index}/${progress.total}] ${progress.subject}`,
+              ),
+          });
+          console.log(
+            `✓ ${analysis.symbolsAnalyzed} símbolos, ${analysis.filesAnalyzed} archivos, ${analysis.modulesAnalyzed} módulos re-analizados · ${analysis.symbolsCached + analysis.filesCached + analysis.modulesCached} desde caché · brief ${analysis.briefCached ? 'desde caché' : 'regenerado'}`,
+          );
+          console.log(`  tokens: ${analysis.inputTokens} in / ${analysis.outputTokens} out`);
+          if (analysisMode === 'files') { console.log(`  ${analysis.symbolsSkipped} símbolos cubiertos dentro de sus archivos, sin fichas individuales`); }
+          if (options.product) {
+            await analyzeProductAndPrint({ store, snapshotId: snapshot.id, model, analysisMode, budget: analysisBudget(config, options.contextTokens),
+              onProgress: (p) => console.log(`${p.outcome === 'cached' ? '↺' : '✓'} producto [${p.index}/${p.total}] ${p.subject}`) });
+          }
+        }
+
+        if (!options.vectors) {
+          store.setSnapshotMetadata(snapshot.id, 'vector_refresh_pending', 'true');
+          console.log('− vectores aplazados (--no-vectors); ejecutar repolead reindex después del análisis');
+        } else {
+        const teiUrl = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
+        const qdrantUrl = process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333';
+        const [teiUp, qdrantUp] = await Promise.all([
+          reachable(`${teiUrl}/health`),
+          reachable(`${qdrantUrl}/healthz`),
+        ]);
+        if (teiUp && qdrantUp) {
+          const embeddings = new TeiEmbeddingsClient(teiUrl);
+          const indexed = await indexSnapshot({
+            store,
+            snapshotId: snapshot.id,
+            repositoryName: repository.name,
+            collection: await defaultEmbeddingCollection(embeddings),
+            embeddings,
+            qdrant: new QdrantRestClient(qdrantUrl),
+            symbolIds: new Set(result.changedSymbolIds),
+            onProgress: printVectorProgress,
+          });
+          console.log(`✓ ${String(indexed).padStart(6)} vectores asociados al snapshot actual`);
+        } else {
+          console.log('− vectores sin actualizar (TEI/Qdrant no disponibles)');
+        }
+        }
+      } finally { store.close(); }
+      console.log(`\nDone in ${((Date.now() - started) / 1000).toFixed(1)}s`);
     });
 }

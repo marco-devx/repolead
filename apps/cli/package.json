@@ -10,14 +10,20 @@
     "build": "rsbuild build"
   },
   "dependencies": {
+    "@repolead/adapter-stryker": "workspace:*",
+    "@repolead/change-analysis": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "@repolead/adapter-scip": "workspace:*",
+    "@repolead/adapter-quality": "workspace:*",
     "@repolead/code-graph": "workspace:*",
+    "@repolead/config": "workspace:*",
     "@repolead/knowledge-store": "workspace:*",
     "@repolead/lead-analyzer": "workspace:*",
     "@repolead/mcp-server": "workspace:*",
     "@repolead/policy-engine": "workspace:*",
     "@repolead/retrieval": "workspace:*",
-    "commander": "^14.0.0"
+    "commander": "^14.0.0",
+    "@repolead/adapter-joern": "workspace:*"
   },
   "devDependencies": {
     "@rsbuild/core": "^1.0.0"

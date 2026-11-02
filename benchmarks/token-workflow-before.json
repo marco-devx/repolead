@@ -1,0 +1,336 @@
+{
+  "generatedAt": "2026-11-01T00:51:57.785Z",
+  "fixture": "Same authored repository and changed snapshot in both arms; no minimum reads or artificial baseline padding",
+  "question": "Explica el flujo de invoice: quién calcula el total, multiplicador actual y documentado, moneda y qué ocurre con importes negativos. ¿PDF está implementado? Señala discrepancias entre documentación y código. Incluye rutas en flow y citas path/línea verificadas. No asumas que documentación prueba implementación.",
+  "manual": {
+    "mode": "manual",
+    "durationMs": 25320,
+    "inputTokens": 23257,
+    "outputTokens": 2263,
+    "estimatedCostUsd": 0.0713326,
+    "models": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "answer": {
+      "calculationMultiplier": 1.2,
+      "documentedMultiplier": 1.18,
+      "rejectsNegative": true,
+      "errorType": "RangeError",
+      "currency": "PEN",
+      "pdfImplemented": false,
+      "flow": [
+        "src/app/invoice.ts:2",
+        "src/domain/price.ts:1-4"
+      ],
+      "explanation": "invoice() en src/app/invoice.ts delega el cálculo a price() en src/domain/price.ts, que valida negativos (lanza RangeError) y aplica un multiplicador de 1.20 (20% de recargo), no 1.18 (18%) como indica docs/product.md. La moneda PEN sí coincide con la documentación. No existe ningún código relacionado con PDF en el repositorio; docs/product.md confirma explícitamente que el export a PDF está planeado pero no implementado, lo cual coincide con el código (ausencia total de lógica PDF).",
+      "citations": [
+        {
+          "path": "src/app/invoice.ts",
+          "line": 2
+        },
+        {
+          "path": "src/domain/price.ts",
+          "line": 2
+        },
+        {
+          "path": "src/domain/price.ts",
+          "line": 3
+        },
+        {
+          "path": "docs/product.md",
+          "line": 2
+        },
+        {
+          "path": "docs/product.md",
+          "line": 5
+        }
+      ]
+    },
+    "checks": {
+      "currentMultiplier": true,
+      "documentedMultiplier": true,
+      "negativeAmounts": true,
+      "currency": true,
+      "pdfNotImplemented": true,
+      "flow": true,
+      "citations": true
+    },
+    "correct": true,
+    "calls": [
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "invoice",
+          "output_mode": "files_with_matches",
+          "-i": true
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/tmp/repolead-generative-sttQWQ/src/app/invoice.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/tmp/repolead-generative-sttQWQ/docs/product.md"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/tmp/repolead-generative-sttQWQ/src/domain/price.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "pdf",
+          "output_mode": "files_with_matches",
+          "-i": true
+        }
+      },
+      {
+        "name": "Glob",
+        "input": {
+          "pattern": "**/*.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "currency|PEN|USD",
+          "-i": true,
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "StructuredOutput",
+        "input": {
+          "calculationMultiplier": 1.2,
+          "documentedMultiplier": 1.18,
+          "rejectsNegative": true,
+          "errorType": "RangeError",
+          "currency": "PEN",
+          "pdfImplemented": false,
+          "flow": [
+            "src/app/invoice.ts:2",
+            "src/domain/price.ts:1-4"
+          ],
+          "explanation": "invoice() en src/app/invoice.ts delega el cálculo a price() en src/domain/price.ts, que valida negativos (lanza RangeError) y aplica un multiplicador de 1.20 (20% de recargo), no 1.18 (18%) como indica docs/product.md. La moneda PEN sí coincide con la documentación. No existe ningún código relacionado con PDF en el repositorio; docs/product.md confirma explícitamente que el export a PDF está planeado pero no implementado, lo cual coincide con el código (ausencia total de lógica PDF).",
+          "citations": [
+            {
+              "path": "src/app/invoice.ts",
+              "line": 2
+            },
+            {
+              "path": "src/domain/price.ts",
+              "line": 2
+            },
+            {
+              "path": "src/domain/price.ts",
+              "line": 3
+            },
+            {
+              "path": "docs/product.md",
+              "line": 2
+            },
+            {
+              "path": "docs/product.md",
+              "line": 5
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "repolead": {
+    "mode": "repolead",
+    "durationMs": 28865,
+    "inputTokens": 104467,
+    "outputTokens": 2672,
+    "estimatedCostUsd": 0.2854635,
+    "models": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "answer": {
+      "calculationMultiplier": 1.2,
+      "documentedMultiplier": 1.18,
+      "rejectsNegative": true,
+      "errorType": "RangeError",
+      "currency": "PEN",
+      "pdfImplemented": false,
+      "flow": [
+        "src/app/invoice.ts:2 invoice(amount)",
+        "src/domain/price.ts:1-3 price(amount)"
+      ],
+      "explanation": "invoice() en src/app/invoice.ts delega el cálculo total a price() en src/domain/price.ts, que aplica amount*1.20 (20% de recargo) y lanza RangeError si amount<0. invoice() fija la moneda como 'PEN'. La documentación (docs/product.md) afirma un recargo del 18%, lo cual no coincide con el 1.20 implementado en código (discrepancia confirmada). La documentación y el código coinciden en moneda PEN, en el rechazo de negativos, y en que el PDF está 'planned, not implemented' — búsqueda en el repo no halló ninguna implementación de generación de PDF, confirmando esa declaración documental.",
+      "citations": [
+        {
+          "path": "src/app/invoice.ts",
+          "line": 1
+        },
+        {
+          "path": "src/app/invoice.ts",
+          "line": 2
+        },
+        {
+          "path": "src/domain/price.ts",
+          "line": 1
+        },
+        {
+          "path": "src/domain/price.ts",
+          "line": 2
+        },
+        {
+          "path": "src/domain/price.ts",
+          "line": 3
+        },
+        {
+          "path": "docs/product.md",
+          "line": 2
+        },
+        {
+          "path": "docs/product.md",
+          "line": 5
+        }
+      ]
+    },
+    "checks": {
+      "currentMultiplier": true,
+      "documentedMultiplier": true,
+      "negativeAmounts": true,
+      "currency": true,
+      "pdfNotImplemented": true,
+      "flow": true,
+      "citations": true
+    },
+    "correct": true,
+    "calls": [
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "invoice total calculation multiplier"
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "invoice PDF generate"
+        }
+      },
+      {
+        "name": "mcp__repolead__context_pack",
+        "input": {
+          "query": "invoice total multiplier currency negative amount PDF",
+          "maxTokens": 3000
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "ranges": [
+            {
+              "path": "src/app/invoice.ts"
+            },
+            {
+              "path": "src/domain/price.ts"
+            },
+            {
+              "path": "docs/product.md"
+            }
+          ],
+          "maxTokens": 4000
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "pdf",
+          "limit": 10
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "query": "negative amount reject validation",
+          "limit": 10
+        }
+      },
+      {
+        "name": "mcp__repolead__architecture_findings",
+        "input": {
+          "repo": "repolead-generative-sttQWQ"
+        }
+      },
+      {
+        "name": "StructuredOutput",
+        "input": {
+          "calculationMultiplier": 1.2,
+          "documentedMultiplier": 1.18,
+          "rejectsNegative": true,
+          "errorType": "RangeError",
+          "currency": "PEN",
+          "pdfImplemented": false,
+          "flow": [
+            "src/app/invoice.ts:2 invoice(amount)",
+            "src/domain/price.ts:1-3 price(amount)"
+          ],
+          "explanation": "invoice() en src/app/invoice.ts delega el cálculo total a price() en src/domain/price.ts, que aplica amount*1.20 (20% de recargo) y lanza RangeError si amount<0. invoice() fija la moneda como 'PEN'. La documentación (docs/product.md) afirma un recargo del 18%, lo cual no coincide con el 1.20 implementado en código (discrepancia confirmada). La documentación y el código coinciden en moneda PEN, en el rechazo de negativos, y en que el PDF está 'planned, not implemented' — búsqueda en el repo no halló ninguna implementación de generación de PDF, confirmando esa declaración documental.",
+          "citations": [
+            {
+              "path": "src/app/invoice.ts",
+              "line": 1
+            },
+            {
+              "path": "src/app/invoice.ts",
+              "line": 2
+            },
+            {
+              "path": "src/domain/price.ts",
+              "line": 1
+            },
+            {
+              "path": "src/domain/price.ts",
+              "line": 2
+            },
+            {
+              "path": "src/domain/price.ts",
+              "line": 3
+            },
+            {
+              "path": "docs/product.md",
+              "line": 2
+            },
+            {
+              "path": "docs/product.md",
+              "line": 5
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "preparation": {
+    "localTokens": 1762,
+    "remoteTokens": 726657
+  },
+  "baselineTokens": 25520,
+  "assistedTokens": 107139,
+  "reductionPercent": -319.8236677115988,
+  "ratio": 4.198236677115988,
+  "correctnessPreserved": true,
+  "f7LessTokens": false,
+  "roadmapUnderTenPercent": false,
+  "breakEvenQueries": null,
+  "limits": [
+    "Single small fixture and one run per arm; model behavior, ordering and prompt caching vary.",
+    "Provider SDK token totals include cached input and auxiliary calls; estimated cost is not a subscription invoice.",
+    "Preparation is reported separately and included in break-even; vectors were not needed for this FTS/graph/document workflow.",
+    "Not an Astra/Fable measurement. Correctness checks cover prescribed facts, not every sentence."
+  ]
+}

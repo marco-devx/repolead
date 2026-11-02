@@ -4,7 +4,7 @@
 # turing-latest (75), latest (80), 86-latest (86), hopper-latest (90).
 services:
   embeddings:
-    image: ghcr.io/huggingface/text-embeddings-inference:89-latest
+    image: ghcr.io/huggingface/text-embeddings-inference:89-1.9.4
     deploy:
       resources:
         reservations:
@@ -13,11 +13,8 @@ services:
               count: 1
               capabilities: [gpu]
 
-  reranker:
-    image: ghcr.io/huggingface/text-embeddings-inference:89-latest
-    # Mismo modelo que en CPU (bge-reranker-v2-m3): verificado en vivo que
-    # candle no soporta Qwen3 como classifier ni en CUDA
-    # ("`classifier` model type is not supported for Qwen3").
+  leaf-model:
+    # Ollama can offload layers to RAM when embeddings occupy part of VRAM.
     deploy:
       resources:
         reservations:

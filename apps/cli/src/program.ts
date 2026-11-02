@@ -1,3 +1,5 @@
+import { registerDataFlow } from './commands/dataflow';
+
 import { Command } from 'commander';
 
 import { registerAnalyze } from './commands/analyze';
@@ -11,6 +13,10 @@ import { registerQuery, registerReindex } from './commands/query';
 import { registerRefresh } from './commands/refresh';
 import { registerScan } from './commands/scan';
 import { registerServe } from './commands/serve';
+import { registerMetrics } from './commands/metrics';
+import { registerChangeAnalysis } from './commands/change-analysis';
+import { registerPrioritization } from './commands/prioritization';
+import { registerMutation } from './commands/mutation';
 
 export function buildProgram(): Command {
   const program = new Command('repolead')
@@ -29,6 +35,11 @@ export function buildProgram(): Command {
   registerServe(program);
   registerInstallHooks(program);
   registerDoctor(program);
+  registerMetrics(program);
+  registerChangeAnalysis(program);
+  registerPrioritization(program);
+  registerMutation(program);
+  registerDataFlow(program);
 
   return program;
 }

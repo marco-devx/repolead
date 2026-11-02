@@ -1,0 +1,458 @@
+{
+  "generatedAt": "2026-10-31T23:01:48.090Z",
+  "backend": "claude-code:default:isolated-v1",
+  "fixture": "Authored positives and legitimate counterexamples, TypeScript/Python",
+  "rulesEvaluated": 8,
+  "cases": [
+    {
+      "policy": "ARCH-CYCLE-001",
+      "path": "cycles/sales/index.ts",
+      "expectedConfirmed": true,
+      "detectedCandidates": 1,
+      "observedConfirmed": true,
+      "pass": true,
+      "findings": [
+        {
+          "claim": "Ciclo de dependencia entre módulos: module://repolead-policy-YnvHGN/cycles/billing → module://repolead-policy-YnvHGN/cycles/inventory → module://repolead-policy-YnvHGN/cycles/sales → module://repolead-policy-YnvHGN/cycles/billing",
+          "confidence": 0.93
+        }
+      ]
+    },
+    {
+      "policy": "ARCH-CYCLE-001",
+      "path": "types/left/index.ts",
+      "expectedConfirmed": false,
+      "detectedCandidates": 1,
+      "observedConfirmed": false,
+      "pass": true,
+      "findings": []
+    },
+    {
+      "policy": "ARCH-DEPENDENCY-001",
+      "path": "domain/invoice.ts",
+      "expectedConfirmed": true,
+      "detectedCandidates": 1,
+      "observedConfirmed": true,
+      "pass": true,
+      "findings": [
+        {
+          "claim": "domain/invoice.ts importa @prisma/client (patrón prohibido por la policy)",
+          "confidence": 0.97
+        }
+      ]
+    },
+    {
+      "policy": "ARCH-DEPENDENCY-001",
+      "path": "domain/database.test.ts",
+      "expectedConfirmed": false,
+      "detectedCandidates": 1,
+      "observedConfirmed": false,
+      "pass": true,
+      "findings": []
+    },
+    {
+      "policy": "ARCH-PERSISTENCE-001",
+      "path": "domain/invoice.ts",
+      "expectedConfirmed": true,
+      "detectedCandidates": 1,
+      "observedConfirmed": true,
+      "pass": true,
+      "findings": [
+        {
+          "claim": "domain/invoice.ts importa @prisma/client (patrón prohibido por la policy)",
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "policy": "ARCH-PERSISTENCE-001",
+      "path": "domain/database.test.ts",
+      "expectedConfirmed": false,
+      "detectedCandidates": 1,
+      "observedConfirmed": false,
+      "pass": true,
+      "findings": []
+    },
+    {
+      "policy": "ARCH-FRAMEWORK-TYPES-001",
+      "path": "domain/checkout.ts",
+      "expectedConfirmed": true,
+      "detectedCandidates": 2,
+      "observedConfirmed": true,
+      "pass": true,
+      "findings": [
+        {
+          "claim": "CheckoutPolicy.authorize expone Request de express en su contrato público",
+          "confidence": 0.85
+        },
+        {
+          "claim": "CheckoutPolicy.authorize expone Response de express en su contrato público",
+          "confidence": 0.85
+        }
+      ]
+    },
+    {
+      "policy": "ARCH-FRAMEWORK-TYPES-001",
+      "path": "domain/request.test.ts",
+      "expectedConfirmed": false,
+      "detectedCandidates": 1,
+      "observedConfirmed": false,
+      "pass": true,
+      "findings": []
+    },
+    {
+      "policy": "QUALITY-COMPLEXITY-001",
+      "path": "src/complex.ts",
+      "expectedConfirmed": true,
+      "detectedCandidates": 1,
+      "observedConfirmed": true,
+      "pass": true,
+      "findings": [
+        {
+          "claim": "mutateOrder: cyclomatic_complexity=18 (threshold 15)",
+          "confidence": 0.9
+        }
+      ]
+    },
+    {
+      "policy": "QUALITY-COMPLEXITY-001",
+      "path": "src/dispatch.ts",
+      "expectedConfirmed": false,
+      "detectedCandidates": 1,
+      "observedConfirmed": false,
+      "pass": true,
+      "findings": []
+    },
+    {
+      "policy": "QUALITY-ERRORS-001",
+      "path": "src/payment.ts",
+      "expectedConfirmed": true,
+      "detectedCandidates": 1,
+      "observedConfirmed": true,
+      "pass": true,
+      "findings": [
+        {
+          "claim": "capturePayment: empty_catches=1 (threshold 1)",
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "policy": "QUALITY-ERRORS-001",
+      "path": "src/cleanup.ts",
+      "expectedConfirmed": false,
+      "detectedCandidates": 1,
+      "observedConfirmed": false,
+      "pass": true,
+      "findings": []
+    },
+    {
+      "policy": "QUALITY-DUPLICATION-001",
+      "path": "src/order-pricing.ts",
+      "expectedConfirmed": true,
+      "detectedCandidates": 1,
+      "observedConfirmed": true,
+      "pass": true,
+      "findings": [
+        {
+          "claim": "quality:jscpd duplicate-block: Duplicated block (12 lines, 105 tokens)",
+          "confidence": 0.88
+        }
+      ]
+    },
+    {
+      "policy": "QUALITY-DUPLICATION-001",
+      "path": "fixtures/compat-v1.ts",
+      "expectedConfirmed": false,
+      "detectedCandidates": 1,
+      "observedConfirmed": false,
+      "pass": true,
+      "findings": []
+    },
+    {
+      "policy": "QUALITY-PYTHON-001",
+      "path": "src/order-total.py",
+      "expectedConfirmed": true,
+      "detectedCandidates": 1,
+      "observedConfirmed": true,
+      "pass": true,
+      "findings": [
+        {
+          "claim": "quality:ruff F821: Undefined name `subtotal`",
+          "confidence": 0.95
+        }
+      ]
+    },
+    {
+      "policy": "QUALITY-PYTHON-001",
+      "path": "src/clean.py",
+      "expectedConfirmed": false,
+      "detectedCandidates": 0,
+      "observedConfirmed": false,
+      "pass": true,
+      "findings": []
+    }
+  ],
+  "passed": 16,
+  "total": 16,
+  "inputTokens": 224209,
+  "outputTokens": 7788,
+  "estimatedCostUsd": 1.372743,
+  "newCallsOnRepeat": 0,
+  "cachedJudgments": 16,
+  "completions": [
+    {
+      "policy": "Policy: Module dependency cycle (ARCH-CYCLE-001, version 2, severity high)",
+      "inputTokens": 3351,
+      "outputTokens": 1495,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001",
+          "claude-opus-5[1m]"
+        ],
+        "estimatedCostUsd": 0.058564000000000005,
+        "durationMs": 19820,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      },
+      "verdicts": {
+        "verdicts": [
+          {
+            "index": 0,
+            "confirmed": false,
+            "confidence": 0.86,
+            "reasoning": "Both edges of the left<->right loop are `import type` declarations, which TypeScript erases at emit. No runtime require/ESM edge is produced, so there is no initialization-order hazard and no runtime coupling. Mutually recursive type definitions across two sibling type modules are an intended modeling pattern, and the policy explicitly exempts harmless type-only cycles. Note this is not a module-detection artifact: types/left and types/right are genuinely distinct modules, so the detected loop is real but benign. Residual caveat: under isolatedModules-style settings, or if either `import type` is later changed to a value import, this would become a live cycle; that is a lint-guard concern, not a current high-severity boundary violation."
+          },
+          {
+            "index": 1,
+            "confirmed": true,
+            "confidence": 0.93,
+            "reasoning": "All three edges are value imports (`import { inventory }`, `import { sales }`, `import { billing }`), which survive compilation and form a closed runtime dependency path across three distinct business-domain modules. This obstructs intended boundaries: billing, inventory and sales become one indivisible unit that cannot be built, tested or deployed independently, and whichever module is loaded first will observe partially-initialized bindings from the others (undefined-at-import-time, or TDZ errors for const/class bindings). Evidence supplies each edge of the closed path, so the witness is complete for the claimed cycle; per the scope note the true coupling may be broader, so the remediation should break the loop structurally (extract shared contracts downward or invert one edge behind an interface/event) rather than merely rerouting the single reported import."
+          }
+        ]
+      }
+    },
+    {
+      "policy": "Policy: Dependency Rule (ARCH-DEPENDENCY-001, version 2, severity high)",
+      "inputTokens": 2562,
+      "outputTokens": 846,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001",
+          "claude-opus-5[1m]"
+        ],
+        "estimatedCostUsd": 0.031056000000000004,
+        "durationMs": 10570,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      },
+      "verdicts": {
+        "verdicts": [
+          {
+            "index": 0,
+            "confirmed": false,
+            "confidence": 0.93,
+            "reasoning": "False positive. The evidence shows a test-only file (domain/database.test.ts) using a type-only import ('import type { PrismaClient }'), which is erased at compile time and produces no runtime dependency on the ORM. The body is a pass-through fixture with no client construction, query, or production API usage, as the excerpt itself notes. No business logic is coupled to infrastructure, so this is a harmless implementation detail rather than an architectural boundary violation."
+          },
+          {
+            "index": 1,
+            "confirmed": true,
+            "confidence": 0.97,
+            "reasoning": "Genuine violation of ARCH-DEPENDENCY-001. domain/invoice.ts performs a value import of PrismaClient and instantiates it directly ('private database = new PrismaClient()'), and the business operation Invoice.approve() issues an ORM write (database.invoice.update) inline. This hard-wires the high-level domain entity to a specific ORM at runtime, making the core untestable without a database and the persistence layer unswappable. Remedy: introduce a repository port in the domain and inject a Prisma-backed adapter from infrastructure."
+          }
+        ]
+      }
+    },
+    {
+      "policy": "Policy: Framework types cross a domain contract (ARCH-FRAMEWORK-TYPES-001, version 1, severity high)",
+      "inputTokens": 3168,
+      "outputTokens": 977,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001",
+          "claude-opus-5[1m]"
+        ],
+        "estimatedCostUsd": 0.038332,
+        "durationMs": 11620,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      },
+      "verdicts": {
+        "verdicts": [
+          {
+            "index": 0,
+            "confirmed": false,
+            "confidence": 0.9,
+            "reasoning": "The only evidence paths point to `domain/request.test.ts`, a test file, and the symbol `requestFixture` is an identity helper used as a test fixture. The policy explicitly rejects test-only contracts, so the express `Request` type-only import here does not couple a production domain interface to the web framework."
+          },
+          {
+            "index": 1,
+            "confirmed": true,
+            "confidence": 0.85,
+            "reasoning": "`domain/checkout.ts` line 1 imports express `Request` as `HttpRequest`, and line 4 exposes it as the parameter type of `CheckoutPolicy.authorize`, a public domain interface method. The alias obscures but does not remove the coupling, and a type-only import still binds every implementor and caller of the contract to express types. No evidence indicates this file is an intentional framework adapter or a test-only contract."
+          },
+          {
+            "index": 2,
+            "confirmed": true,
+            "confidence": 0.85,
+            "reasoning": "The same import on line 1 brings in express `Response` as `HttpResponse`, and line 4 uses it as the return type of `CheckoutPolicy.authorize`. The output of a domain policy interface is therefore a framework-owned type, which is exactly the coupling the policy targets; the file is positioned as domain logic rather than an HTTP adapter and is not a test file."
+          }
+        ]
+      }
+    },
+    {
+      "policy": "Policy: Domain depends on persistence implementation (ARCH-PERSISTENCE-001, version 1, severity high)",
+      "inputTokens": 2593,
+      "outputTokens": 924,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001",
+          "claude-opus-5[1m]"
+        ],
+        "estimatedCostUsd": 0.033277,
+        "durationMs": 12021,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      },
+      "verdicts": {
+        "verdicts": [
+          {
+            "index": 0,
+            "confirmed": false,
+            "confidence": 0.9,
+            "reasoning": "Type-only import (`import type { PrismaClient }`) is erased at compile time and creates no runtime coupling to the ORM. The file is a test module (`domain/database.test.ts`) whose sole export is a pass-through fixture with no client construction, query execution, or production API. This matches the policy's explicit carve-outs for type-only contracts and the instruction not to infer runtime database access from an import alone. False positive driven by a path/pattern heuristic."
+          },
+          {
+            "index": 1,
+            "confirmed": true,
+            "confidence": 0.95,
+            "reasoning": "Production domain code takes a value import of PrismaClient, instantiates it as entity field state (`private database = new PrismaClient()`), and performs a live ORM write inside the business method `approve()` (`this.database.invoice.update(...)`). Runtime persistence access is directly evidenced in the excerpt rather than inferred, and this is neither a type-only contract nor an adapter intentionally hosted in the domain. The entity owns both its invariants and its persistence mechanism, placing database implementation concerns squarely in the domain. Remedy: define a domain-owned repository port and relocate the Prisma call to an infrastructure adapter."
+          }
+        ]
+      }
+    },
+    {
+      "policy": "Policy: Complex control flow (QUALITY-COMPLEXITY-001, version 1, severity medium)",
+      "inputTokens": 103586,
+      "outputTokens": 1271,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001",
+          "claude-opus-5[1m]"
+        ],
+        "estimatedCostUsd": 1.051629,
+        "durationMs": 19893,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      },
+      "verdicts": {
+        "verdicts": [
+          {
+            "index": 0,
+            "confirmed": true,
+            "confidence": 0.9,
+            "reasoning": "The excerpt shows complexity 18 arising from four interleaved responsibilities in one function body: pricing/discount policy (VIP, country 'PE', imported, fragile/express surcharges), inventory mutation (decrementing stock, writing negative quantities for backorder), customer credit accounting (mutating customer.credit), and payment capture with retry/failure state (order.retry, order.failed, order.pending, order.blocked, order.manualReview, order.rejected). Nesting reaches five levels and the function mutates three caller-owned objects as side effects while also returning a computed total, so individual paths cannot be exercised in isolation. The catch block branching on customer.vip embeds business policy inside error handling. The function's own comment corroborates the mixing of concerns. This is a maintainability problem established by the evidence, remediable by extracting pricing, inventory reservation, and payment-outcome handling."
+          },
+          {
+            "index": 1,
+            "confirmed": false,
+            "confidence": 0.91,
+            "reasoning": "decodeProtocolTag is a flat, exhaustive protocol decoder: sixteen independent constant case arms each returning a single string, plus a default that throws on unknown tags. The complexity value of 17 is an artifact of counting case labels rather than of tangled logic. There is a single responsibility (tag to name), zero nesting, no side effects, no shared mutable state, and no cross-branch state a reader must track. This matches the intentional dispatch-table pattern the policy directs us to reject; the evidence establishes no maintainability problem, and converting it to a lookup map would lower the metric without improving clarity."
+          }
+        ]
+      }
+    },
+    {
+      "policy": "Policy: Duplicated implementation (QUALITY-DUPLICATION-001, version 1, severity low)",
+      "inputTokens": 4615,
+      "outputTokens": 940,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001",
+          "claude-opus-5[1m]"
+        ],
+        "estimatedCostUsd": 0.04651099999999999,
+        "durationMs": 11786,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      },
+      "verdicts": {
+        "verdicts": [
+          {
+            "index": 0,
+            "confirmed": false,
+            "confidence": 0.9,
+            "reasoning": "Both blocks are test fixtures under fixtures/ (compat-v1.ts, compat-v2.ts) named historicalParserFixture, annotated as frozen compatibility samples that are intentionally versioned independently. The policy explicitly rejects fixtures and independent contracts; deduplicating these would couple snapshots that are meant to be able to diverge. Exact clone confirmed by the analyzer, but it does not justify a shared abstraction."
+          },
+          {
+            "index": 1,
+            "confirmed": true,
+            "confidence": 0.88,
+            "reasoning": "Both excerpts are production code in src/ and implement the identical pricing responsibility: same quantity validation, same loyalty threshold (>=3), same 10% discount, same 18% tax with identical rounding, and the same returned shape. Only the exported function name differs. The in-file comment states the tax and loyalty discount must stay identical across entry points, confirming the two must change together; divergence would yield inconsistent customer totals. Extraction into a shared pricing function with thin wrappers is warranted."
+          }
+        ]
+      }
+    },
+    {
+      "policy": "Policy: Silently discarded exceptions (QUALITY-ERRORS-001, version 1, severity medium)",
+      "inputTokens": 2888,
+      "outputTokens": 817,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001",
+          "claude-opus-5[1m]"
+        ],
+        "estimatedCostUsd": 0.032553,
+        "durationMs": 10478,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      },
+      "verdicts": {
+        "verdicts": [
+          {
+            "index": 0,
+            "confirmed": false,
+            "confidence": 0.93,
+            "reasoning": "Documented best-effort cleanup, which the policy explicitly excludes. The file comment states cleanup is 'explicitly best-effort' and that 'Absence or failure must never fail the completed operation,' and the catch body carries an intent comment ('deliberately ignore optional cleanup failure'). The ignored operation is an unlink of an optional temp file, producing no result the caller needs to observe. The contract permits ignoring this error, so the empty handler is valid rather than a silent discard."
+          },
+          {
+            "index": 1,
+            "confirmed": true,
+            "confidence": 0.95,
+            "reasoning": "The catch body around 'await gateway.charge(order.card, order.total)' is empty with no comment, no fallback, and no documented contract permitting suppression. Control flow then unconditionally executes 'order.status = 'paid'' and 'return {success: true}', so a failed or declined charge is reported to the caller as a successful capture and the order is mutated to a paid state. The caller clearly needs to observe this failure and cannot, making this a genuine silent discard of failed work with downstream state corruption."
+          }
+        ]
+      }
+    },
+    {
+      "policy": "Policy: Python correctness diagnostics (QUALITY-PYTHON-001, version 1, severity medium)",
+      "inputTokens": 101446,
+      "outputTokens": 518,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001",
+          "claude-opus-5[1m]"
+        ],
+        "estimatedCostUsd": 0.08082100000000002,
+        "durationMs": 8112,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      },
+      "verdicts": {
+        "verdicts": [
+          {
+            "index": 0,
+            "confirmed": true,
+            "confidence": 0.95,
+            "reasoning": "The source excerpt shows the complete function: `def order_total(items): return subtotal + sum(items)`. `subtotal` is never a parameter, local assignment, import, or closure variable in the shown scope, so every call raises NameError on the return expression — an unconditional runtime failure rather than a style concern. No contextual evidence (stub annotation, dynamic globals injection, module-level binding) suggests an intentional pattern. Real correctness defect; the fix is to accept or compute `subtotal`."
+          }
+        ]
+      }
+    }
+  ],
+  "limits": [
+    "Single authored fixture run; does not establish population-wide false-positive/negative rates.",
+    "Tokens are real SDK query-pipeline counts including cached input; estimated cost is not a subscription invoice.",
+    "This evaluates audit decisions, not whole-repository summary quality or end-to-end token savings."
+  ]
+}

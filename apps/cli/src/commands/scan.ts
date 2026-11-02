@@ -25,11 +25,12 @@ export function registerScan(program: Command): void {
         `✓ ${String(counts.symbols).padStart(6)} symbols extracted`,
         `✓ ${String(counts.edges).padStart(6)} syntactic edges`,
         result.referencesResolved === null
-          ? '− SCIP no disponible (referencias sin resolver; instala @sourcegraph/scip-typescript)'
+          ? options.scip ? '− SCIP no produjo referencias; consulta doctor --db para el diagnóstico' : '− SCIP desactivado (--no-scip)'
           : `✓ ${String(result.referencesResolved).padStart(6)} references resolved`,
         `✓ ${String(counts.modules).padStart(6)} modules identified`,
         `✓ ${String(counts.tests).padStart(6)} tests linked`,
-        `✓ ${String(counts.metrics).padStart(6)} git metrics collected`,
+        `✓ ${String(counts.metrics).padStart(6)} metrics collected (git, syntax, graph and configured tools)`,
+        `  ${result.diagnostics.extraction} extraction notes · ${result.diagnostics.scipUnmapped} unmapped definitions; inspect with doctor --db`,
         '',
         `Done in ${(result.durationMs / 1000).toFixed(1)}s — db: ${result.dbPath}`,
       ];

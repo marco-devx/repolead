@@ -1,0 +1,11 @@
+{
+  "generatedAt": "2026-11-02T00:09:54.793Z",
+  "passed": true,
+  "model": "ollama:qwen3.5:9b-q4_K_M@56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90:57267a325e75a8d69a88e677f471baa4c7c549b567bab2147cc3e41737dfb37a",
+  "elapsedMs": 2905,
+  "inputTokens": 1321,
+  "outputTokens": 6,
+  "placement": "NAME                 ID              SIZE      PROCESSOR    CONTEXT    RUNNER      UNTIL               \nqwen3.5:9b-q4_K_M    56671c2ab938    5.9 GB    100% GPU     16384      llamacpp    29 seconds from now    \n",
+  "gpu": "memory.used [MiB], memory.total [MiB], utilization.gpu [%], temperature.gpu\n8851 MiB, 16376 MiB, 52 %, 54\n",
+  "limits": "Synthetic JSON request only; no WLT analysis. Placement at this sample/context is not a throughput benchmark or a guarantee for every context size."
+}

@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-11-01T00:32:04.521Z",
+  "runtime": {
+    "bun": "1.3.13",
+    "platform": "linux"
+  },
+  "fixture": "Synthetic TS/JSX + linked product documentation; separate 1000-function performance repository",
+  "generation": {
+    "model": "acceptance-contract-model-v1",
+    "firstCalls": 10,
+    "repeatedCalls": 0,
+    "summaries": 10
+  },
+  "audit": {
+    "judgeCalls": 1,
+    "cachedJudgments": 1,
+    "duplicateFindings": 0,
+    "realModel": false
+  },
+  "mcp": {
+    "transport": "real stdio subprocess using compiled CLI",
+    "resourcesRead": 10,
+    "audiences": [
+      "technical",
+      "product"
+    ],
+    "sourceDisabled": true,
+    "freshnessVerified": true
+  },
+  "performance": {
+    "files": 1002,
+    "symbols": 1000,
+    "scanMs": 213,
+    "refreshMs": 151,
+    "parsedFiles": 1,
+    "reusedFiles": 999,
+    "scip": false
+  },
+  "limitations": [
+    "No real generative model, semantic-answer evaluation or provider billing measured.",
+    "No TEI/Qdrant calls; semantic retrieval acceptance is separate.",
+    "Synthetic performance fixture; SCIP disabled."
+  ],
+  "scriptHash": "e3324539a51e63661588bea535599ed01451e7cdd67c258b46998741566ea0df"
+}

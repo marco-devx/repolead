@@ -1,4 +1,6 @@
 id: DESIGN-COUPLING-001
+version: 1
+required_evidence: [location, metric]
 name: Excessive fan-in
 description: >
   A symbol referenced from a very large number of places concentrates

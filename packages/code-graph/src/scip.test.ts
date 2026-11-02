@@ -109,3 +109,67 @@ test(
   },
   120_000,
 );
+
+test('SCIP preserves recursion and same-line callers, distinguishes callbacks, extends and implements-class', async () => {
+  const root = createFixtureRepo();
+  try {
+    writeFileSync(join(root, 'src/inheritance.ts'), `export class Base { act(value: number) { return value; } }
+export class Child extends Base { act(value: number) { return super.act(value); } }
+export class ImplementsClass implements Base { act(value: number) { return value; } }
+export function recur(value: number): number { return value ? recur(value - 1) : 0; }
+export function left() { return recur(2); } export function right() { const emoji = '🧠'; return recur(3); }
+export const callback = recur;
+`);
+    git(root, 'add', 'src/inheritance.ts');
+    const result = await scanRepository({ rootPath: root, dbPath: join(root, 'details.db') });
+    const store = await openStore(join(root, 'details.db'));
+    try {
+      const symbols = store.listSymbols(result.snapshotId);
+      const byName = new Map(symbols.map((symbol) => [symbol.qualifiedName, symbol]));
+      const graph = store.loadGraph(result.snapshotId);
+      const relation = (from: string, to: string, type: string) => (graph.outgoing.get(byName.get(from)!.id) ?? []).some((edge) => edge.targetId === byName.get(to)!.id && edge.edgeType === type);
+      expect(relation('Child', 'Base', 'EXTENDS')).toBe(true);
+      expect(relation('ImplementsClass', 'Base', 'IMPLEMENTS')).toBe(true);
+      expect(relation('ImplementsClass', 'Base', 'EXTENDS')).toBe(false);
+      expect(relation('recur', 'recur', 'CALLS')).toBe(true);
+      expect(relation('left', 'recur', 'CALLS')).toBe(true);
+      expect(relation('right', 'recur', 'CALLS')).toBe(true);
+      expect(relation('callback', 'recur', 'CALLS')).toBe(false);
+      expect(relation('callback', 'recur', 'DEPENDS_ON')).toBe(true);
+      const refs = store.getReferences(result.snapshotId, byName.get('recur')!.id);
+      expect(refs.filter((entry) => entry.isCall)).toHaveLength(3);
+      expect(refs.filter((entry) => !entry.isCall)).toHaveLength(1);
+      expect(refs.filter((entry) => entry.startLine === 5).map((entry) => entry.sourceId)).toEqual([byName.get('left')!.id, byName.get('right')!.id]);
+      expect(JSON.parse(store.getSnapshotMetadata(result.snapshotId, 'scip_diagnostics')!).indexers[0].status).toBe('complete');
+    } finally { store.close(); }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}, 120000);
+
+test('SCIP binds imported route aliases and never confuses a shadowed handler parameter with a module function', async () => {
+  const root = createFixtureRepo();
+  try {
+    writeFileSync(join(root, 'src/handlers.ts'), 'export function actualHandler() { return 1; }\n');
+    writeFileSync(join(root, 'src/routes.ts'), `import { actualHandler as registered } from './handlers';
+declare const router: { post(path: string, handler: () => unknown): void };
+function handler() { return 'unrelated'; }
+router.post('/payments', registered);
+export function install(handler: () => unknown) { router.post('/shadowed', handler); }
+export class Visibility { run() {} private hidden() {} protected extend() {} #secret() {} }
+`);
+    git(root, 'add', 'src');
+    const result = await scanRepository({ rootPath: root, dbPath: join(root, 'routes.db') });
+    const store = await openStore(join(root, 'routes.db'));
+    try {
+      const graph = store.loadGraph(result.snapshotId);
+      const byName = new Map([...graph.symbols.values()].map((symbol) => [symbol.qualifiedName, symbol]));
+      const route = byName.get('POST /payments')!;
+      expect((graph.outgoing.get(route.id) ?? []).some((edge) => edge.edgeType === 'CALLS' && edge.targetId === byName.get('actualHandler')!.id && edge.analyzer === 'route-binding-scip')).toBe(true);
+      const shadowed = byName.get('POST /shadowed')!;
+      expect((graph.outgoing.get(shadowed.id) ?? []).some((edge) => edge.edgeType === 'CALLS' && edge.targetId === byName.get('handler')!.id)).toBe(false);
+      expect(byName.get('Visibility.run')!.visibility).toBe('public');
+      expect(byName.get('Visibility.hidden')!.visibility).toBe('private');
+      expect(byName.get('Visibility.extend')!.visibility).toBe('protected');
+      expect(byName.get('Visibility.#secret')!.visibility).toBe('private');
+    } finally { store.close(); }
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}, 120000);

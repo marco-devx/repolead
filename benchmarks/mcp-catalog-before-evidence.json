@@ -1,0 +1,45 @@
+{
+  "generatedAt": "2026-11-01T00:56:31.814Z",
+  "tokenizer": "o200k_base",
+  "measurement": "JSON.stringify of actual SDK tools/list response with a fixed repository alias",
+  "profiles": {
+    "all": {
+      "tools": [
+        "context_pack",
+        "repo_overview",
+        "module_context",
+        "symbol_context",
+        "find_references",
+        "find_callers",
+        "trace_flow",
+        "impact_analysis",
+        "mutation_results",
+        "hotspots",
+        "improvement_opportunities",
+        "architecture_findings",
+        "get_evidence",
+        "search"
+      ],
+      "tokens": 2643
+    },
+    "context": {
+      "tools": [
+        "context_pack",
+        "repo_overview",
+        "get_evidence",
+        "search"
+      ],
+      "tokens": 896
+    }
+  },
+  "reductionPercent": 66.09912977676882,
+  "limits": [
+    "Schema payload proxy only; excludes client framing, prompts, answers, reasoning and tool-use behavior.",
+    "Not an end-to-end or billed-token saving."
+  ],
+  "sourceHashes": {
+    "apps/mcp-server/src/server.ts": "3c91be46d138606ce4ac465f4698680093c5874cbbaf9a2a704d394ab1c2c9fd",
+    "apps/mcp-server/src/http.ts": "4bdf5b91583007306a538ed8b5bff035523358a6ae47988b626686a8cee2423a",
+    "apps/cli/src/commands/serve.ts": "f533285e99c4a09f935086ed05c3cf131cb86288d27c05f959d47d414c38ff48"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2026-11-01T00:32:05.511Z",
+  "runtime": {
+    "bun": "1.3.13",
+    "platform": "linux"
+  },
+  "transport": "real HTTP subprocess using compiled CLI and official MCP SDK clients",
+  "protocolVersion": "2025-11-25",
+  "repositories": [
+    "Producto Perú",
+    "Billing"
+  ],
+  "simultaneousClients": 2,
+  "resourcesRead": 20,
+  "verifiedToolCalls": 24,
+  "verified": [
+    "CLI discovery and ephemeral localhost port",
+    "Bearer authentication and browser Origin allowlist",
+    "technical/product memory resources with encoded repository aliases",
+    "overlapping subject IDs require explicit repository",
+    "no-source across tools/resources while persisted product documents remain available",
+    "refresh is visible to connected clients without historical summary/finding fallback",
+    "regenerated memory becomes available and the other repository stays unchanged"
+  ],
+  "limits": [
+    "Contract model only; no semantic answer evaluation, provider token saving or real customer authorization measured.",
+    "One bearer token grants access to all served repositories; repository selection is not per-user authorization.",
+    "Stateless Streamable HTTP, protocol 2025-11-25; no claim of 2026 transport compatibility."
+  ],
+  "scriptHash": "6f72a7bc0e17759668051db0db996be1ac5a1fee7ab5e34591c3c94160680a81"
+}

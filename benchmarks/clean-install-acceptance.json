@@ -1,0 +1,117 @@
+{
+  "generatedAt": "2026-11-02T01:17:53.282Z",
+  "durationMs": 12313,
+  "source": "Git tracked and nonignored untracked working-tree files copied into an empty temporary directory",
+  "sourceFileCount": 260,
+  "sourceManifestHash": "41223575c0550281c422e87ef4ba9c322cd7fd83aecc4d291592a17fda486c56",
+  "commands": [
+    "bun install --frozen-lockfile",
+    "bun run check (lint + Rslint + TypeScript + tests + build)",
+    "node compiled-cli --help",
+    "node compiled-cli doctor --json"
+  ],
+  "install": "bun install v1.3.13 (bf2e2cec)\n\n+ @rslint/core@0.7.3\n+ @rstest/core@0.11.6\n+ @sourcegraph/scip-python@0.6.6\n+ @sourcegraph/scip-typescript@0.4.0\n+ @stryker-mutator/core@10.1.1\n+ @types/node@24.13.3\n+ jscpd@5.4.2\n+ typescript@5.9.3\n\n364 packages installed [2.77s]\n",
+  "checks": "Found 0 errors and 0 warnings (linted 176 files with 69 rules in 194ms using 32 threads)\nFound 0 type errors (type-checked 148 files in 228ms using 32 threads)\n\n---\ntool: \"@rstest/core@0.11.6\"\ntimestamp: \"2026-11-02T01:17:51.724Z\"\nruntime: {\"node\":\"v22.12.0\",\"platform\":\"linux\",\"cwd\":\"/tmp/repolead-clean-install-TYDAJ2\"}\n---\n\n# Rstest Test Execution Report\n\n## Summary\n\n```json\n{\n  \"status\": \"pass\",\n  \"counts\": {\n    \"testFiles\": 43,\n    \"failedFiles\": 0,\n    \"tests\": 177,\n    \"failedTests\": 0,\n    \"passedTests\": 177,\n    \"skippedTests\": 0,\n    \"todoTests\": 0\n  },\n  \"durationMs\": {\n    \"total\": 5252,\n    \"build\": 61,\n    \"tests\": 5191\n  },\n  \"snapshot\": {\n    \"added\": 0,\n    \"updated\": 0,\n    \"unmatched\": 0,\n    \"removed\": 0,\n    \"unchecked\": 0\n  }\n}\n```\n\n## Failures\n\nNo test failures reported.\n\nNote: all tests passed. Lists omitted for brevity.\n\nRsbuild v1.7.6\n\ninfo    build started...\nready   built in 0.77 s\n\nFile (node)      Size        \ndist/130.cjs     15.4 kB  \ndist/index.cjs   3199.5 kB\n\n        Total:   3215.0 kB\n\n",
+  "doctor": {
+    "healthy": true,
+    "environment": [
+      {
+        "name": "joern",
+        "ok": false,
+        "required": false,
+        "detail": "Joern not available (optional)",
+        "hint": "Install a pinned Joern distribution and set REPOLEAD_JOERN_BIN to its absolute launcher path."
+      },
+      {
+        "name": "ollama (optional leaf model)",
+        "ok": true,
+        "required": false,
+        "detail": "http://127.0.0.1:11434/api/tags → HTTP 200"
+      },
+      {
+        "name": "stryker",
+        "ok": true,
+        "required": false,
+        "detail": "10.1.1",
+        "hint": "bun install en RepoLead (Stryker 10.1.1, Node >=22); overrides REPOLEAD_STRYKER_BIN / REPOLEAD_NODE_BIN"
+      },
+      {
+        "name": "jscpd",
+        "ok": true,
+        "required": false,
+        "detail": "jscpd 5.4.2",
+        "hint": "bun install en RepoLead, o REPOLEAD_JSCPD_BIN"
+      },
+      {
+        "name": "ruff",
+        "ok": false,
+        "required": false,
+        "detail": "Error: spawn ruff ENOENT",
+        "hint": "instala services/quality/requirements.txt en .repolead-tools/python; overrides: REPOLEAD_RUFF_BIN / REPOLEAD_QUALITY_PYTHON"
+      },
+      {
+        "name": "radon",
+        "ok": false,
+        "required": false,
+        "detail": "Error: Command failed: python3 -I -c import radon; print(radon.__version__)\nTraceback (most recent call last):\n  File \"<string>\", line 1, in <module>\n    import radon; print(radon.__version__)\n    ^^^^^^^^^^^^\nModuleNotFoundError: No module named 'radon'\n",
+        "hint": "instala services/quality/requirements.txt en .repolead-tools/python; overrides: REPOLEAD_RUFF_BIN / REPOLEAD_QUALITY_PYTHON"
+      },
+      {
+        "name": "bun",
+        "ok": true,
+        "required": true,
+        "detail": "1.3.13"
+      },
+      {
+        "name": "git",
+        "ok": true,
+        "required": true,
+        "detail": "git version 2.43.0"
+      },
+      {
+        "name": "docker",
+        "ok": true,
+        "required": false,
+        "detail": "Docker version 29.8.2, build 7fc2dff"
+      },
+      {
+        "name": "scip-typescript",
+        "ok": true,
+        "required": false,
+        "detail": "indexador instalado: /tmp/repolead-clean-install-TYDAJ2/node_modules/@sourcegraph/scip-typescript/dist/src/main.js",
+        "hint": "ejecuta bun install en RepoLead; doctor --db muestra fallos del último scan"
+      },
+      {
+        "name": "scip-python",
+        "ok": true,
+        "required": false,
+        "detail": "indexador instalado: /tmp/repolead-clean-install-TYDAJ2/node_modules/@sourcegraph/scip-python/index.js",
+        "hint": "ejecuta bun install en RepoLead; doctor --db muestra fallos del último scan"
+      },
+      {
+        "name": "qdrant",
+        "ok": false,
+        "required": false,
+        "detail": "http://localhost:6333/healthz inaccesible",
+        "hint": "levántalo con: docker compose up -d qdrant"
+      },
+      {
+        "name": "embeddings (TEI)",
+        "ok": false,
+        "required": false,
+        "detail": "http://localhost:8080/health inaccesible",
+        "hint": "levántalo con: docker compose up -d embeddings"
+      },
+      {
+        "name": "reranker (TEI)",
+        "ok": false,
+        "required": false,
+        "detail": "http://localhost:8081/health inaccesible",
+        "hint": "levántalo con: docker compose up -d reranker"
+      }
+    ],
+    "indexed": null
+  },
+  "scope": "Local clean-install execution of the configured CI gates, not a hosted GitHub Actions run.",
+  "scriptHash": "71073e3309e01676eac381168a90ba30a1db1c3627145ded7e463a72ee906240"
+}

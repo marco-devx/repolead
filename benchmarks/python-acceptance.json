@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-11-01T00:14:08.640Z",
+  "indexer": "@sourcegraph/scip-python 0.6.6 (actual execution)",
+  "verifiedRelations": 8,
+  "exactUtf16References": 7,
+  "routeFlow": [
+    "POST /orders",
+    "create_order",
+    "checkout",
+    "Repository.save",
+    "persist"
+  ],
+  "verified": [
+    "import aliases",
+    "method call versus reference-only callback",
+    "class inheritance",
+    "recursion",
+    "Unicode columns",
+    "pytest extraction",
+    "FastAPI declared route",
+    "MCP reference delivery"
+  ],
+  "metrics": {
+    "radon": {
+      "status": "complete",
+      "version": "6.0.1",
+      "profile": "quality-v1:jscpd-exact-strict-5lines-50tokens:ruff-E9,F,B:radon-api-cc-raw",
+      "diagnostics": [],
+      "omittedSources": [],
+      "cached": false
+    },
+    "ruff": {
+      "status": "complete",
+      "version": "ruff 0.17.3",
+      "profile": "quality-v1:jscpd-exact-strict-5lines-50tokens:ruff-E9,F,B:radon-api-cc-raw",
+      "diagnostics": [],
+      "omittedSources": [],
+      "cached": false
+    }
+  },
+  "limits": [
+    "FastAPI typing uses a fixture stub; no FastAPI server or target tests executed.",
+    "Seven specified occurrences and eight relations are a finite semantic fixture, not full Python/dynamic dispatch conformance."
+  ],
+  "scriptHash": "4f5f1e4ddb71908580027e0be620333fd9b149f3f415aaf4f7fb9cf24229d7d8"
+}

@@ -1,0 +1,17 @@
+id: ARCH-PERSISTENCE-001
+version: 1
+name: Domain depends on persistence implementation
+severity: high
+description: Direct database or ORM imports in a declared domain path are boundary-review candidates.
+required_evidence: [location, dependency_path]
+candidate_detectors:
+  - name: persistence_import_in_domain
+    params:
+      from: '(^|/)(domain|entities|use-cases)/'
+      to: '(^|/)(typeorm|sequelize|mongoose|prisma|@prisma/client|drizzle-orm|sqlalchemy|peewee|django\.db)(/|$)'
+llm_judgment:
+  question: >
+    Does the dependency place database implementation concerns in the domain?
+    Consider actual module conventions and reject misplaced path heuristics,
+    type-only contracts, adapters intentionally hosted here, or insufficient
+    evidence. Do not infer runtime database access merely from an import.

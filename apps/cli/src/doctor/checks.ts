@@ -1,5 +1,11 @@
+import { probeJoern } from '@repolead/adapter-joern';
 import { execFile } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { promisify } from 'node:util';
+
+import { resolveScipEntrypoint } from '@repolead/adapter-scip';
+import { probeQualityTool, QUALITY_TOOLS } from '@repolead/adapter-quality';
+import { probeStryker } from '@repolead/adapter-stryker';
 
 const run = promisify(execFile);
 
@@ -67,6 +73,19 @@ export async function runDoctorChecks(env: NodeJS.ProcessEnv = process.env): Pro
   const teiUrl = env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
 
   return Promise.all([
+    probeJoern(env).then((probe): DoctorResult => ({ name: 'joern', ok: probe.available, required: false,
+      detail: probe.detail, hint: 'Install a pinned Joern distribution and set REPOLEAD_JOERN_BIN to its absolute launcher path.' })),
+    checkService('ollama (optional leaf model)', `${env['REPOLEAD_OLLAMA_URL'] ?? 'http://127.0.0.1:11434'}/api/tags`, {
+      required: false, hint: 'docker compose --profile leaf up -d leaf-model; pull qwen3.5:9b-q4_K_M and configure local_model explicitly',
+    }),
+    probeStryker(env).then((probe): DoctorResult => ({ name: 'stryker', ok: probe.available, required: false,
+      detail: probe.version ?? probe.message ?? 'no disponible', hint: 'bun install en RepoLead (Stryker 10.1.1, Node >=22); overrides REPOLEAD_STRYKER_BIN / REPOLEAD_NODE_BIN' })),
+    ...QUALITY_TOOLS.map(async (tool): Promise<DoctorResult> => {
+      const probe = await probeQualityTool(tool, env);
+      return { name: tool, ok: probe.status === 'available', required: false,
+        detail: probe.version ?? probe.message ?? 'no disponible',
+        hint: tool === 'jscpd' ? 'bun install en RepoLead, o REPOLEAD_JSCPD_BIN' : 'instala services/quality/requirements.txt en .repolead-tools/python; overrides: REPOLEAD_RUFF_BIN / REPOLEAD_QUALITY_PYTHON' };
+    }),
     checkBinary('bun', 'bun', ['--version'], {
       required: true,
       hint: 'instala Bun: https://bun.sh',
@@ -79,9 +98,11 @@ export async function runDoctorChecks(env: NodeJS.ProcessEnv = process.env): Pro
       required: false,
       hint: 'necesario para Qdrant y TEI: https://docs.docker.com/engine/install/',
     }),
-    checkBinary('scip-typescript', 'scip-typescript', ['--version'], {
-      required: false,
-      hint: 'se usa desde la Fase 3: bun add -g @sourcegraph/scip-typescript',
+    ...(['typescript', 'python'] as const).map((language): DoctorResult => {
+      const entry = resolveScipEntrypoint(language);
+      return { name: `scip-${language}`, ok: Boolean(entry && existsSync(entry)), required: false,
+        detail: entry && existsSync(entry) ? `indexador instalado: ${entry}` : 'indexador no disponible',
+        hint: 'ejecuta bun install en RepoLead; doctor --db muestra fallos del último scan' };
     }),
     checkService('qdrant', `${qdrantUrl}/healthz`, {
       required: false,

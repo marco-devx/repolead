@@ -1,0 +1,424 @@
+{
+  "generatedAt": "2026-11-01T22:14:05.850Z",
+  "scriptHash": "931c4554ec79bcc08a5c39a578a647dac224b415a50715c26c5c060796a9baa2",
+  "services": {
+    "embeddings": {
+      "model_id": "Qwen/Qwen3-Embedding-4B",
+      "model_sha": "5cf2132abc99cad020ac570b19d031efec650f2b",
+      "model_dtype": "float16",
+      "served_model_name": "Qwen/Qwen3-Embedding-4B",
+      "model_type": {
+        "embedding": {
+          "pooling": "last_token"
+        }
+      },
+      "max_concurrent_requests": 64,
+      "max_input_length": 32768,
+      "max_batch_tokens": 32768,
+      "max_batch_requests": null,
+      "max_client_batch_size": 32,
+      "auto_truncate": true,
+      "tokenization_workers": 31,
+      "version": "1.9.4",
+      "sha": "e80ef225ed0e6cb1717ce632a6a84b6cf211bb67",
+      "docker_label": "sha-e80ef22"
+    },
+    "reranker": {
+      "model_id": "Qwen/Qwen3-Reranker-0.6B",
+      "model_sha": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+      "model_dtype": "float32",
+      "model_type": "causal-reranker",
+      "max_input_length": 32768,
+      "max_client_batch_size": 32,
+      "auto_truncate": false,
+      "device": "cpu",
+      "version": "repolead-qwen-reranker-v1"
+    },
+    "qdrant": {
+      "title": "qdrant - vector search engine",
+      "version": "1.19.0",
+      "commit": "74f3e85b9473c62560006c043e13737ce6b48412"
+    }
+  },
+  "corpus": {
+    "symbols": 28,
+    "knowledgeItems": 34
+  },
+  "search": {
+    "queries": [
+      {
+        "query": "¿Dónde se devuelve el dinero de un pago ya cobrado?",
+        "expected": "refundCapturedPayment",
+        "language": "es",
+        "rank": 1,
+        "top5": [
+          "refundCapturedPayment",
+          "archiveCompletedOrders",
+          "exportPayroll",
+          "calculateInvoiceTax",
+          "formatCurrency"
+        ],
+        "sources": [
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ]
+        ]
+      },
+      {
+        "query": "¿Cómo cambiar la contraseña e invalidar las sesiones del usuario?",
+        "expected": "resetAccountPassword",
+        "language": "es",
+        "rank": 1,
+        "top5": [
+          "resetAccountPassword",
+          "invalidateProductCache",
+          "publishWelcomeEmail",
+          "renderHomepage",
+          "verifyWebhookSignature"
+        ],
+        "sources": [
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ]
+        ]
+      },
+      {
+        "query": "¿Qué función reserva existencias y evita vender más unidades de las disponibles?",
+        "expected": "reserveWarehouseStock",
+        "language": "es",
+        "rank": 1,
+        "top5": [
+          "reserveWarehouseStock",
+          "calculateInvoiceTax",
+          "archiveCompletedOrders",
+          "refundCapturedPayment",
+          "invalidateProductCache"
+        ],
+        "sources": [
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ]
+        ]
+      },
+      {
+        "query": "¿Dónde se genera la copia de seguridad diaria de la base de datos?",
+        "expected": "createDailyBackup",
+        "language": "es",
+        "rank": 1,
+        "top5": [
+          "createDailyBackup",
+          "rotateLogs",
+          "archiveCompletedOrders",
+          "resetAccountPassword",
+          "uploadAvatar"
+        ],
+        "sources": [
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ]
+        ]
+      },
+      {
+        "query": "Where is the new customer welcome message sent?",
+        "expected": "publishWelcomeEmail",
+        "language": "en",
+        "rank": 1,
+        "top5": [
+          "publishWelcomeEmail",
+          "renderHomepage",
+          "serializeMessage",
+          "resetAccountPassword",
+          "checkSubscriptionPlan"
+        ],
+        "sources": [
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ]
+        ]
+      },
+      {
+        "query": "How do we block an IP that sends over one hundred requests per minute?",
+        "expected": "enforceRequestRateLimit",
+        "language": "en",
+        "rank": 1,
+        "top5": [
+          "enforceRequestRateLimit",
+          "verifyWebhookSignature",
+          "checkSubscriptionPlan",
+          "trackDelivery",
+          "publishWelcomeEmail"
+        ],
+        "sources": [
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ]
+        ]
+      },
+      {
+        "query": "Where do we compute the sales tax amount on an invoice?",
+        "expected": "calculateInvoiceTax",
+        "language": "en",
+        "rank": 1,
+        "top5": [
+          "calculateInvoiceTax",
+          "refundCapturedPayment",
+          "formatCurrency",
+          "generateShipmentLabel",
+          "reserveWarehouseStock"
+        ],
+        "sources": [
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "vector",
+            "rerank"
+          ]
+        ]
+      },
+      {
+        "query": "Which function evicts a stale catalog product from the cache?",
+        "expected": "invalidateProductCache",
+        "language": "en",
+        "rank": 1,
+        "top5": [
+          "invalidateProductCache",
+          "archiveCompletedOrders",
+          "checkSubscriptionPlan",
+          "reserveWarehouseStock",
+          "trackDelivery"
+        ],
+        "sources": [
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ],
+          [
+            "fts",
+            "vector",
+            "rerank"
+          ]
+        ]
+      }
+    ],
+    "top5Hits": 8,
+    "totalQueries": 8,
+    "filterChecks": [
+      {
+        "type": "document",
+        "kind": "documentation",
+        "ids": [
+          "repo://Retrieval acceptance/docs/product.md#document",
+          "repo://Retrieval acceptance/docs/product.md#document",
+          "repo://Retrieval acceptance/docs/product.md#document"
+        ]
+      },
+      {
+        "type": "summary",
+        "kind": "product",
+        "ids": [
+          "repo_bb98191c0f7f03a3"
+        ]
+      },
+      {
+        "type": "finding",
+        "kind": "FIXTURE-AUTHORIZATION",
+        "ids": [
+          "fixture-finding"
+        ]
+      },
+      {
+        "type": "test",
+        "kind": "test",
+        "ids": [
+          "test_261644fefe578f9c5139606e"
+        ]
+      }
+    ],
+    "warnings": []
+  },
+  "indexing": {
+    "initial": {
+      "embedded": 34,
+      "reused": 0,
+      "metadataUpdated": 0,
+      "incompleteSources": 0,
+      "omitted": []
+    },
+    "repeated": {
+      "embedded": 0,
+      "reused": 34,
+      "metadataUpdated": 0,
+      "incompleteSources": 0,
+      "omitted": []
+    },
+    "incremental": {
+      "embedded": 1,
+      "reused": 30,
+      "metadataUpdated": 30,
+      "incompleteSources": 0,
+      "omitted": []
+    },
+    "unchangedVectors": 30,
+    "unmountedSourceRebuild": true,
+    "fullTestBody": true,
+    "physicalDeletion": true,
+    "otherRepositoryPreserved": true,
+    "emptySnapshotPurged": true
+  },
+  "mcp": {
+    "compiledStdio": true,
+    "noSource": true,
+    "documentFilter": true,
+    "offlineWarnings": true
+  },
+  "limits": [
+    "Synthetic English-source fixture with Spanish/English queries; this does not establish accuracy on every repository.",
+    "Summaries and findings are handwritten retrieval fixtures; no generative-model quality or billed-token evaluation.",
+    "Modern test records retain exact spans and complete bodies; legacy records without spans require refresh for body search."
+  ]
+}

@@ -34,3 +34,5 @@ export async function createParser(name: GrammarName): Promise<Parser> {
 }
 
 export type { Language, Node, Parser, Tree } from 'web-tree-sitter';
+export * from './metrics';
+export * from './type-uses';

@@ -1,21 +1,32 @@
 import type { Module } from '@repolead/domain';
-import { contentHash } from '@repolead/domain';
+import { contentHash, DEFAULT_CONTEXT_TOKENS } from '@repolead/domain';
 import type { KnowledgeStore } from '@repolead/knowledge-store';
 import { countTokens, owningModule, rankSymbols, validateTokenBudget } from '@repolead/retrieval';
+import { buildDependencyIndex } from './dependencies';
+import type { DependencyIndex } from './dependencies';
+import { listSourceFiles } from './hierarchy';
 
 export interface AnalysisBudget {
+  /** Bound local file/synthesis packets by bytes; split rather than discard the tail. */
+  filePackBytes?: number;
+  /** Independent model requests grouped per hierarchy level. Default 1; max 4. */
+  batchSize?: number;
   maxTokens?: number;
+  maxSourceLinesPerPack?: number;
+  /** Outgoing dependency hops included in invalidation; 0 = own facts only. Default 3. */
+  maxReanalysisDepth?: number;
   /** Optional compatibility caps; tokens are the default constraint. */
   maxSymbolsPerPack?: number;
   maxEdgesPerPack?: number;
 }
 
-export const DEFAULT_BUDGET: AnalysisBudget = { maxTokens: 4000 };
+export const DEFAULT_BUDGET: AnalysisBudget = { maxTokens: DEFAULT_CONTEXT_TOKENS };
 
 export interface ModuleEvidencePack {
   module: { name: string; path: string };
   /** Hashes all owned code and incident dependencies, including omitted evidence. */
   fingerprint: string;
+  dependencyScope: ReturnType<DependencyIndex['forSubjects']>;
   files: { path: string; language: string | null; lineCount: number | null; commitCount: number }[];
   symbols: {
     qualifiedName: string; kind: string; signature: string | null; path: string;
@@ -25,10 +36,14 @@ export interface ModuleEvidencePack {
   incomingDependencies: string[];
   outgoingDependencies: string[];
   tests: { path: string; name: string }[];
+  exports: { path: string; name: string; source: string | null; local: string | null; typeOnly: boolean }[];
   coChanges: { file: string; with: string; count: number }[];
+  quality: unknown[];
   truncation: {
     droppedSymbols: number; droppedEdges: number; droppedFiles: number;
     droppedDependencies: number; droppedTests: number; droppedCoChanges: number;
+    droppedExports: number;
+    droppedQuality: number;
   };
 }
 
@@ -38,6 +53,7 @@ export function buildModuleEvidencePack(
   snapshotId: string,
   module: Module,
   budget: AnalysisBudget = DEFAULT_BUDGET,
+  dependencyIndex?: DependencyIndex,
 ): ModuleEvidencePack {
   const maxTokens = validateTokenBudget(budget.maxTokens ?? DEFAULT_BUDGET.maxTokens!);
   const modules = store.listModules(snapshotId);
@@ -53,7 +69,8 @@ export function buildModuleEvidencePack(
   const internal = edges.filter((edge) => ownIds.has(edge.sourceId) && ownIds.has(edge.targetId));
   const boundary = edges.filter((edge) => ownSubjects.has(edge.sourceId) !== ownSubjects.has(edge.targetId));
   const incident = edges.filter((edge) => ownSubjects.has(edge.sourceId) || ownSubjects.has(edge.targetId));
-  const externalIds = new Set(boundary.flatMap((edge) => [edge.sourceId, edge.targetId]).filter((id) => !ownSubjects.has(id)));
+  const dependencyScope = (dependencyIndex ?? buildDependencyIndex(store, snapshotId, graph, listSourceFiles(store, snapshotId)))
+    .forSubjects([...ownSubjects], budget.maxReanalysisDepth ?? 3);
   const fileNames = new Map(files.map((file) => [file.id, file.path]));
   const label = (id: string): string => graph.symbols.get(id)?.qualifiedName ?? fileNames.get(id) ?? id;
   const incoming = [...new Set(boundary.filter((edge) => ownSubjects.has(edge.targetId)).map((edge) => label(edge.sourceId)))].sort();
@@ -67,18 +84,25 @@ export function buildModuleEvidencePack(
     .all(snapshotId) as { subject_id: string; name: string; value: number }[])
     .map((row) => ({ file: fileNames.get(row.subject_id) ?? row.subject_id, with: row.name.slice('co_change:'.length), count: row.value }))
     .filter((entry) => belongs(entry.file) || belongs(entry.with));
+  const quality = store.qualityFacts(snapshotId, module.id);
+  const qualityEntries: unknown[] = [{ metrics: quality.metrics }, { status: quality.status }];
   const fingerprint = contentHash(JSON.stringify({
+    quality,
+    exports: store.listExports(snapshotId).filter((entry) => belongs(entry.path)).map(({ snapshotId: _snapshotId, ...entry }) => entry),
     files: ownFiles.map((file) => [file.path, file.content_hash]),
     symbols: symbols.map((symbol) => [symbol.id, symbol.contentHash]).sort(),
     edges: incident.map((edge) => [edge.sourceId, edge.targetId, edge.edgeType, edge.analyzer]).sort(),
-    dependencies: [...externalIds].sort().map((id) => [id, graph.symbols.get(id)?.contentHash ?? files.find((file) => file.id === id)?.content_hash]),
+    dependencies: dependencyScope.fingerprint,
   }));
   const pack: ModuleEvidencePack = {
     module: { name: module.name, path: module.path }, fingerprint,
-    files: [], symbols: [], internalEdges: [], incomingDependencies: [], outgoingDependencies: [], tests: [], coChanges: [],
+    dependencyScope: { ...dependencyScope, dependencies: [] },
+    files: [], symbols: [], internalEdges: [], incomingDependencies: [], outgoingDependencies: [], tests: [], exports: [], coChanges: [], quality: [],
     truncation: {
       droppedSymbols: symbols.length, droppedEdges: internal.length, droppedFiles: ownFiles.length,
       droppedDependencies: incoming.length + outgoing.length, droppedTests: tests.length, droppedCoChanges: coChanges.length,
+      droppedExports: store.listExports(snapshotId).filter((entry) => belongs(entry.path)).length,
+      droppedQuality: qualityEntries.length,
     },
   };
   const fits = (): boolean => countTokens(JSON.stringify(pack)) <= maxTokens;
@@ -96,7 +120,12 @@ export function buildModuleEvidencePack(
     return false;
   };
   // Reserve a quarter for relations/files/tests instead of consuming everything on signatures.
+  for (const entry of store.listExports(snapshotId).filter((item) => belongs(item.path))) {
+    if (countTokens(JSON.stringify(pack)) > maxTokens / 4) { break; }
+    add(pack.exports, { path: entry.path, name: entry.exportedName, source: entry.sourceModule, local: entry.localName, typeOnly: entry.typeOnly }, 'droppedExports');
+  }
   const keptIds = new Set<string>();
+  for (const entry of qualityEntries) { add(pack.quality, entry, 'droppedQuality'); }
   for (const symbol of symbols) {
     if (pack.symbols.length >= (budget.maxSymbolsPerPack ?? Infinity)) {
       break;
@@ -104,7 +133,8 @@ export function buildModuleEvidencePack(
     const item = {
       qualifiedName: symbol.qualifiedName, kind: symbol.kind, signature: symbol.signature, path: symbol.path,
       startLine: symbol.startLine, endLine: symbol.endLine,
-      fanIn: (graph.incoming.get(symbol.id) ?? []).filter((edge) => edge.edgeType !== 'CONTAINS').length,
+      fanIn: new Set((graph.incoming.get(symbol.id) ?? []).filter((edge) => edge.sourceId !== symbol.id &&
+        ['CALLS', 'DEPENDS_ON', 'EXTENDS', 'IMPLEMENTS'].includes(edge.edgeType)).map((edge) => edge.sourceId)).size,
     };
     if (countTokens(JSON.stringify(pack)) > maxTokens * 0.75) {
       break;

@@ -1,0 +1,16 @@
+id: QUALITY-DUPLICATION-001
+version: 1
+name: Duplicated implementation
+severity: low
+description: jscpd reports exact token clones; shared business behavior may justify consolidation.
+required_evidence: [location, metric, source_excerpt]
+candidate_detectors:
+  - name: tool_issue
+    params:
+      analyzer: quality:jscpd
+      rule: '^duplicate-block$'
+llm_judgment:
+  question: >
+    Do both excerpts implement the same responsibility and need to change
+    together? Reject fixtures, generated code, independent contracts or trivial
+    scaffolding. A clone alone does not justify a shared abstraction.

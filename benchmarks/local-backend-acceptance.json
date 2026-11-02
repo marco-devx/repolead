@@ -1,0 +1,493 @@
+{
+  "generatedAt": "2026-11-01T22:49:22.134Z",
+  "passed": true,
+  "fixture": "/tmp/repolead-local-backend-e1GH0l",
+  "durationMs": 137773,
+  "levels": [
+    "product",
+    "document",
+    "repository",
+    "module",
+    "file",
+    "symbol"
+  ],
+  "summaries": [
+    {
+      "level": "product",
+      "model": "ollama:qwen3.5:9b-q4_K_M@56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90:67373ba3e577a97556b621f86d622963b3898c734168452a40c5e230c91cdb52",
+      "content": {
+        "objective": "Determines ticket priority level based on urgency flag",
+        "goals": [
+          {
+            "claim": "The system assigns high priority to urgent tickets and normal priority otherwise.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_03c1dcdc788ad97460b61596d6f8665ff92bce8b2ef206b9ab05e9938fe1ef9f"
+            ],
+            "symbolIds": []
+          }
+        ],
+        "features": [
+          {
+            "claim": "The library currently supports ticket priority assignment based on urgency.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_f2a9e2e8f4c48596435c21e485c508d5c9d1bc0204646bdf3def2f42cb173f57"
+            ],
+            "symbolIds": []
+          },
+          {
+            "claim": "Email notifications for tickets are planned for a future release but are not yet implemented.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_944e1e963e245e53b93d3bb00fcaec6f1e821d27e328271ebd567f720f379828"
+            ],
+            "symbolIds": []
+          }
+        ],
+        "roles": [],
+        "userFlows": [],
+        "businessRules": [
+          {
+            "claim": "Tickets marked as urgent are assigned high priority.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_e3993ef86beaf7242c4e2bab90573c05c4a8fe2399008efd21ab267af8eadef9"
+            ],
+            "symbolIds": []
+          },
+          {
+            "claim": "Tickets not marked as urgent are assigned normal priority.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_9d8eca34ccbfdd1b63cd27bf27d8458537a31321b11e31baac97759ad8dc4e50"
+            ],
+            "symbolIds": []
+          }
+        ],
+        "decisions": [
+          {
+            "claim": "The decision to implement email notifications has been deferred to a future release.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_22dcfa8a626d12156f6911d5329d6ea35c71d01eb6fdf0f77e5042e238ef1ba0"
+            ],
+            "symbolIds": []
+          }
+        ],
+        "evidenceIds": [
+          "ev_50add44a1fb8ae7ab68f49b2e55efb69d59a719053fc3b8dceb226c44883ce4b",
+          "ev_03c1dcdc788ad97460b61596d6f8665ff92bce8b2ef206b9ab05e9938fe1ef9f",
+          "ev_f2a9e2e8f4c48596435c21e485c508d5c9d1bc0204646bdf3def2f42cb173f57",
+          "ev_944e1e963e245e53b93d3bb00fcaec6f1e821d27e328271ebd567f720f379828",
+          "ev_27a1b309dc1d32745cfea2375f0c84c5f0ac7fd078d84325199804768e10070b",
+          "ev_7e833ddac2fc9d6076b70042b0c97b8b5f7cd87e5a0429d663ddad6aa4bd588b",
+          "ev_e3993ef86beaf7242c4e2bab90573c05c4a8fe2399008efd21ab267af8eadef9",
+          "ev_9d8eca34ccbfdd1b63cd27bf27d8458537a31321b11e31baac97759ad8dc4e50",
+          "ev_22dcfa8a626d12156f6911d5329d6ea35c71d01eb6fdf0f77e5042e238ef1ba0",
+          "ev_b32fe417c4fb6cf749fd0638cbe5ccc38210198a938c3613b5a0304237854ac8",
+          "ev_22df07ae7f8928c062d9a5f4390fefad3ce7a9e807e33249816bf291b5cb55a5",
+          "ev_4f3bd36782a8f8a76d45a820d4bc325dd2f02df00b718e3a838844c75d0f1783",
+          "ev_75b329eb2c9998e9b796503fab9a392c8c22a1685fa12a3ceb1503ad1060cb66",
+          "ev_5b8cf344441b2c72b441b9352a537d4ca55478a5c9bb0b49e2557d7db862d2c4",
+          "ev_f5bdcb4d9ad298eb8d00efe644ab4e33083329fabcb0edbba58c1601f8903eed",
+          "ev_cf543433a5f04c67f7d49997d5f52ac035424eef80a65c2f221aec86dfb0e3ff",
+          "ev_638ddac5f785cdfe02184e5f3656591e48513c526c59fa923e3c890b527a9bfb",
+          "ev_db800d7191c7adea9004590bda3544ebd69f2874b094522adff128ef9123527f",
+          "ev_07fd3e6e399e9227a6177ebfbe28e581c55a04b2ae52dbaaed1de976135dc24e",
+          "ev_0d32fbba74b32d9d9f3edcb8b42b2930d1088265e04177f023b8922a2ec0b19a",
+          "ev_3d17d0b96431757a68b334ca97b7e3c82525fc12de5c280c6a446099636d7bc3",
+          "ev_699f02cfea2bddb6d393975109ec593d2f1c869f68ab856db3365f57f5890320",
+          "ev_e6acfecc9097d39333119a3cc2e7e02b99699c24d1d9bf08607654c0b44cb529",
+          "ev_9dd55b656597e26e1b25cf7eb6da2f77f992d5eadd6f48ebfc6b78dbc93b4a63",
+          "ev_b0c8dfb9b18a7e1a62dd8b212aa67fadcc228ba88eb0695c1247f9dd616e4d10"
+        ],
+        "unknowns": [
+          "Coverage status is unknown (not imported)",
+          "Semantic references availability is false for graph analysis",
+          "Persistence mechanism is unknown",
+          "No tests found in the module",
+          "1 source dossiers contain unknowns or omitted synthesis evidence; consult their detailed records."
+        ]
+      }
+    },
+    {
+      "level": "document",
+      "model": "ollama:qwen3.5:9b-q4_K_M@56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90:67373ba3e577a97556b621f86d622963b3898c734168452a40c5e230c91cdb52",
+      "content": {
+        "purpose": "A library for assigning ticket priorities based on urgency status.",
+        "goals": [
+          {
+            "claim": "The system assigns high priority to urgent tickets and normal priority otherwise.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_30026266adab319f5fbecd3cff1a9d17baf2f4690948659f40d0dceacaaf0056"
+            ],
+            "symbolIds": []
+          }
+        ],
+        "features": [
+          {
+            "claim": "The library currently supports ticket priority assignment based on urgency.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_30026266adab319f5fbecd3cff1a9d17baf2f4690948659f40d0dceacaaf0056"
+            ],
+            "symbolIds": []
+          },
+          {
+            "claim": "Email notifications for tickets are planned for a future release but are not yet implemented.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_30026266adab319f5fbecd3cff1a9d17baf2f4690948659f40d0dceacaaf0056"
+            ],
+            "symbolIds": []
+          }
+        ],
+        "roles": [],
+        "userFlows": [],
+        "businessRules": [
+          {
+            "claim": "Tickets marked as urgent are assigned high priority.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_30026266adab319f5fbecd3cff1a9d17baf2f4690948659f40d0dceacaaf0056"
+            ],
+            "symbolIds": []
+          },
+          {
+            "claim": "Tickets not marked as urgent are assigned normal priority.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_30026266adab319f5fbecd3cff1a9d17baf2f4690948659f40d0dceacaaf0056"
+            ],
+            "symbolIds": []
+          }
+        ],
+        "decisions": [
+          {
+            "claim": "The decision to implement email notifications has been deferred to a future release.",
+            "basis": "documented",
+            "evidenceIds": [
+              "ev_30026266adab319f5fbecd3cff1a9d17baf2f4690948659f40d0dceacaaf0056"
+            ],
+            "symbolIds": []
+          }
+        ],
+        "evidenceIds": [
+          "ev_30026266adab319f5fbecd3cff1a9d17baf2f4690948659f40d0dceacaaf0056"
+        ],
+        "unknowns": []
+      }
+    },
+    {
+      "level": "repository",
+      "model": "ollama:qwen3.5:9b-q4_K_M@56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90:67373ba3e577a97556b621f86d622963b3898c734168452a40c5e230c91cdb52",
+      "content": {
+        "objective": "Determines ticket priority level based on urgency flag",
+        "architecture": "Single module with no dependencies, exposing a public API 'ticketPriority' that maps an urgent boolean to a string priority ('high' or 'normal')",
+        "entryPoints": [
+          "ticketPriority"
+        ],
+        "boundedContexts": [],
+        "criticalFlows": [
+          "ticketPriority(urgent: boolean) -> string (high|normal)"
+        ],
+        "persistence": "unknown",
+        "testing": "No tests found in the module.",
+        "hotspots": [
+          {
+            "claim": "Coverage status is unknown (not imported)",
+            "evidenceIds": [
+              "ev_f28d0f1bf370492a1967d52d7e253f75007561aa7b86a00a801e726900857dc5"
+            ]
+          },
+          {
+            "claim": "Semantic references availability is false for graph analysis",
+            "evidenceIds": [
+              "ev_cc43445820cc19bfc1fca5d1820b2fbb8f986a80dd70aae8687a31fc9dbdecf5"
+            ]
+          }
+        ],
+        "technicalDebt": [],
+        "conventions": [],
+        "evidenceIds": [
+          "ev_25a52eeb36a2c98448284007064a9f37061a52a799ed5d78f31e2f8b65acd67c",
+          "ev_a937971da0f395558ec537d63a6c202b39909faff54126ca34b5f04ae2b42e8a",
+          "ev_759efa8fd3dcbabfde84a5a3da3aea776376bf45a198f92998a80575a133af19",
+          "ev_0cb7bbb5711e34f4d06589bdde34bcdbf8cd5e14d678470b2380487e4c03cd4a",
+          "ev_1dcf2bc50a8d29e3600542003d92e4bcb1149a8003198a780c1b3c7bc203384a",
+          "ev_0139b1dff852bea0485ee15d568352f35d98ec3d47e5a30f7a6ab9b71f0e365f",
+          "ev_9daea9d952f2ee84bf6bb822a19f5fb840ebaa26f9ddb5e39574ee88b3b8bb6c",
+          "ev_f28d0f1bf370492a1967d52d7e253f75007561aa7b86a00a801e726900857dc5",
+          "ev_cc43445820cc19bfc1fca5d1820b2fbb8f986a80dd70aae8687a31fc9dbdecf5",
+          "ev_869b86cb0d1d10f45935cb81e00f38874670dcb8e1fb83253b659fe7fb698224",
+          "ev_183dabb9b20a5065791f0dd6685695124e45ec0a4222190eb0490d8ae7d23f7d",
+          "ev_5e2c54531c480f01c2e2e2a1ff5fc2436040b18e32061fdb303dae9798176048",
+          "ev_72e2da88ff08ff7bd30e5bb9105f4de74499427a138b8c6d5368c0d4a2b0b81c",
+          "ev_7d0fad8bd90effeb7afcf071d6644f84cb62358a4f331a72f508dd73ae0e80e7",
+          "ev_f32decf25e796dd2dc8681f667a4e9be8333c3d2b044877158b1743b9e55aa3f"
+        ],
+        "unknowns": [
+          "Coverage status is unknown (not imported)",
+          "Semantic references availability is false for graph analysis",
+          "1 child dossiers report uncertainty or omitted evidence; inspect their detailed records before treating this synthesis as exhaustive."
+        ]
+      }
+    },
+    {
+      "level": "module",
+      "model": "ollama:qwen3.5:9b-q4_K_M@56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90:67373ba3e577a97556b621f86d622963b3898c734168452a40c5e230c91cdb52",
+      "content": {
+        "responsibility": "Determines ticket priority level based on urgency flag",
+        "publicApi": [
+          "ticketPriority"
+        ],
+        "dependencies": {
+          "incoming": [],
+          "outgoing": []
+        },
+        "mainFlows": [
+          "ticketPriority(urgent: boolean) -> string (high|normal)"
+        ],
+        "strengths": [
+          {
+            "claim": "Determines ticket priority level based on urgency flag",
+            "evidenceIds": [
+              "ev_6a518bba011ef9a292ee09d1ee97e7fb79081735ea321779bd969c8f37c64d0b"
+            ]
+          },
+          {
+            "claim": "Returns 'high' when urgent is true",
+            "evidenceIds": [
+              "ev_a5f074030aa03c56f92e920241fcb256d64f7452496b5f05a529ab6428301543"
+            ]
+          },
+          {
+            "claim": "Returns 'normal' when urgent is false",
+            "evidenceIds": [
+              "ev_24a1c3728becc042985b3de3f704eff23ef9aa981d4f3f4943f82050ef07f426"
+            ]
+          }
+        ],
+        "risks": [
+          {
+            "claim": "Coverage status is unknown (not imported)",
+            "evidenceIds": [
+              "ev_d1b708f516250fe813c8b7daba7c942708c66574f6abdea682a43c9a0f49fae5",
+              "ev_ea651e956d949796d7fdf76dd7197bcc9beb150dd0d2c5bb86e5c28f7b4b3990"
+            ],
+            "severity": "medium"
+          },
+          {
+            "claim": "Semantic references availability is false for graph analysis",
+            "evidenceIds": [
+              "ev_b960402cc5565d1626f3a2e698173d2ae24cefa6a4e5c53e6a02503e41572527",
+              "ev_ccd40571fa98d01e11ed4f113dd96bda394bc265f764acfa221e39c8a55f7ef0"
+            ],
+            "severity": "low"
+          }
+        ],
+        "opportunities": [],
+        "testStrategy": "No tests found in the module.",
+        "evidenceIds": [
+          "ev_6a518bba011ef9a292ee09d1ee97e7fb79081735ea321779bd969c8f37c64d0b",
+          "ev_2fd7f8f04560eaee3ffe3a51809a5b2e0a9d0a4a2a57c601a9d925e40e48ade9",
+          "ev_a8af212277419f7c08908a82a75f03acc30bef85b4efd2972fa9cf45c03ed776",
+          "ev_53c4f2d372ab5fecdeeb9dcc66c9656ba4ca1cc1995ddda910dfb60a0606ed30",
+          "ev_5a690e55699d4789403634bea537e1eddce1ed6cc9bd65c08a1d5b517ffd5648",
+          "ev_a5f074030aa03c56f92e920241fcb256d64f7452496b5f05a529ab6428301543",
+          "ev_24a1c3728becc042985b3de3f704eff23ef9aa981d4f3f4943f82050ef07f426",
+          "ev_417eca33bd8c40f0ffc8f6a461f2c0634016aa60c52373fbbe142257ad042975",
+          "ev_6ed65d6ed4524b63ea2416c30bba536c1646be30e085a3560468e9f6bfc146a0",
+          "ev_d1b708f516250fe813c8b7daba7c942708c66574f6abdea682a43c9a0f49fae5",
+          "ev_b960402cc5565d1626f3a2e698173d2ae24cefa6a4e5c53e6a02503e41572527",
+          "ev_ea651e956d949796d7fdf76dd7197bcc9beb150dd0d2c5bb86e5c28f7b4b3990",
+          "ev_ccd40571fa98d01e11ed4f113dd96bda394bc265f764acfa221e39c8a55f7ef0",
+          "ev_ef7dcbf3341aaab4adda42bb76bf60d0e68e9752229bcc98d0d25a74d88d5092",
+          "ev_c270305eb9c0a612a70dccc7c04340a6f892e5005f465813aaa5c25214d25507"
+        ],
+        "unknowns": [
+          "Coverage status is unknown (not imported)",
+          "Semantic references availability is false for graph analysis",
+          "1 child dossiers report uncertainty or omitted evidence; inspect their detailed records before treating this synthesis as exhaustive."
+        ]
+      }
+    },
+    {
+      "level": "file",
+      "model": "ollama:qwen3.5:9b-q4_K_M@56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90:67373ba3e577a97556b621f86d622963b3898c734168452a40c5e230c91cdb52",
+      "content": {
+        "responsibility": "Determines ticket priority level based on urgency flag",
+        "publicApi": [
+          "ticketPriority"
+        ],
+        "dependencies": [],
+        "consumers": [],
+        "sideEffects": [],
+        "businessRules": [
+          "Returns 'high' when urgent is true",
+          "Returns 'normal' when urgent is false"
+        ],
+        "errors": [],
+        "tests": [],
+        "risks": [
+          {
+            "claim": "Coverage status is unknown (not imported)",
+            "evidenceIds": [
+              "ev_e69b4bb1c3466ea9805d4685ee5675f89f9286943b7c1793cb54d6a1ad42b3dd"
+            ],
+            "severity": "medium"
+          },
+          {
+            "claim": "Semantic references availability is false for graph analysis",
+            "evidenceIds": [
+              "ev_bbfbf7fe54720239636a1065ad44775bee4dfc773a6d36ca37cd9a1e14769857"
+            ],
+            "severity": "low"
+          }
+        ],
+        "evidenceIds": [
+          "ev_88a6703f9d1f0b75fef11265eb4fc055f2565d8a7f249386ace4026213c8bd8c",
+          "ev_a534b725cb218562f1b952fd7481fa1c7586a8974a2b4ac6b4d83e3ce61331c5",
+          "ev_429dcf86d53d0c840ca6213b21417ac21a1fa3c6c787f60b94aebb13d49780fd",
+          "ev_df2020696ce25a7d003db07c11ec88c995021032fe8ce3fe4753aed91e6ff86c",
+          "ev_3b846b365f08903c506628c791e45bc927a2f8f377caca4ed6cd7f687c57bb0f",
+          "ev_3763e0557bd295ac9b23a137ce1816b6fe8aae301d09ec6364bd92d25094a749",
+          "ev_d56affcbdb433662d3e5be063c50d2c67637457c5c38929068221dc9bed43e61",
+          "ev_64711ab84f2bddd3ce516db5b00153c4141a03e130e120d449be87c6b7c18966",
+          "ev_edded41ff73fd69db06613013bd615b5c8fa2909b2a5c82c69ba39eb0fb5a747",
+          "ev_dd528f0f0a2eef8b70df91b8ca9f79c6ba5c66e7f2c0901ba24631e110b858ef",
+          "ev_4584d045512852efbbaec4437e01986114f668ff72844e3b346dca76105d78a9",
+          "ev_e69b4bb1c3466ea9805d4685ee5675f89f9286943b7c1793cb54d6a1ad42b3dd",
+          "ev_bbfbf7fe54720239636a1065ad44775bee4dfc773a6d36ca37cd9a1e14769857"
+        ],
+        "unknowns": [
+          "Coverage status is unknown (not imported)",
+          "Semantic references availability is false for graph analysis",
+          "1 child dossiers report uncertainty or omitted evidence; inspect their detailed records before treating this synthesis as exhaustive."
+        ]
+      }
+    },
+    {
+      "level": "symbol",
+      "model": "ollama:qwen3.5:9b-q4_K_M@56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90:67373ba3e577a97556b621f86d622963b3898c734168452a40c5e230c91cdb52",
+      "content": {
+        "purpose": "Determines ticket priority level based on urgency flag",
+        "inputs": [
+          "urgent: boolean"
+        ],
+        "outputs": [
+          "string ('high' or 'normal')"
+        ],
+        "sideEffects": [],
+        "dependencies": [],
+        "invariants": [
+          "Returns 'high' when urgent is true",
+          "Returns 'normal' when urgent is false"
+        ],
+        "errorBehavior": [],
+        "tests": [],
+        "evidenceIds": [
+          "ev_c9f577bda680a9d20b5fd0e72cc6ed415cd3951d2282cce53445e13048697cef",
+          "ev_fd0b9f188a61c7ecd891bdfd0076c4ea148911eacfa04b0f2fe058c60c75ac13",
+          "ev_056eae2ef3645a6950efc67097d9f079a47b565566b112ca783c1c1843c6ac5f"
+        ],
+        "unknowns": [
+          "Coverage status is unknown (not imported)",
+          "Semantic references availability is false for graph analysis"
+        ]
+      }
+    }
+  ],
+  "initialCalls": 7,
+  "repeatCalls": 0,
+  "calls": [
+    {
+      "phase": "onboard",
+      "model": "qwen3.5:9b-q4_K_M",
+      "inputTokens": 1494,
+      "outputTokens": 178,
+      "durationMs": 11832,
+      "doneReason": "stop",
+      "kind": "memory"
+    },
+    {
+      "phase": "onboard",
+      "model": "qwen3.5:9b-q4_K_M",
+      "inputTokens": 2338,
+      "outputTokens": 332,
+      "durationMs": 18681,
+      "doneReason": "stop",
+      "kind": "memory"
+    },
+    {
+      "phase": "onboard",
+      "model": "qwen3.5:9b-q4_K_M",
+      "inputTokens": 2527,
+      "outputTokens": 513,
+      "durationMs": 23668,
+      "doneReason": "stop",
+      "kind": "memory"
+    },
+    {
+      "phase": "onboard",
+      "model": "qwen3.5:9b-q4_K_M",
+      "inputTokens": 1992,
+      "outputTokens": 394,
+      "durationMs": 19691,
+      "doneReason": "stop",
+      "kind": "memory"
+    },
+    {
+      "phase": "onboard",
+      "model": "qwen3.5:9b-q4_K_M",
+      "inputTokens": 1468,
+      "outputTokens": 440,
+      "durationMs": 23160,
+      "doneReason": "stop",
+      "kind": "memory"
+    },
+    {
+      "phase": "onboard",
+      "model": "qwen3.5:9b-q4_K_M",
+      "inputTokens": 3160,
+      "outputTokens": 553,
+      "durationMs": 30897,
+      "doneReason": "stop",
+      "kind": "memory"
+    },
+    {
+      "phase": "onboard",
+      "model": "qwen3.5:9b-q4_K_M",
+      "inputTokens": 362,
+      "outputTokens": 140,
+      "durationMs": 8935,
+      "doneReason": "stop",
+      "kind": "audit"
+    }
+  ],
+  "inputTokens": 13341,
+  "outputTokens": 2550,
+  "limits": "Compiled CLI, real local model, six memory levels and a policy judgment on a tiny branching TS fixture. Repeated analyze/audit/refresh reuse cache. The audit checks transport/schema/cache, not correctness of its decision. SCIP and vector services intentionally disabled; not a broad semantic benchmark or a filled 120K input.",
+  "auditVerdicts": [
+    {
+      "verdicts": [
+        {
+          "index": 0,
+          "confirmed": false,
+          "confidence": 1.0,
+          "reasoning": "The evidence states the module has '1 symbol' and 'no linked tests'. However, a single symbol (likely an entry point or a simple definition) does not constitute 'meaningful logic' requiring branching logic tests under this policy. The absence of tests for trivial code is not a violation of the specific requirement for 'branching ticket logic'. Therefore, the condition for a violation (meaningful logic without tests) is not met."
+        }
+      ]
+    }
+  ],
+  "semanticChecks": {
+    "symbolMentionsUrgentHighNormal": true,
+    "plannedEmailNotPromotedToImplemented": true,
+    "auditVerdictQualityScored": false
+  },
+  "reviewNotes": [
+    "The audit inferred likely triviality from one symbol without source behavior in its candidate evidence. This smoke run validates routing, schema and caching, not the semantic correctness of that rejection."
+  ]
+}

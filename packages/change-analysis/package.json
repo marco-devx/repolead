@@ -1,0 +1,14 @@
+{
+  "name": "@repolead/change-analysis",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "dependencies": {
+    "@repolead/adapter-stryker": "workspace:*",
+    "@repolead/domain": "workspace:*",
+    "@repolead/knowledge-store": "workspace:*",
+    "@repolead/adapter-joern": "workspace:*",
+    "@repolead/retrieval": "workspace:*"
+  }
+}

@@ -5,10 +5,13 @@
   "type": "module",
   "main": "./src/index.ts",
   "dependencies": {
+    "@repolead/change-analysis": "workspace:*",
     "@repolead/adapter-git": "workspace:*",
     "@repolead/adapter-python": "workspace:*",
+    "@repolead/adapter-quality": "workspace:*",
     "@repolead/adapter-scip": "workspace:*",
     "@repolead/adapter-typescript": "workspace:*",
+    "@repolead/config": "workspace:*",
     "@repolead/domain": "workspace:*",
     "@repolead/knowledge-store": "workspace:*"
   }

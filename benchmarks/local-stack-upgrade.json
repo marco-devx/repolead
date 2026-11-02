@@ -1,0 +1,133 @@
+{
+  "generatedAt": "2026-11-01T22:17:12.309205+00:00",
+  "defaults": {
+    "contextTokens": 120000,
+    "analysisTokens": 120000,
+    "maxTokens": 120000,
+    "sourceLinesPerAnalysis": 100000,
+    "localMaxContext": 131072
+  },
+  "services": {
+    "embeddings": {
+      "model_id": "Qwen/Qwen3-Embedding-4B",
+      "model_sha": "5cf2132abc99cad020ac570b19d031efec650f2b",
+      "model_dtype": "float16",
+      "served_model_name": "Qwen/Qwen3-Embedding-4B",
+      "model_type": {
+        "embedding": {
+          "pooling": "last_token"
+        }
+      },
+      "max_concurrent_requests": 64,
+      "max_input_length": 32768,
+      "max_batch_tokens": 32768,
+      "max_batch_requests": null,
+      "max_client_batch_size": 32,
+      "auto_truncate": true,
+      "tokenization_workers": 31,
+      "version": "1.9.4",
+      "sha": "e80ef225ed0e6cb1717ce632a6a84b6cf211bb67",
+      "docker_label": "sha-e80ef22"
+    },
+    "reranker": {
+      "model_id": "Qwen/Qwen3-Reranker-0.6B",
+      "model_sha": "e61197ed45024b0ed8a2d74b80b4d909f1255473",
+      "model_dtype": "float32",
+      "model_type": "causal-reranker",
+      "max_input_length": 32768,
+      "max_client_batch_size": 32,
+      "auto_truncate": false,
+      "device": "cpu",
+      "version": "repolead-qwen-reranker-v1"
+    },
+    "ollama": {
+      "version": "0.40.13"
+    },
+    "localModel": {
+      "name": "qwen3.5:9b-q4_K_M",
+      "model": "qwen3.5:9b-q4_K_M",
+      "modified_at": "2026-11-01T22:07:27.215807002Z",
+      "size": 6550825550,
+      "digest": "56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90",
+      "details": {
+        "parent_model": "model.gguf",
+        "format": "gguf",
+        "family": "qwen35",
+        "families": [
+          "qwen35"
+        ],
+        "parameter_size": "9.0B",
+        "quantization_level": "Q4_K_M",
+        "context_length": 262144,
+        "embedding_length": 4096,
+        "runner": "llamacpp"
+      },
+      "capabilities": [
+        "completion",
+        "vision",
+        "tools",
+        "thinking"
+      ]
+    }
+  },
+  "database": {
+    "path": ".repolead/repolead.db",
+    "backup": ".repolead/before-model-upgrade-20261101T220952Z.db",
+    "beforeSnapshot": "snap_ef21d2fb-2809-47be-a270-087ba0a8d764",
+    "currentSnapshot": "snap_9d930c61-3188-4c28-8e76-4e76f99991d0",
+    "historicalSummariesPreserved": true,
+    "historicalSummaries": 2,
+    "analysisRunsBefore": 2,
+    "analysisRunsAfter": 2,
+    "remoteGenerationInvoked": false,
+    "vectorIndex": {
+      "collection": "repolead-8644ee5cfcc7951ec8914990",
+      "generation": "f4eadb63c07402810b5830e246b4311a2cd46e36e55720740b49058db1eab12b",
+      "modelKey": "8644ee5cfcc7951ec89149907aaab45f3c1879dab684c6329f3c14f8326b75b7",
+      "indexed": 598,
+      "embedded": 53,
+      "reused": 545,
+      "metadataUpdated": 545,
+      "incompleteSources": 0,
+      "omitted": []
+    },
+    "currentCollectionDimension": 2560,
+    "currentCollectionPoints": 598,
+    "oldCollectionPreserved": {
+      "name": "repolead-symbols",
+      "points": 35890,
+      "dimension": 1024
+    },
+    "completeIndexedSymbolBodies": 424,
+    "incompleteIndexedSymbolBodies": 0
+  },
+  "validation": {
+    "checks": "166 tests across 41 files; lint, types and compiled CLI build passed",
+    "retrievalReport": "benchmarks/retrieval-upgrade-acceptance.json",
+    "localGenerationReport": "benchmarks/local-model-upgrade.json",
+    "actualContext": {
+      "budget": 120000,
+      "tokens": 1241,
+      "included": 4,
+      "omissions": [],
+      "warnings": false
+    },
+    "oversizedEmbedding": {
+      "inputTokens": 40002,
+      "status": 422,
+      "truncated": false
+    }
+  },
+  "sourceRepair": {
+    "path": "packages/domain/src/ids.ts",
+    "change": "Replace one literal NUL in the string separator with the equivalent JavaScript escape; output IDs unchanged. Enables source persistence for nine symbols previously classified as binary."
+  },
+  "limits": [
+    "The index follows Git-tracked inventory; current working-tree untracked additions are not silently staged or indexed.",
+    "Old summaries remain historical when their source snapshot changes; generating updated summaries is a separate explicit analyze step.",
+    "120K is an aggregate evidence budget measured with o200k_base, not a new native embedding/reranker window or a promise of lower cost.",
+    "Local generator stays opt-in and restricted to eligible leaf functions; module/product summaries still use the configured primary backend.",
+    "No full 120K local-model inference or broad semantic-quality claim; retrieval and generator checks use finite prescribed cases.",
+    "Other existing project databases require reindex once to use this embedding space."
+  ]
+}

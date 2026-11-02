@@ -1,0 +1,70 @@
+{
+  "generatedAt": "2026-10-31T23:34:20.912Z",
+  "runtime": "v24.3.0",
+  "tools": {
+    "jscpd": {
+      "status": "complete",
+      "version": "jscpd 5.4.2",
+      "profile": "quality-v1:jscpd-exact-strict-5lines-50tokens:ruff-E9,F,B:radon-api-cc-raw",
+      "diagnostics": [],
+      "omittedSources": []
+    },
+    "radon": {
+      "status": "complete",
+      "version": "6.0.1",
+      "profile": "quality-v1:jscpd-exact-strict-5lines-50tokens:ruff-E9,F,B:radon-api-cc-raw",
+      "diagnostics": [],
+      "omittedSources": []
+    },
+    "ruff": {
+      "status": "complete",
+      "version": "ruff 0.17.3",
+      "profile": "quality-v1:jscpd-exact-strict-5lines-50tokens:ruff-E9,F,B:radon-api-cc-raw",
+      "diagnostics": [],
+      "omittedSources": []
+    }
+  },
+  "metricCount": 134,
+  "issueCount": 3,
+  "pythonComplexity": 3,
+  "coverage": {
+    "lineRate": 0.6666666666666666,
+    "branchRate": 0.5,
+    "sourceBinding": "unverified",
+    "fixture": "synthetic LCOV with prescribed execution counts"
+  },
+  "repeat": {
+    "externalCacheHits": 3,
+    "newAnalysisCalls": 0,
+    "newJudgeCalls": 0
+  },
+  "policies": {
+    "count": 12,
+    "candidates": {
+      "ARCH-CYCLE-001": 0,
+      "ARCH-DEPENDENCY-001": 1,
+      "ARCH-FRAMEWORK-TYPES-001": 0,
+      "ARCH-PERSISTENCE-001": 1,
+      "DESIGN-COHESION-001": 1,
+      "DESIGN-COUPLING-001": 0,
+      "DESIGN-COUPLING-002": 0,
+      "QUALITY-COMPLEXITY-001": 1,
+      "QUALITY-DUPLICATION-001": 1,
+      "QUALITY-ERRORS-001": 1,
+      "QUALITY-PYTHON-001": 1,
+      "TEST-COVERAGE-001": 1
+    },
+    "confirmedContractFindings": 7
+  },
+  "limits": [
+    "Generative interpretation/false-positive quality and provider billing are not evaluated by the contract model.",
+    "Builtin cognitive complexity is an estimate; graph fan counts are observed references, not dynamic reachability.",
+    "Coverage has no whole-build binding; checksums, when supplied, verify reported lines only."
+  ],
+  "delivery": {
+    "compiledCli": true,
+    "realMcpStdio": true,
+    "noSource": true
+  },
+  "coverageOnlyRefresh": true
+}

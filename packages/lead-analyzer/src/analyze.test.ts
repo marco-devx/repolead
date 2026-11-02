@@ -8,15 +8,23 @@ import { countTokens } from '@repolead/retrieval';
 import { analyzeSnapshot } from './analyze';
 import { buildModuleEvidencePack, buildRepositoryEvidencePack } from './evidence';
 import type { TechLeadModel } from './model';
+import type { HierarchicalPack } from './hierarchy';
 
 class FakeModel implements TechLeadModel {
   readonly name = 'fake-model';
   calls = 0;
 
-  complete(request: { schema: object }): ReturnType<TechLeadModel['complete']> {
+  complete(request: { schema: object; prompt: string }): ReturnType<TechLeadModel['complete']> {
     this.calls += 1;
-    const isBrief = JSON.stringify(request.schema).includes('boundedContexts');
-    const json = isBrief
+    const pack = JSON.parse(request.prompt.split('Evidence pack:\n')[1]!.split('\n\nReturn ')[0]!) as HierarchicalPack;
+    const provenance = { evidenceIds: pack.evidence.slice(0, 1).map((entry) => entry.id), unknowns: [] };
+    const json = pack.subject.level === 'symbol' ? {
+      purpose: pack.subject.name, inputs: [], outputs: [], sideEffects: [], dependencies: [],
+      invariants: [], errorBehavior: [], tests: [], ...provenance,
+    } : pack.subject.level === 'file' ? {
+      responsibility: pack.subject.name, publicApi: [], dependencies: [], consumers: [], sideEffects: [],
+      businessRules: [], errors: [], tests: [], risks: [], ...provenance,
+    } : pack.subject.level === 'repository'
       ? {
           objective: 'demo',
           architecture: 'layered',
@@ -28,6 +36,7 @@ class FakeModel implements TechLeadModel {
           hotspots: [],
           technicalDebt: [],
           conventions: [],
+          ...provenance,
         }
       : {
           responsibility: 'payments',
@@ -35,9 +44,10 @@ class FakeModel implements TechLeadModel {
           dependencies: { incoming: [], outgoing: [] },
           mainFlows: [],
           strengths: [],
-          risks: [{ claim: 'no tests', severity: 'high', evidence: ['src/payment/service.ts'] }],
+          risks: [],
           opportunities: [],
           testStrategy: 'none',
+          ...provenance,
         };
     return Promise.resolve({ json, inputTokens: 100, outputTokens: 50 });
   }
@@ -113,9 +123,11 @@ test('analiza módulos y brief, y el segundo run idéntico no llama al modelo', 
 
   const first = await analyzeSnapshot({ store, snapshotId: snapshot.id, model });
   expect(first.modulesAnalyzed).toBe(1);
+  expect(first.symbolsAnalyzed).toBe(3);
+  expect(first.filesAnalyzed).toBe(1);
   expect(first.briefGenerated).toBe(true);
-  expect(model.calls).toBe(2);
-  expect(first.inputTokens).toBe(200);
+  expect(model.calls).toBe(6);
+  expect(first.inputTokens).toBe(600);
 
   // Nuevo snapshot con el mismo contenido → todo sale de caché, 0 llamadas.
   const secondSnapshot = store.createSnapshot({ repositoryId: repository.id, commitSha: 'abc' });
@@ -124,12 +136,7 @@ test('analiza módulos y brief, y el segundo run idéntico no llama al modelo', 
       `INSERT INTO modules SELECT id, repository_id, ?, name, path FROM modules WHERE snapshot_id = ?`,
     )
     .run(secondSnapshot.id, snapshot.id);
-  store.db
-    .prepare(
-      `INSERT INTO symbols SELECT id, repository_id, ?, path, qualified_name, kind, signature,
-         start_line, end_line, content_hash, source FROM symbols WHERE snapshot_id = ?`,
-    )
-    .run(secondSnapshot.id, snapshot.id);
+  store.insertSymbols(store.listSymbols(snapshot.id).map((symbol) => ({ ...symbol, snapshotId: secondSnapshot.id })));
   store.db
     .prepare(
       `INSERT INTO files SELECT id, repository_id, ?, path, language, content_hash, line_count,
@@ -147,7 +154,12 @@ test('analiza módulos y brief, y el segundo run idéntico no llama al modelo', 
   expect(second.modulesAnalyzed).toBe(0);
   expect(second.modulesCached).toBe(1);
   expect(second.briefCached).toBe(true);
-  expect(model.calls).toBe(2);
+  expect(second.symbolsCached).toBe(3);
+  expect(second.filesCached).toBe(1);
+  expect(model.calls).toBe(6);
+  for (const summary of store.listSummaries(secondSnapshot.id)) {
+    expect(store.getSummaryEvidence(summary.id).length).toBeGreaterThan(0);
+  }
 
   // El summary cacheado quedó copiado al snapshot nuevo (consultable por MCP).
   const rows = store.db
@@ -158,11 +170,11 @@ test('analiza módulos y brief, y el segundo run idéntico no llama al modelo', 
   store.close();
 });
 
-test('un cambio en el módulo invalida solo su caché', async () => {
+test('un cambio de firma invalida su ficha, su caller y la cadena archivo → módulo → brief', async () => {
   const { store, snapshot, symbols } = await seed();
   const model = new FakeModel();
   await analyzeSnapshot({ store, snapshotId: snapshot.id, model });
-  expect(model.calls).toBe(2);
+  expect(model.calls).toBe(6);
 
   // Cambia el contenido de un símbolo → el pack cambia → re-análisis.
   store.db
@@ -171,10 +183,13 @@ test('un cambio en el módulo invalida solo su caché', async () => {
 
   const result = await analyzeSnapshot({ store, snapshotId: snapshot.id, model });
   expect(result.modulesAnalyzed).toBe(1);
-  // El módulo se re-analiza, pero el dossier resultante es idéntico (fake),
-  // así que el brief no se ve afectado y sale de caché: la cascada del plan.
-  expect(model.calls).toBe(3);
-  expect(result.briefCached).toBe(true);
+  expect(result.symbolsAnalyzed).toBe(2);
+  expect(result.symbolsCached).toBe(1);
+  expect(result.filesAnalyzed).toBe(1);
+  expect(model.calls).toBe(11);
+  expect(result.briefGenerated).toBe(true);
+  const unchanged = await analyzeSnapshot({ store, snapshotId: snapshot.id, model });
+  expect(unchanged.inputTokens).toBe(0);
 
   store.close();
 });

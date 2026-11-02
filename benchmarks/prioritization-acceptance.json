@@ -1,0 +1,82 @@
+{
+  "generatedAt": "2026-10-31T23:32:50.960Z",
+  "runtime": {
+    "bun": "1.3.13",
+    "platform": "linux",
+    "compiledCli": "Node"
+  },
+  "fixture": "Tracked TypeScript, actual SCIP references, six real Git commits, one complex function and six callers",
+  "measured": {
+    "initialPriority": 31.98,
+    "verifiedCoveragePriority": 59.03,
+    "factors": [
+      {
+        "id": "complexity",
+        "value": 17,
+        "status": "observed",
+        "multiplier": 3.526315789473684,
+        "maximumMultiplier": 3.526315789473684,
+        "analyzer": "tree-sitter-metrics-v1",
+        "subjectId": "sym_d648aa288e2185b5b957569e01f08a3e",
+        "reason": "AST cyclomatic complexity, saturates at 20; nested callable bodies are measured separately."
+      },
+      {
+        "id": "fan_in",
+        "value": 8,
+        "status": "observed",
+        "multiplier": 2.2,
+        "maximumMultiplier": 4,
+        "analyzer": "observed-graph-metrics-v1",
+        "subjectId": "sym_d648aa288e2185b5b957569e01f08a3e",
+        "reason": "Distinct observed reference sources, saturates at 20; includes callbacks/type references, not only calls. Missing/incomplete semantic indexing leaves an uncertainty range."
+      },
+      {
+        "id": "churn",
+        "value": 6,
+        "status": "observed",
+        "multiplier": 1.9,
+        "maximumMultiplier": 1.9,
+        "analyzer": "git",
+        "subjectId": "repo://repolead-prioritization-AxNldH/src/payments/quote.ts",
+        "reason": "File commit count within the last 500 repository commits, saturates at 20. File-level proxy, not per-symbol churn or an annual change rate."
+      },
+      {
+        "id": "coverage_gap",
+        "value": 1,
+        "status": "reported",
+        "multiplier": 4,
+        "maximumMultiplier": 4,
+        "analyzer": "lcov",
+        "subjectId": "sym_d648aa288e2185b5b957569e01f08a3e",
+        "reason": "Uncovered fraction of checksum-verified reported lines inside this symbol. Missing/stale/unverified reports are unknown. Line hits do not prove assertions or whole-build freshness."
+      }
+    ]
+  },
+  "persistence": {
+    "scanPublishes": true,
+    "coveragePublishes": true,
+    "auditPublishes": true,
+    "excludesUnjudgedCandidates": true,
+    "repeatedProjectionCached": true,
+    "contractJudgeCalls": 1,
+    "repeatedAuditCalls": 0,
+    "staleProjectionWithheld": true,
+    "oldSnapshotEvidenceRefused": true
+  },
+  "delivery": {
+    "compiledCli": true,
+    "realMcpStdio": true,
+    "noSource": true,
+    "pagination": true,
+    "currentSnapshotVerified": true,
+    "verifiedCalls": 9
+  },
+  "limits": [
+    "LCOV execution counts were prescribed, with actual MD5 source-line checksums; target tests were not run.",
+    "The audit judge was a contract fixture, not a real generative quality evaluation.",
+    "Priority is an uncalibrated heuristic; effort and business impact remain unknown.",
+    "Mutation testing/Stryker is not implemented or executed by this acceptance.",
+    "No provider tokens or end-to-end savings measured; deterministic prioritization makes no generative calls."
+  ],
+  "scriptHash": "8ca7179b509604b37d0f936561fc6e43ac1dc9c3c0b3e1c0c43fdc0f4eb1a02c"
+}

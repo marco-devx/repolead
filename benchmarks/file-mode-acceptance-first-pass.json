@@ -1,0 +1,23 @@
+{
+  "generatedAt": "2026-11-01T23:32:37.648Z",
+  "passed": false,
+  "fixture": "/tmp/repolead-file-mode-32hexA",
+  "calls": [
+    {
+      "inputTokens": 1753,
+      "outputTokens": 906,
+      "durationMs": 45966
+    },
+    {
+      "inputTokens": 2024,
+      "outputTokens": 588,
+      "durationMs": 28771
+    },
+    {
+      "inputTokens": 1650,
+      "outputTokens": 608,
+      "durationMs": 30106
+    }
+  ],
+  "error": "AssertionError [ERR_ASSERTION]: The input did not match the regular expression /approved/. Input:\n\n'[{\"category\":\"permission\",\"detail\":\"Permission check: \\'access.create\\' must be included in the permissions array to proceed with document creation.\",\"evidenceIds\":[\"ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0\"]},{\"category\":\"field\",\"detail\":\"Field validation: `document` field is required and must be a non-empty string.\",\"evidenceIds\":[\"ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0\"]},{\"category\":\"validation\",\"detail\":\"Constraint: The `document` field length must not exceed 12 characters.\",\"evidenceIds\":[\"ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0\"]},{\"category\":\"field\",\"detail\":\"Field validation: `age` field must be a number and at least 18 for approval.\",\"evidenceIds\":[\"ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0\"]},{\"category\":\"message\",\"detail\":\"Error message: \\'Access denied\\' is thrown when the \\'access.create\\' permission is missing.\",\"evidenceIds\":[\"ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0\"]},{\"category\":\"message\",\"detail\":\"Error message: \\'Document is required\\' is thrown when the `document` field is empty or missing.\",\"evidenceIds\":[\"ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0\"]},{\"category\":\"message\",\"detail\":\"Error message: \\'Document exceeds 12 characters\\' is thrown when the `document` length exceeds 12.\",\"evidenceIds\":[\"ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0\"]},{\"category\":\"message\",\"detail\":\"Message: \\'Minimum age is 18\\' is returned as a rejection status when the `age` is less than 18.\",\"evidenceIds\":[\"ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0\"]},{\"category\":\"audit\",\"detail\":\"Audit event: `console.info(\\'ACCESS_CREATED\\')` is emitted upon successful document creation.\",\"evidenceIds\":[\"ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0\"]}]'\n"
+}

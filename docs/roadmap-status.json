@@ -1,0 +1,347 @@
+{
+  "objective": "Completar el roadmap de RepoLead, incluida la preparación de contexto técnico y de producto",
+  "sources": [
+    "docs/plan.md",
+    "docs/project.md",
+    "user: contexto precargado para producto y técnico"
+  ],
+  "status": "in_progress",
+  "verifiedProgress": {
+    "date": "2026-11-01",
+    "technicalAndProductMemory": "Bun + compiled CLI + real MCP stdio: 10 persisted summaries/resources across six levels; unchanged repeat made zero additional contract-model calls; no-source and snapshot freshness verified. Technical file dossiers now include recognized source/configuration without extracted symbols.",
+    "incrementalParsing": "Synthetic 1002-file/1000-symbol fixture: scan 222 ms, refresh 145 ms with one modified file parsed and 999 reused (SCIP disabled). Working-tree repeats, renames, deletes and atomic snapshot rollback covered.",
+    "reports": [
+      "benchmarks/memory-acceptance.json",
+      "scripts/verify-memory.ts",
+      "benchmarks/evidence-reuse-acceptance.json",
+      "scripts/verify-evidence-reuse.ts",
+      "benchmarks/retrieval-acceptance.json",
+      "scripts/verify-retrieval.ts",
+      "benchmarks/deterministic-acceptance.json",
+      "scripts/verify-deterministic.ts",
+      "benchmarks/incremental-acceptance.json",
+      "scripts/verify-incremental.ts",
+      "benchmarks/quality-acceptance.json",
+      "scripts/verify-quality.ts",
+      "benchmarks/policy-quality-acceptance.json",
+      "scripts/verify-policy-quality.ts",
+      "benchmarks/mcp-http-acceptance.json",
+      "scripts/verify-mcp-http.ts",
+      "benchmarks/change-analysis-acceptance.json",
+      "scripts/verify-change-analysis.ts",
+      "benchmarks/prioritization-acceptance.json",
+      "scripts/verify-prioritization.ts",
+      "benchmarks/clean-install-acceptance.json",
+      "benchmarks/mutation-acceptance.json",
+      "benchmarks/python-acceptance.json",
+      "benchmarks/joern-acceptance.json",
+      "scripts/verify-clean-install.ts",
+      "scripts/verify-mutation.ts",
+      "scripts/verify-python.ts",
+      "scripts/verify-joern.ts",
+      "benchmarks/generative-acceptance.json",
+      "scripts/verify-generative.ts",
+      "scripts/verify-token-workflow.ts",
+      "scripts/verify-repo-workflow.ts",
+      "benchmarks/repo-workflow-acceptance.json",
+      "benchmarks/repo-workflow-before.json",
+      "benchmarks/repo-workflow-batched.json",
+      "benchmarks/repo-workflow-cascade-raw.json",
+      "benchmarks/token-workflow-acceptance.json",
+      "benchmarks/token-workflow-before.json",
+      "benchmarks/mcp-catalog-acceptance.json",
+      "benchmarks/repo-workflow-evidence.json",
+      "benchmarks/analysis-batching-acceptance.json",
+      "scripts/verify-analysis-batching.ts",
+      "benchmarks/preloaded-savings-corroboration.json",
+      "scripts/verify-preloaded-savings.ts",
+      "benchmarks/retrieval-upgrade-acceptance.json",
+      "benchmarks/local-model-upgrade.json",
+      "scripts/verify-local-model-upgrade.ts",
+      "benchmarks/local-stack-upgrade.json",
+      "benchmarks/local-backend-acceptance.json",
+      "scripts/verify-local-backend.ts"
+    ],
+    "limits": [
+      "Real-model audit, hierarchy/product generation and architectural answers pass finite fixtures and prescribed fact reviews; general semantic accuracy is not established. SDK totals include formatting retries, cached input and auxiliary work, not subscription invoices.",
+      "Impact and trace use stored static references. Score weights are versioned heuristics; unrecorded external effects, concurrency, authorization and reversibility are not guessed. Trace does not prove runtime feasibility or data flow and does not enumerate longer alternative paths.",
+      "HTTP/multi-repository acceptance passes with the official SDK and compiled CLI using protocol 2025-11-25. The historical 61.152% token reduction run had possible evaluation-artifact contamination. Latest clean prepared-module corroboration has 16.325% fewer query tokens but 43.527% higher SDK estimated query cost, excluding preparation. These finite measurements do not establish general savings. One HTTP bearer token permits access to all served repositories.",
+      "Manual metrics updates require analyze/audit to regenerate prior interpretations; the metrics command itself only measures/imports.",
+      "No whole-roadmap completion claim is justified."
+    ],
+    "retrieval": "Pinned Qwen3-Embedding-0.6B + BGE reranker on TEI 1.9.3 and Qdrant 1.19.0: 8/8 Spanish/English queries rank 1 over 28 English functions. Full SQLite source rebuild without mounted checkout, five knowledge kinds, filters, physical purge and repository isolation verified.",
+    "vectorIncrementality": "34 initial embeddings; identical repeat 0 new / 34 reused / 0 payload updates; one changed body and one deletion: 1 new / 30 reused / 30 payload updates, unchanged vectors byte-for-byte equal.",
+    "validation": "Current checkpoint: 177 tests across 43 files; lint, Rslint, TypeScript and compiled CLI/MCP build pass. A fresh empty-directory frozen-lockfile installation also passes these gates and compiled CLI help/doctor checks (benchmarks/clean-install-acceptance.json). Checks do not stop, restart or recreate containers. Real local model acceptances are historical separate runs; no new inference, WLT refresh or hosted CI run claimed for this checkpoint.",
+    "hierarchicalIncrementality": "Real SCIP chain with configurable depth: one body edit parses one file, refreshes affected technical/product ancestors and preserves unrelated cards; unchanged repeat makes zero calls. Coordinate-only symbol moves rebind evidence without leaf calls, while prose containing absolute lines conservatively regenerates. Actual generative fixture: 19 initial measured calls, 10 after changing price, unrelated local format card reused, product flags the 18%/20% discrepancy; deterministic refresh 327 ms, changed generation 389398 ms.",
+    "deterministic": "SQLite references match the TypeScript language service for 20 functions (imports, direct calls, callbacks and Unicode columns). Real RepoLead tracked working-tree inventory: 110 files, 413 symbols, 253 export bindings, 80 tests; exact source hashes verified. MCP pagination and compiled doctor diagnostics pass. Untracked implementation files are not part of this Git-tracked inventory.",
+    "quality": "Builtin AST LOC/complexity/nesting/empty handlers and distinct observed graph metrics now persist during scan. Real jscpd 5.4.2, Ruff 0.17.3 and Radon 6.0.1 run against captured SQLite source; 134 metrics and 3 tool issues in the fixture, normalized LCOV 2/3 line and 1/2 branch coverage, three report cache hits and zero additional contract-model/judge calls on repeat. Compiled metrics CLI and real MCP stdio deliver the measurements.",
+    "policyQuality": "Actual authenticated Claude Code judge: 16/16 prescribed positive/counterexample cases across eight policies, 224209 input / 7788 output SDK tokens, 1.372743 USD estimated cost (not a subscription invoice), zero new calls on repeat. Twelve policies registered; explicit public type-contract evidence and nonrecursive multi-module cycle witnesses implemented.",
+    "httpMcp": "Compiled CLI with two repositories and two simultaneous official SDK clients: 20 resources read, product/technical context, overlapping subject ID disambiguation, no-source, persisted documents, live refresh and regenerated memory verified. Protocol 2025-11-25, localhost default, explicit browser origin allowlist, required bearer token and 1 MiB body limit.",
+    "changeAnalysis": "impact_analysis/impact and trace_flow/trace are integrated in MCP and CLI without generative calls. Actual SCIP fixture verifies two paths from an imported HTTP handler to persistOrder, reference-only callbacks excluded from flow, six affected symbols, public/private member classification, one linked test and source-checked synthetic LCOV. Every hop maps to a stored relation; compiled CLI and no-source MCP observe endpoint replacement after refresh.",
+    "prioritization": "Versioned hotspot factors and uncertainty ranges, test-path exclusion, module scoping, pagination and source-bound coverage. Snapshot-bound opportunities derive from confirmed findings and hotspots, preserve file/module evidence and legacy entries, cache unchanged inputs, and withhold stale projections. Actual six-commit Git/SCIP fixture: score 31.98 before verified synthetic coverage and 59.03 with prescribed uncovered lines, automatic scan/quality/audit publication, one contract judge call with zero repeat calls, Node CLI and nine MCP calls; no mutation execution or business-effort inference.",
+    "generative": "Real Claude Haiku + local Qwen: 29 measured calls (19 initial, 10 after a body edit), 726657 remote SDK tokens and 1762 local tokens including retries; zero additional calls on unchanged repeat. Initial generation 633560 ms, deterministic refresh 327 ms, changed generation 389398 ms. Updated product explicitly flags the 18%/20% discrepancy. Counts include cached input/auxiliary SDK work, not subscription billing.",
+    "tokenSavings": {
+      "conversationEvidenceReuse": {
+        "report": "benchmarks/evidence-reuse-acceptance.json",
+        "scope": "Compiled CLI and official MCP stdio SDK; five captured real source files, four fixed queries, nine evidence blocks, lexical retrieval. Client must retain complete prior block text; opt-in knownBlocks receipts, no persistent server session.",
+        "initialRequestAndResponseProxyTokens": 10193,
+        "repeatedRequestAndResponseProxyTokens": 1221,
+        "requestAndResponseReductionPercent": 88.02119101344059,
+        "responseOnlyReductionPercent": 91.8961603000691,
+        "checks": "Exact block reuse, retrieval after lost conversation context, stale source rejection, changed block delivery and unaffected block reuse across snapshots.",
+        "limits": "Transport proxy tokens only. Excludes model conversation processing, answers and billing. Not a manual-exploration comparison or evidence that the roadmap 90% gate is achieved. Initial retrieval is still required."
+      },
+      "actualRepository": {
+        "manualTokens": 605674,
+        "mcpTokens": 235292,
+        "reductionPercent": 61.15203888560512,
+        "correctness": "Twelve prescribed facts plus source review; one matched run with the same structured-output schema.",
+        "report": "benchmarks/repo-workflow-acceptance.json"
+      },
+      "smallPreparedFixture": {
+        "manualTokens": 26713,
+        "mcpTokens": 56927,
+        "reductionPercent": -113.105978362595,
+        "initialRemotePreparationTokens": 563146,
+        "incrementalRemotePreparationTokens": 163511,
+        "localPreparationTokens": 1762,
+        "breakEvenQueries": null,
+        "report": "benchmarks/token-workflow-acceptance.json"
+      },
+      "catalogProxy": {
+        "allTools": 2868,
+        "contextTools": 1121,
+        "reductionPercent": 60.91352859135286,
+        "tokenizer": "o200k_base",
+        "scope": "tools/list JSON only, not end-to-end use"
+      },
+      "roadmapUnderTenPercent": false,
+      "cleanCaptureEvidenceMode": {
+        "manualTokens": 737073,
+        "mcpTokens": 724296,
+        "rawReductionPercent": 1.7334782307858232,
+        "accepted": false,
+        "reason": "MCP answer omitted the dependency-to-caller invalidation mechanism and the absolute-location cache exception. Source capture excludes prior evaluation answers/harnesses; raw totals include formatting retries.",
+        "report": "benchmarks/repo-workflow-evidence.json"
+      },
+      "preloadedModuleCorroboration": {
+        "scope": "Three fixed questions on complete real adapters/git module; clean capture, alternating arm order, Sonnet queries and Haiku preparation. Requested facts and citations reviewed against source; not a general accuracy guarantee.",
+        "manualQueryTokens": 66096,
+        "mcpQueryTokens": 55306,
+        "queryTokenReductionPercent": 16.32473977245219,
+        "manualQueryEstimatedCostUsd": 0.2182531,
+        "mcpQueryEstimatedCostUsd": 0.3132513,
+        "queryEstimatedCostReductionPercent": -43.526621156812894,
+        "preparationTokens": 144114,
+        "preparationEstimatedCostUsd": 0.3144796,
+        "newCallsOnUnchangedRepeat": 0,
+        "projectedQueriesToAmortizeTokenCount": 41,
+        "queriesToAmortizeEstimatedCost": null,
+        "preparationPlusMeasuredMcpTokens": 199420,
+        "report": "benchmarks/preloaded-savings-corroboration.json"
+      },
+      "optionalPreparationBatching": {
+        "individualTokens": 21913,
+        "batchTokens": 36021,
+        "reductionPercent": -64.38187377355908,
+        "defaultBatchSize": 1,
+        "report": "benchmarks/analysis-batching-acceptance.json"
+      }
+    },
+    "evidenceRetrieval": "Integrated MCP context_pack mode=evidence and CLI context --evidence/--questions: up to eight searches, shared measured budget, deduplicated AST source excerpts and stored memory provenance. Excludes tests by default; preserves no-source, source hashes and snapshot freshness. Collection metadata honored; reranker batches at 32 and isolates oversized inputs. This implementation alone does not prove end-to-end savings.",
+    "localModelUpgrade": {
+      "embeddings": "Qwen/Qwen3-Embedding-4B @ 5cf2132abc99cad020ac570b19d031efec650f2b; TEI 1.9.4; 2560 dimensions; 32768-token input limit",
+      "reranker": "Qwen/Qwen3-Reranker-0.6B @ e61197ed45024b0ed8a2d74b80b4d909f1255473; CPU Transformers, causal yes/no scoring",
+      "generator": "qwen3.5:9b-q4_K_M @ 56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90; Ollama 0.40.13; now the default primary backend (see localPrimaryBackend); restricted leaf routing remains available for explicitly configured hybrid mode",
+      "defaultContextTokens": 120000,
+      "maxContextTokens": 120000,
+      "retrieval": "8/8 prescribed queries rank first; 34 initial, 0 repeat, 1 changed embedding; finite corpus, no percentage quality gain claimed",
+      "generatorCheck": "One scalar function: structured JSON and prescribed facts pass; 149 input, 53 output local tokens; not full-120K model inference or general accuracy",
+      "limits": "Existing projects need reindex for the new embedding space. Historical token savings do not apply automatically to the larger budget/new models."
+    },
+    "localPrimaryBackend": {
+      "backend": "ollama",
+      "model": "qwen3.5:9b-q4_K_M",
+      "coverage": "Default CLI backend for all technical/product levels and policy judging; remote backends require explicit selection, no remote fallback. Existing explicit remote configuration is honored.",
+      "realVerification": {
+        "report": "benchmarks/local-backend-acceptance.json",
+        "calls": 7,
+        "repeatedCalls": 0,
+        "inputTokens": 13341,
+        "outputTokens": 2550,
+        "durationMs": 137773
+      },
+      "limits": "Compiled CLI, real local model, six memory levels and a policy judgment on a tiny branching TS fixture. Repeated analyze/audit/refresh reuse cache. The audit checks transport/schema/cache, not correctness of its decision. SCIP and vector services intentionally disabled; not a broad semantic benchmark or a filled 120K input.",
+      "reviewNotes": [
+        "The audit inferred likely triviality from one symbol without source behavior in its candidate evidence. This smoke run validates routing, schema and caching, not the semantic correctness of that rejection."
+      ]
+    }
+  },
+  "completionRule": "Una capacidad solo se completa con implementación integrada y evidencia de aceptación. Los servicios opcionales deben tener adaptadores utilizables y pruebas de contrato; no se simulan resultados de herramientas ausentes.",
+  "requirements": [
+    {
+      "id": "F0",
+      "requirement": "Workspaces, CLI/MCP build, lint, types, tests, CI y doctor",
+      "status": "complete",
+      "acceptance": "bun run check; artefactos CLI/MCP ejecutables; checks de servicios requeridos y opcionales",
+      "evidence": "benchmarks/clean-install-acceptance.json: empty-directory frozen-lockfile installation, lint, Rslint, TypeScript, tests, build and compiled Node CLI/doctor pass. CI pins Bun 1.3.13 and Node 22.12.0. These are local CI-equivalent gates, not a hosted GitHub Actions run."
+    },
+    {
+      "id": "F1",
+      "requirement": "SQLite dual, migraciones, grafo, identidades estables y FTS5 de símbolos/resúmenes/findings",
+      "status": "complete",
+      "acceptance": "round-trip y migración de base existente; búsquedas y aislamiento de snapshots",
+      "evidence": "Node/better-sqlite3 round-trip, v1 migration preservation through v13 (member visibility and derived opportunity provenance), FTS rebuild/update isolation, graph and rollback tests; Bun integration via memory/retrieval/deterministic acceptance scripts."
+    },
+    {
+      "id": "F2",
+      "requirement": "TS/JS/Python, símbolos, exports, rutas Express/Nest/FastAPI, tests, módulos y señales Git",
+      "status": "complete",
+      "acceptance": "fixtures por lenguaje y patrón; scan de repo real con conteos verificados",
+      "evidence": "TS/JS/Python fixtures cover exact UTF-16 symbol/test spans, ESM/CommonJS exports and named reexports, Python declarations/literal __all__, Express/Nest/FastAPI declared routes and handler metadata. Scan resolves barrel modules and export links. benchmarks/deterministic-acceptance.json verifies the tracked RepoLead inventory and manually specified symbol lists. Dynamic runtime route composition and exhaustive language export semantics are outside these heuristics."
+    },
+    {
+      "id": "F3",
+      "requirement": "SCIP y fallback, referencias y reconciliación observable",
+      "status": "complete",
+      "acceptance": "fixture con 20 símbolos/referencias esperadas; diagnósticos de desacuerdos",
+      "evidence": "benchmarks/deterministic-acceptance.json: 20/20 functions match exact TypeScript language-service reference locations. SCIP/AST classification distinguishes calls, callbacks, recursion, extends and implements-class; fixtures cover UTF-8 normalization, typed ranges and ambiguous definitions. find_references paginates persisted occurrences; doctor --db reports indexer failures and unmapped definitions. Python-specific semantic acceptance remains F9.1 work."
+    },
+    {
+      "id": "F4",
+      "requirement": "Recuperación híbrida de símbolos completos, resúmenes, findings y documentos con filtros",
+      "status": "complete",
+      "acceptance": "reindex reconstruible, filtros repo/snapshot/lenguaje/módulo/tipo, consultas español-inglés top-5 con servicios reales",
+      "evidence": "benchmarks/retrieval-acceptance.json: real pinned TEI/Qdrant + reranker, 8/8 top-1 queries, full symbol bodies, all five knowledge kinds, filters, SQLite-only rebuild, no-source MCP. Oversized vector inputs explicitly omitted and retained in FTS; legacy body-less snapshots require refresh."
+    },
+    {
+      "id": "F5.1",
+      "requirement": "Symbol Cards → File Dossiers → Module Dossiers → Repository Brief",
+      "status": "complete",
+      "acceptance": "todos los niveles persistidos y consultables; análisis de fuente y síntesis bottom-up, sin omisiones silenciosas",
+      "evidence": "All hierarchy levels persist with source/evidence, public-or-nontrivial selection retains skipped source in file dossiers and reports omissions. benchmarks/generative-acceptance.json: actual Claude Haiku and Qwen, all six levels persisted with validated provenance, price multiplier/negative rejection/error preserved. One finite fixture, not general accuracy."
+    },
+    {
+      "id": "F5.2",
+      "requirement": "Evidencia por ID, validación de esquemas y referencias, retries y caché por contenido/modelo/prompt/policy",
+      "status": "complete",
+      "acceptance": "referencias inventadas rechazadas; retry acotado; segundo run sin cambios hace cero llamadas",
+      "evidence": "hierarchy.test.ts, product.test.ts, migration rollback test, benchmarks/memory-acceptance.json"
+    },
+    {
+      "id": "F5.3",
+      "requirement": "Configuración .repolead.yaml de módulos, presupuestos, fuente, profundidad y modelos",
+      "status": "complete",
+      "acceptance": "config válida aplicada en scan/onboard/analyze/refresh; error explícito en valores inválidos",
+      "evidence": "Modules/token/source-line/model/documentation config integrated. max_reanalysis_depth defaults to 3, validates 0–32, bounds outgoing dependency fingerprints and refresh affected-module reporting; synthesis ancestors always update from their children. Config tests, SCIP chain tests at depths 0/1/2, CLI refresh action and compiled dry-run verify integration. Depth/source omissions are explicit."
+    },
+    {
+      "id": "F6.1",
+      "requirement": "Policies con required_evidence/versionado, detector → juez, hallazgos sin duplicados",
+      "status": "complete",
+      "acceptance": "fixtures positivos/negativos, evidencia obligatoria, cache de juez por policy y candidatos",
+      "evidence": "engine.test.ts: positive/negative cache, required evidence, policy invalidation, strict verdict schema/retries, token batches and deduplication; Bun contract audit repeated with zero additional calls; finding_judgments provenance"
+    },
+    {
+      "id": "F6.2",
+      "requirement": "Pack de arquitectura, boundaries, cohesión/acoplamiento, duplicación, complejidad, errores y testabilidad",
+      "status": "complete",
+      "acceptance": "al menos ocho reglas útiles con detectores probados y falsos positivos controlados",
+      "evidence": "Twelve versioned rules with registered graph_dependency_direction, persistence_import_in_domain and framework_type_leak detectors. TS/Python public imported-type contracts retain exact import/signature evidence and exclude shadowed/private/body-only uses. Iterative DFS reports closed cycle witnesses of any length, not exhaustive simple cycles. benchmarks/policy-quality-acceptance.json: actual Claude Code judge matches all 16 prescribed positive/counterexample cases across eight policies, caches all 16 judgments and makes zero new calls on repeat. Separate AST/boundary/cycle tests cover aliases, scope and a 12000-node cycle. Finite fixture acceptance does not establish general precision/recall; advanced language type resolution remains outside these syntax heuristics."
+    },
+    {
+      "id": "F6.3",
+      "requirement": "Métricas de complejidad/LOC/fan-in/out/acoplamiento/cobertura/duplicación; jscpd y Ruff/Radon",
+      "status": "complete",
+      "acceptance": "datos normalizados y consumidos por análisis/policies; ausencia explícita de herramientas o cobertura",
+      "evidence": "AST/graph metrics, quality_report_cache, quality_issues and LCOV provenance integrated with scan/refresh/onboard, metrics CLI, doctor, hierarchy fingerprints and MCP. benchmarks/quality-acceptance.json uses actual jscpd/Ruff/Radon plus a prescribed LCOV fixture; unit tests cover malformed/missing/unmapped reports, checksums, duplicate line unions, unknown coverage, cache stability and source snapshot isolation. Code unchanged + changed untracked coverage refresh is verified. Cognitive complexity is explicitly an estimate; reported-line checksums are not whole-build freshness proof."
+    },
+    {
+      "id": "F7",
+      "requirement": "MCP tools y resources de todos los niveles, lectura detallada y evidencia, HTTP y multi-repo",
+      "status": "complete",
+      "acceptance": "cliente MCP real lista/lee resources y llama tools; snapshot fresco, ambigüedad y no-source respetados; sesión Claude Code responde arquitectura con evidencia y menos tokens que exploración manual equivalente",
+      "evidence": "Compiled stdio/HTTP and multi-repository acceptance pass with current-snapshot resources, ambiguity checks, no-source, authentication/origin/body bounds and live refresh. Source ranges now batch up to 20 reads under one measured budget; optional context profile exposes four tools instead of fourteen. benchmarks/repo-workflow-acceptance.json: actual Claude Code Sonnet 5 with Haiku auxiliary work, same captured RepoLead source, completed SCIP (137 documents), twelve prescribed facts including dependency/parent/product invalidation reviewed against implementation. Manual 605674 vs MCP 235292 SDK tokens (61.152% reduction). Both arms include structured-output retries (3 vs 2 attempts), cached input and auxiliary work. One matched run, not a general saving guarantee or an Astra/Fable measurement; the smaller prepared fixture consumed more tokens through MCP."
+    },
+    {
+      "id": "F8",
+      "requirement": "Parse por archivo modificado, invalidación en cascada y actualización selectiva/purga vectorial",
+      "status": "complete",
+      "acceptance": "una función cambia y solo se analiza su cadena/dependientes; borrados, renombres y working tree cubiertos; tiempo/calls medidos",
+      "evidence": "Incremental parsing, vectors and configurable dependency-chain acceptance, plus coordinate-only symbol evidence rebinding without leaf calls. Real generative acceptance: refresh parses one changed file in 327 ms, changed technical/product generation makes 10 primary calls versus 19 initial calls; unrelated local leaf stays cached, unchanged repeat zero calls. Generation took 389398 ms, separate from the deterministic refresh target. Product explicitly flags the documented 18% versus implemented 20% conflict."
+    },
+    {
+      "id": "F9.1",
+      "requirement": "Python y métricas Python",
+      "status": "complete",
+      "acceptance": "pytest/FastAPI/imports/SCIP y reportes Ruff/Radon normalizados",
+      "evidence": "benchmarks/python-acceptance.json: actual scip-python 0.6.6, eight prescribed relations and seven exact UTF-16 reference locations, aliases, inheritance, recursion, callback/call distinction, pytest and FastAPI-to-persistence flow; real Ruff/Radon and compiled no-source MCP. Finite fixture, not all dynamic Python semantics."
+    },
+    {
+      "id": "F9.2",
+      "requirement": "impact_analysis y scoring explicable con recomendaciones de workflow",
+      "status": "complete",
+      "acceptance": "impacto transitivo, contratos, persistencia, tests/cobertura y factores desconocidos en fixtures",
+      "evidence": "packages/change-analysis + MCP impact_analysis + CLI impact. Twelve versioned weighted factors expose points, provenance status and uncertainty range; caller facts are labeled, missing factors never become zero risk, and workflow remains provisional. Incoming compiler references preserve symbol scope; missing definitions use a conservative file/container traversal with bounded revisits. Outgoing calls separately capture recorded effects in unchanged callees. Tests cover typed storage/event effects, relevant tests, public/private contracts, schema exposure, source-bound/unknown coverage, limits, pagination, multi-repository resolution and no-source. benchmarks/change-analysis-acceptance.json verifies the full SCIP/compiled CLI/MCP path, six impacted symbols, a linked test and checksummed synthetic LCOV. Unclassified side effects and actual breaking-change/authorization/concurrency/reversibility semantics remain explicitly unknown; the score is not calibrated effort or defect probability."
+    },
+    {
+      "id": "F9.3",
+      "requirement": "trace_flow desde endpoint hasta side effects con evidencia",
+      "status": "complete",
+      "acceptance": "BFS con ciclos, múltiples rutas, límites explícitos y procedencia; sin inventar edges",
+      "evidence": "MCP trace_flow and CLI trace perform bounded BFS over CALLS and recorded effect edges, with shortest-path witnesses, per-hop analyzer/location proof and separate depth/node/edge/path limits. Tests cover cycles, both branches, duplicate analyzer provenance, reference-only callbacks, ambiguous/unknown targets, current snapshot and no-source. Real SCIP acceptance traces an imported Express handler alias through two service branches and OrderRepository.save to persistOrder; every hop is checked against SQLite. Endpoint argument ranges resolve imported bindings and do not confuse shadowed parameters with same-name module functions. Explicit targets may name known sink functions; automatic effect mode consumes typed stored effects and does not infer arbitrary external API semantics. Runtime feasibility, longer alternate paths and Joern data flow are not claimed."
+    },
+    {
+      "id": "F9.4",
+      "requirement": "Hotspots y mutation testing dirigido con Stryker",
+      "status": "complete",
+      "acceptance": "priorización objetiva; ejecución opt-in restringida a hotspots; importación verificable de resultados",
+      "evidence": "Hotspot ranking plus exact per-symbol Stryker plans, explicit --run/--test-command, isolated generated config, before/after indexed-source checks, and source/range-validated report import. Migration 14 persists normalized snapshot-bound results; MCP mutation_results is read-only and paginated. benchmarks/mutation-acceptance.json: actual Stryker 10.1.1, four killed/two survived, 66.67% score, originals unchanged, Node CLI/MCP and stale/forged report refusal."
+    },
+    {
+      "id": "F9.5",
+      "requirement": "Adaptador opcional Joern para data flow y diagnóstico doctor",
+      "status": "complete",
+      "acceptance": "importación/ejecución documentada, mapeo probado, distinguir dataflow de referencias estáticas",
+      "evidence": "adapters/joern, dataflow --run, doctor and trace_flow engine=joern integrated. Captured source, fixed parameter-to-call-argument query, bounded process/input/output, validated locations/hashes and per-query snapshot metadata. benchmarks/joern-acceptance.json executes checksum-verified Joern 4.0.666 with actual JS/Python frontends: one positive path each, zero for a constant-argument counterexample; compiled CLI and no-source MCP, refreshed snapshot withholds prior report. Default OSS semantics do not establish runtime feasibility or vulnerability precision/recall."
+    },
+    {
+      "id": "F9.6",
+      "requirement": "Backend opcional Qwen coder local para resúmenes leaf",
+      "status": "complete",
+      "acceptance": "contrato de salida/evidencia validado; modelo/config en caché; módulos críticos usan backend principal",
+      "evidence": "Optional digest-bound Ollama Qwen2.5-Coder:7b backend integrated in config, Compose, doctor and CLI. Actual local scalar-conversion card passed schema/evidence checks (1762 local tokens); primary handles critical symbols, arithmetic/branching and every upper level. Model digest/options enter cache identity; timeout/context/completion validation tested. Early broader routing produced inaccurate local claims, so eligibility is deliberately restricted to measured simple JS/TS scalar returns/coercions. See generative-acceptance.json. Subsequent upgrade: Qwen3.5-9B is also available as the default primary for all memory levels and policy judging. Local-only CLI acceptance, cache reuse and limitations are recorded in benchmarks/local-backend-acceptance.json; historical leaf results do not establish general local accuracy."
+    },
+    {
+      "id": "F9.7",
+      "requirement": "improvement_opportunities a partir de findings y hotspots",
+      "status": "complete",
+      "acceptance": "persistencia, ranking y trazabilidad hasta evidencias; consulta MCP",
+      "evidence": "Migration 13 extends opportunities without deleting legacy records. Deterministic snapshot projection joins confirmed findings and hotspots with sourceKind/sourceId, priority, file/module evidence, input hash and unknown effort/business impact. Atomic publication is integrated with scan, refresh, quality collection and audit; CLI opportunities can rebuild older databases. MCP improvement_opportunities reads only, paginates, resolves exact owning modules and requires repo in multi-repo mode; get_evidence opportunityId rejects stale/historical entries and respects no-source. Five unit tests cover coverage, bounds, ambiguity, evidence, atomic rollback and legacy preservation. benchmarks/prioritization-acceptance.json verifies real Git/SCIP, compiled Node CLI, nine MCP calls, automatic updates, exclusion of unjudged candidates and zero repeat contract-judge calls. Scores are heuristics, not calibrated effort or business value; hybrid search does not yet index the projection."
+    },
+    {
+      "id": "PRODUCT",
+      "requirement": "Contexto precargado de producto y técnico con features, roles, flujos, reglas y decisiones documentadas",
+      "status": "complete",
+      "acceptance": "ingesta explícita de documentación y código; hechos/inferencias/desconocidos separados; vistas/resource por audiencia y evidencia; actualización incremental",
+      "evidence": "Tracked documentation, explicit code links, bounded sections, provenance validation and CLI/MCP audience views implemented. Actual generative fixture preserves merchant role, PEN, negative rejection and PDF as planned; after a body edit, product flags 18% documentation versus 20% implementation. Unchanged repeat zero calls; snapshot-bound resources tested. Client must request preload; this is finite fixture acceptance, not general business correctness."
+    },
+    {
+      "id": "ACCEPTANCE",
+      "requirement": "Criterios de éxito, documentación actualizada y evaluación de calidad/token savings",
+      "status": "partial",
+      "acceptance": "scan 1–2k archivos <10min; refresh 1 archivo <30s; segundo análisis cero calls; preguntas con evidencia y objetivo <10% de tokens medido sin sacrificar corrección",
+      "evidence": "Clean installation and 164 tests/41 files pass; scan/refresh timing, zero-call unchanged analysis, real-model technical/product provenance and actual-source MCP answer evaluation are recorded. The 90% reduction target remains unmet: the historical architecture run used 38.848% of baseline tokens (61.152% reduction), with possible evaluation-artifact contamination and no proof of the target. The tiny prepared fixture is more expensive with MCP (56927 vs 26713); preparation totals and failed/preliminary comparisons are preserved. New clean-capture evidence-mode run: 737073 manual vs 724296 MCP tokens, 1.733% raw reduction, rejected for incomplete dependency invalidation explanation; no accepted saving claimed. Latest clean prepared-module corroboration: 66096 manual vs 55306 MCP query tokens (16.325% reduction) with requested facts preserved, but SDK estimated query cost increases 43.527%. Preparation adds 144114 tokens; unchanged repeat makes zero calls. No monetary break-even at observed rates; 90% target remains unmet.",
+      "remaining": [
+        "Demonstrate the roadmap target of less than 10% of equivalent manual tokens while preserving answer correctness; current measurements do not meet it."
+      ]
+    }
+  ],
+  "completion": {
+    "complete": 21,
+    "total": 22,
+    "remaining": [
+      "ACCEPTANCE"
+    ]
+  }
+}

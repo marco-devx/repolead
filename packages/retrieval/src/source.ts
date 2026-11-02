@@ -4,6 +4,13 @@ import { isAbsolute, relative, resolve } from 'node:path';
 import { contentHash } from '@repolead/domain';
 import type { KnowledgeStore } from '@repolead/knowledge-store';
 
+/** Offline analyses/indexing consume the immutable snapshot, not a later working tree. */
+export function readSnapshotSource(store: KnowledgeStore, snapshotId: string, rootPath: string, path: string): string {
+  const stored = store.getSnapshotSource(snapshotId, path);
+  if (stored !== null) { return stored; }
+  return readIndexedSource(store, snapshotId, rootPath, path);
+}
+
 /** Source is only evidence if it is indexed, inside the repo, and matches the snapshot. */
 export function readIndexedSource(store: KnowledgeStore, snapshotId: string, rootPath: string, path: string): string {
   const root = realpathSync(rootPath);

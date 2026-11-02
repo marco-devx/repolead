@@ -1,0 +1,31 @@
+{
+  "generatedAt": "2026-11-01T22:15:07.369Z",
+  "model": "ollama:qwen3.5:9b-q4_K_M@56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90:57267a325e75a8d69a88e677f471baa4c7c549b567bab2147cc3e41737dfb37a",
+  "source": "export function format(value: number): string { return String(value); }",
+  "expected": {
+    "inputType": "number",
+    "outputType": "string",
+    "usesStringConversion": true,
+    "performsNetworkIO": false,
+    "resultFor42": "42"
+  },
+  "passed": true,
+  "json": {
+    "inputType": "number",
+    "outputType": "string",
+    "usesStringConversion": true,
+    "performsNetworkIO": false,
+    "resultFor42": "42"
+  },
+  "inputTokens": 149,
+  "outputTokens": 53,
+  "telemetry": {
+    "provider": "ollama-local",
+    "models": [
+      "ollama:qwen3.5:9b-q4_K_M@56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90:57267a325e75a8d69a88e677f471baa4c7c549b567bab2147cc3e41737dfb37a"
+    ],
+    "durationMs": 38305,
+    "accounting": "Local prompt_eval_count/eval_count; not remote billable tokens; excludes hardware and electricity costs."
+  },
+  "limits": "One complete scalar-conversion function through the actual RepoLead Ollama adapter; validates runtime/JSON and prescribed facts, not broad generative quality or a filled 120K local context."
+}

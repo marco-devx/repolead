@@ -1,0 +1,2355 @@
+{
+  "generatedAt": "2026-11-01T21:53:16.358Z",
+  "root": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-PHZoM4",
+  "dbPath": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-PHZoM4/.repolead/repolead.db",
+  "artifactDir": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-PHZoM4/.repolead/corroboration",
+  "scope": "adapters/git",
+  "queryModel": "sonnet",
+  "toolProfile": "context",
+  "sourceManifestHash": "7b2c98b68486498211ad0caa4629f9fd7a0bd025bea4174ad532186448dbfc46",
+  "moduleManifest": [
+    {
+      "path": "adapters/git/package.json",
+      "hash": "fcf0606d9b6b557ba19f690c0b5b524586dad7ce8a0160bfc9ab8c0f12ed16e6"
+    },
+    {
+      "path": "adapters/git/src/index.ts",
+      "hash": "d8eaf1a68831a35097e8bae3525b9d154eedf7deecdfd675b5b67f364896a61f"
+    }
+  ],
+  "backendHashes": {
+    "apps/cli/dist/index.cjs": "77439aaa4104f2143ec45c1f867f38ef77824eb96940d5f6d1a4f85ef6983906",
+    "apps/mcp-server/src/server.ts": "a316bac1c3c2245c113efcb10913ef5d12c522cf30182e39bacaccf921b85fec",
+    "packages/lead-analyzer/src/agent-sdk-model.ts": "a092383ac60b20b566ac82f283edb587995875b4e3e5a1ec9168283ac62a4501",
+    "packages/lead-analyzer/src/model-evidence.ts": "0dc08cf0aa5299a39327500aae899f16ff6873290827eee245d6c048174e9260",
+    "packages/retrieval/src/evidence-context.ts": "ebd4f5910aaef81a117122628bbc5c2d329efd95e1b6cf44b8e845dcaef3dd2c"
+  },
+  "preparation": {
+    "scope": "adapters/git",
+    "model": "claude-code:haiku:isolated-v1",
+    "batchSize": 1,
+    "generated": {
+      "symbolsSkipped": 0,
+      "localInputTokens": 0,
+      "localOutputTokens": 0,
+      "symbolsAnalyzed": 8,
+      "symbolsCached": 0,
+      "filesAnalyzed": 2,
+      "filesCached": 0,
+      "modulesAnalyzed": 1,
+      "modulesCached": 0,
+      "briefGenerated": false,
+      "briefCached": false,
+      "inputTokens": 109639,
+      "outputTokens": 34475
+    },
+    "calls": [
+      {
+        "subject": {
+          "id": "sym_04891b59254bbc01954cd2533be46414",
+          "name": "git",
+          "level": "symbol",
+          "path": "adapters/git/src/index.ts"
+        },
+        "inputTokens": 3932,
+        "outputTokens": 2175,
+        "telemetry": {
+          "provider": "claude-code",
+          "models": [
+            "claude-haiku-4-5-20251001"
+          ],
+          "estimatedCostUsd": 0.014807,
+          "durationMs": 17998,
+          "usageBreakdown": {
+            "uncachedInputTokens": 3932,
+            "cacheWriteInputTokens": 0,
+            "cacheReadInputTokens": 0,
+            "outputTokens": 2175,
+            "totalTokens": 6107
+          },
+          "structuredOutputAttempts": 1,
+          "assistantMessages": 1,
+          "formattingErrors": [],
+          "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+        }
+      },
+      {
+        "subject": {
+          "id": "sym_9cbe8e1a731bf162ed4d51568c8c5893",
+          "name": "gitHead",
+          "level": "symbol",
+          "path": "adapters/git/src/index.ts"
+        },
+        "inputTokens": 4347,
+        "outputTokens": 1626,
+        "telemetry": {
+          "provider": "claude-code",
+          "models": [
+            "claude-haiku-4-5-20251001"
+          ],
+          "estimatedCostUsd": 0.012477,
+          "durationMs": 13323,
+          "usageBreakdown": {
+            "uncachedInputTokens": 4347,
+            "cacheWriteInputTokens": 0,
+            "cacheReadInputTokens": 0,
+            "outputTokens": 1626,
+            "totalTokens": 5973
+          },
+          "structuredOutputAttempts": 1,
+          "assistantMessages": 1,
+          "formattingErrors": [],
+          "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+        }
+      },
+      {
+        "subject": {
+          "id": "sym_25fe320634deca4c1a64d2333af4ccf8",
+          "name": "listTrackedFiles",
+          "level": "symbol",
+          "path": "adapters/git/src/index.ts"
+        },
+        "inputTokens": 4429,
+        "outputTokens": 2920,
+        "telemetry": {
+          "provider": "claude-code",
+          "models": [
+            "claude-haiku-4-5-20251001"
+          ],
+          "estimatedCostUsd": 0.019029,
+          "durationMs": 23293,
+          "usageBreakdown": {
+            "uncachedInputTokens": 4429,
+            "cacheWriteInputTokens": 0,
+            "cacheReadInputTokens": 0,
+            "outputTokens": 2920,
+            "totalTokens": 7349
+          },
+          "structuredOutputAttempts": 1,
+          "assistantMessages": 1,
+          "formattingErrors": [],
+          "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+        }
+      },
+      {
+        "subject": {
+          "id": "sym_f6a6030c09c5baaaed04d08860c8bb6a",
+          "name": "changedFilesSince",
+          "level": "symbol",
+          "path": "adapters/git/src/index.ts"
+        },
+        "inputTokens": 8659,
+        "outputTokens": 2155,
+        "telemetry": {
+          "provider": "claude-code",
+          "models": [
+            "claude-haiku-4-5-20251001"
+          ],
+          "estimatedCostUsd": 0.023738000000000002,
+          "durationMs": 16416,
+          "usageBreakdown": {
+            "uncachedInputTokens": 4355,
+            "cacheWriteInputTokens": 4304,
+            "cacheReadInputTokens": 0,
+            "outputTokens": 2155,
+            "totalTokens": 10814
+          },
+          "structuredOutputAttempts": 1,
+          "assistantMessages": 2,
+          "formattingErrors": [],
+          "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+        }
+      },
+      {
+        "subject": {
+          "id": "sym_ca38b70d35bd97349bcc1f47db1f03b6",
+          "name": "FileHistory",
+          "level": "symbol",
+          "path": "adapters/git/src/index.ts"
+        },
+        "inputTokens": 3804,
+        "outputTokens": 3604,
+        "telemetry": {
+          "provider": "claude-code",
+          "models": [
+            "claude-haiku-4-5-20251001"
+          ],
+          "estimatedCostUsd": 0.021824,
+          "durationMs": 29543,
+          "usageBreakdown": {
+            "uncachedInputTokens": 3804,
+            "cacheWriteInputTokens": 0,
+            "cacheReadInputTokens": 0,
+            "outputTokens": 3604,
+            "totalTokens": 7408
+          },
+          "structuredOutputAttempts": 1,
+          "assistantMessages": 1,
+          "formattingErrors": [],
+          "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+        }
+      },
+      {
+        "subject": {
+          "id": "sym_b099992d8617f0dd75e1e66a9a714a76",
+          "name": "CoChangePair",
+          "level": "symbol",
+          "path": "adapters/git/src/index.ts"
+        },
+        "inputTokens": 7403,
+        "outputTokens": 1732,
+        "telemetry": {
+          "provider": "claude-code",
+          "models": [
+            "claude-haiku-4-5-20251001"
+          ],
+          "estimatedCostUsd": 0.016063,
+          "durationMs": 15223,
+          "usageBreakdown": {
+            "uncachedInputTokens": 7403,
+            "cacheWriteInputTokens": 0,
+            "cacheReadInputTokens": 0,
+            "outputTokens": 1732,
+            "totalTokens": 9135
+          },
+          "structuredOutputAttempts": 1,
+          "assistantMessages": 2,
+          "formattingErrors": [],
+          "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+        }
+      },
+      {
+        "subject": {
+          "id": "sym_ab3a5ee009f4615358ce4a1eb321e9d5",
+          "name": "RepositoryHistory",
+          "level": "symbol",
+          "path": "adapters/git/src/index.ts"
+        },
+        "inputTokens": 4128,
+        "outputTokens": 1473,
+        "telemetry": {
+          "provider": "claude-code",
+          "models": [
+            "claude-haiku-4-5-20251001"
+          ],
+          "estimatedCostUsd": 0.011493,
+          "durationMs": 12801,
+          "usageBreakdown": {
+            "uncachedInputTokens": 4128,
+            "cacheWriteInputTokens": 0,
+            "cacheReadInputTokens": 0,
+            "outputTokens": 1473,
+            "totalTokens": 5601
+          },
+          "structuredOutputAttempts": 1,
+          "assistantMessages": 1,
+          "formattingErrors": [],
+          "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+        }
+      },
+      {
+        "subject": {
+          "id": "sym_9ee5acc23d75fa6275ca06d7e29f97e3",
+          "name": "collectHistory",
+          "level": "symbol",
+          "path": "adapters/git/src/index.ts"
+        },
+        "inputTokens": 13718,
+        "outputTokens": 3984,
+        "telemetry": {
+          "provider": "claude-code",
+          "models": [
+            "claude-haiku-4-5-20251001"
+          ],
+          "estimatedCostUsd": 0.040753,
+          "durationMs": 32695,
+          "usageBreakdown": {
+            "uncachedInputTokens": 6603,
+            "cacheWriteInputTokens": 7115,
+            "cacheReadInputTokens": 0,
+            "outputTokens": 3984,
+            "totalTokens": 17702
+          },
+          "structuredOutputAttempts": 1,
+          "assistantMessages": 2,
+          "formattingErrors": [],
+          "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+        }
+      },
+      {
+        "subject": {
+          "id": "repo://workflow-PHZoM4/adapters/git/package.json",
+          "name": "adapters/git/package.json",
+          "path": "adapters/git/package.json",
+          "level": "file"
+        },
+        "inputTokens": 8145,
+        "outputTokens": 3250,
+        "telemetry": {
+          "provider": "claude-code",
+          "models": [
+            "claude-haiku-4-5-20251001"
+          ],
+          "estimatedCostUsd": 0.029193,
+          "durationMs": 26821,
+          "usageBreakdown": {
+            "uncachedInputTokens": 3347,
+            "cacheWriteInputTokens": 4798,
+            "cacheReadInputTokens": 0,
+            "outputTokens": 3250,
+            "totalTokens": 11395
+          },
+          "structuredOutputAttempts": 1,
+          "assistantMessages": 2,
+          "formattingErrors": [],
+          "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+        }
+      },
+      {
+        "subject": {
+          "id": "repo://workflow-PHZoM4/adapters/git/src/index.ts",
+          "name": "adapters/git/src/index.ts",
+          "path": "adapters/git/src/index.ts",
+          "level": "file"
+        },
+        "inputTokens": 18406,
+        "outputTokens": 3774,
+        "telemetry": {
+          "provider": "claude-code",
+          "models": [
+            "claude-haiku-4-5-20251001"
+          ],
+          "estimatedCostUsd": 0.047378,
+          "durationMs": 33596,
+          "usageBreakdown": {
+            "uncachedInputTokens": 8304,
+            "cacheWriteInputTokens": 10102,
+            "cacheReadInputTokens": 0,
+            "outputTokens": 3774,
+            "totalTokens": 22180
+          },
+          "structuredOutputAttempts": 1,
+          "assistantMessages": 1,
+          "formattingErrors": [],
+          "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+        }
+      },
+      {
+        "subject": {
+          "id": "module://workflow-PHZoM4/adapters/git",
+          "name": "git",
+          "path": "adapters/git",
+          "level": "module"
+        },
+        "inputTokens": 32668,
+        "outputTokens": 7782,
+        "telemetry": {
+          "provider": "claude-code",
+          "models": [
+            "claude-haiku-4-5-20251001"
+          ],
+          "estimatedCostUsd": 0.0777246,
+          "durationMs": 62491,
+          "usageBreakdown": {
+            "uncachedInputTokens": 8023,
+            "cacheWriteInputTokens": 14909,
+            "cacheReadInputTokens": 9736,
+            "outputTokens": 7782,
+            "totalTokens": 40450
+          },
+          "structuredOutputAttempts": 1,
+          "assistantMessages": 2,
+          "formattingErrors": [],
+          "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+        }
+      }
+    ],
+    "durationMs": 292891,
+    "newCallsOnRepeat": 0,
+    "tokens": 144114,
+    "estimatedCostUsd": 0.31447959999999997,
+    "deterministicScanMs": 3443,
+    "initialVectorMs": 5930,
+    "memoryVectorMs": 521,
+    "vectorIndex": {
+      "collection": "repolead-acceptance-workflow-PHZoM4",
+      "generation": "e9f719351056c7a7dcba952f0899a9fcc3e16f120df5f6490033d4136754c058",
+      "modelKey": "256c40a8e054be312c6d31767706513957ffc259d2a6c7888891db15d7d2b77f",
+      "indexed": 913,
+      "embedded": 11,
+      "reused": 902,
+      "metadataUpdated": 902,
+      "incompleteSources": 9,
+      "omitted": []
+    },
+    "summaries": [
+      {
+        "level": "module",
+        "subjectId": "module://workflow-PHZoM4/adapters/git",
+        "content": {
+          "responsibility": "Git command adapter for repository change tracking and history analysis. Exposes high-level repository query operations (HEAD resolution, tracked file listing, change detection, history collection) that wrap Node.js child_process execution of git CLI commands and parse structured output to support change tracking, co-change pattern mining, and repository history introspection. Declared as a private ES module (internal-only usage within the monorepo) at pre-release version 0.1.0.",
+          "publicApi": [
+            "./src/index.ts (main entry point)",
+            "gitHead(rootPath: string): Promise<string>",
+            "listTrackedFiles(rootPath: string): Promise<string[]>",
+            "changedFilesSince(rootPath: string, commitSha: string): Promise<string[]>",
+            "collectHistory(rootPath: string): Promise<RepositoryHistory>",
+            "FileHistory (type export)",
+            "CoChangePair (type export)",
+            "RepositoryHistory (type export)"
+          ],
+          "dependencies": {
+            "incoming": [
+              "packages/code-graph/src/refresh.ts",
+              "packages/code-graph/src/scan.ts",
+              "refreshRepository",
+              "scanRepository"
+            ],
+            "outgoing": [
+              "node:child_process",
+              "node:util"
+            ]
+          },
+          "mainFlows": [
+            "Repository metadata: gitHead() resolves current HEAD commit SHA via git rev-parse",
+            "File inventory: listTrackedFiles() enumerates git-tracked files via git ls-files -z (null-terminated format)",
+            "Change detection: changedFilesSince(rootPath, commitSha) returns file diff between commit and working tree",
+            "History extraction: collectHistory(rootPath) parses git log output limited to HISTORY_COMMIT_LIMIT (500 commits) and extracts co-change pairs from commits touching multiple files"
+          ],
+          "strengths": [
+            {
+              "claim": "Subprocess isolation via execFile with scoped -C flag prevents shell metacharacter injection and confines operations to specified repository paths",
+              "evidenceIds": [
+                "ev_7f9563030488adc1521e88c5065f69f2bfe81f9fc2647340c5520ac0c95a31c8",
+                "ev_1c5132d7cf13a0422a5cee945e2008f88afaf515041b3684f819af90971861cd"
+              ]
+            },
+            {
+              "claim": "Configurable output buffer (32 MB MAX_BUFFER) accommodates large repositories and verbose log output without truncation for typical use cases",
+              "evidenceIds": [
+                "ev_ab8524d9325eacda0ca1cc9dec722f55f1362d6dee4c95f71329dd6b89dfbfdd"
+              ]
+            },
+            {
+              "claim": "Structured output parsing with well-defined delimiters (null-terminated for file lists, COMMIT_MARK \u0001 and FIELD_MARK \u0002 for history) enables robust field extraction",
+              "evidenceIds": [
+                "ev_1c5132d7cf13a0422a5cee945e2008f88afaf515041b3684f819af90971861cd",
+                "ev_93f88ea7f1f9151a055695884f45ab547837dcd2064bf9cfd925540d8c4bc67f"
+              ]
+            },
+            {
+              "claim": "Focused public API surface (4 functions + 3 types) covers core git introspection needs for change tracking and history analysis without over-exposure",
+              "evidenceIds": [
+                "ev_c522946c5aef0e187a1d11167458c37133d38718c9e9d1f2b0d82ae70db275bd",
+                "ev_5a3f464df294fc49608be36df39e81f87038b93fc487afcd71a3a14aa7a95b9c",
+                "ev_152987e6c8caab6984073f3529e4e4f6b30059041c6dad2f817bcb17db4c6cd3",
+                "ev_1a8dafd2cb20f2b50ea42d2e95fc97709ae307617163e1e9107ad9265bd2b702"
+              ]
+            },
+            {
+              "claim": "Type exports (FileHistory, CoChangePair, RepositoryHistory) enable compile-time type safety for consuming code",
+              "evidenceIds": [
+                "ev_a11f0318c7a302408b6f0b3ccba35db7d6b3045a580de29bc0bb703a27c08035",
+                "ev_fed7e35b9da0131b1e03687fee6237e21eed2df728f65639fe6fa6d36e4485a1",
+                "ev_09485779fdd50b0a0de215d0160449a1eb105ecf7b530aed8194c6e32fb27b8f"
+              ]
+            },
+            {
+              "claim": "Untracked file exclusion ensures change detection scope aligns with git's authoritative tracked inventory, avoiding false positives from temporary/build artifacts",
+              "evidenceIds": [
+                "ev_168677132a84c8c3638908e712827cbaf9a2e27c5dfe307e09a4eb46861c69f8"
+              ]
+            }
+          ],
+          "risks": [
+            {
+              "claim": "Pre-release version (0.1.0) signals unstable or evolving API; consumers may face breaking changes in minor releases without semver guarantee",
+              "evidenceIds": [
+                "ev_4f37df7bfe5a58309e29d4560ab5fafe96941aa8952e1d9757f354b2f3d971a9",
+                "ev_9d4be04f54688d3a177d4ef499ca2b25cf8ed63aac3affe664645dcff157c514"
+              ],
+              "severity": "medium"
+            },
+            {
+              "claim": "Main entry point designates TypeScript source directly (./src/index.ts) with no declared transpilation or dist artifact; import failures likely without upstream build tooling",
+              "evidenceIds": [
+                "ev_9febb980df339c67e4ad3536644b35d89a054b9583a583acd7548de367296ce8",
+                "ev_e100da83b4648b31ec0ad4b3d455446e2f320dbb2634b6db7cebba9461d5e84b"
+              ],
+              "severity": "medium"
+            },
+            {
+              "claim": "Package marked private but no technical enforcement mechanism documented; risk of accidental external dependency or misuse if monorepo structure is misunderstood",
+              "evidenceIds": [
+                "ev_728b849dfd75cf110454b20042a47bac0f1b83ee847103d390d7916278f01233",
+                "ev_1869aeab6d64a21bab48a9799774b70ea8096799e5220ddc27df000102e3473c"
+              ],
+              "severity": "low"
+            },
+            {
+              "claim": "Zero linked test coverage for critical git operations (HEAD lookup, file tracking, change detection, history collection); regression detection severely limited",
+              "evidenceIds": [
+                "ev_d6dbc667da0a0d4aa9185766141fda9971aa90d80cd784df5965f84d94e5cda3",
+                "ev_90309b3253f5c3a0e3754a5822db2744f89ebe6fe638f47a52d999a9b8563c13",
+                "ev_4fd25719e3591e1942290dbe22bcfb85d8c313a05c1488113ec6664019ff3c3b"
+              ],
+              "severity": "high"
+            },
+            {
+              "claim": "Hardcoded 32 MB buffer ceiling may truncate git output from very large repositories or verbose commit metadata queries despite generous limit",
+              "evidenceIds": [
+                "ev_70a347b243d95993555e703352c2c17c14c543e81b48ccfa0f71767ad873c41c",
+                "ev_ab8524d9325eacda0ca1cc9dec722f55f1362d6dee4c95f71329dd6b89dfbfdd"
+              ],
+              "severity": "medium"
+            },
+            {
+              "claim": "Co-change mining heuristics (file count threshold 30, minimum pair occurrence 3, top-50 pairs cutoff) are magic numbers without documented validation, sensitivity analysis, or tuning guidance",
+              "evidenceIds": [
+                "ev_a54f506d5e639a477ad74b2d36762524948412c178b6c9535041506393f2517e",
+                "ev_b1cdb4ae8b3a3c4f3aeefc0f32233d036bcd54659f977367c8394ba3237b2497",
+                "ev_8656aa337e23c90dee966edd1f654e132fd7b440591b06bd7eeeee70eb006024",
+                "ev_d3519f689b529b081affd846a6f4bbb6d9cfd082defd79da43ed0f45aa1a6be1"
+              ],
+              "severity": "medium"
+            },
+            {
+              "claim": "Git CLI availability and correct configuration not validated at module load time; subprocess failures propagate as unhandled promise rejections to calling code",
+              "evidenceIds": [
+                "ev_e2672833fec15211d50ed2d160207d63886a4f34c513f333fd12c2caf804685f",
+                "ev_ec4b5e2a9bd9576c309e12073425390b0f24bd5b727f65303a3976c445c30936"
+              ],
+              "severity": "medium"
+            },
+            {
+              "claim": "Untracked file exclusion assumes git index state is stable and authoritative; race conditions possible between git ls-files execution and concurrent file modifications",
+              "evidenceIds": [
+                "ev_35a8c9009f59aa545f9f95c1f2c95de29f41c588317aeaa63518f44a6ebd59ae",
+                "ev_168677132a84c8c3638908e712827cbaf9a2e27c5dfe307e09a4eb46861c69f8"
+              ],
+              "severity": "low"
+            }
+          ],
+          "opportunities": [
+            {
+              "claim": "Establish build pipeline and transpilation configuration (tsconfig.json, build script, dist artifact output) to resolve TypeScript-source-in-package-json gap and enable precompiled distribution",
+              "evidenceIds": [
+                "ev_9febb980df339c67e4ad3536644b35d89a054b9583a583acd7548de367296ce8",
+                "ev_e100da83b4648b31ec0ad4b3d455446e2f320dbb2634b6db7cebba9461d5e84b",
+                "ev_955017138a52fc197ffd9e8c5f827b89ffaaf6c6d696774404468da421d8128b",
+                "ev_1f3230e3396087d5a882779120debd40bcd146c4fd143d6c418a40cfae12e018"
+              ]
+            },
+            {
+              "claim": "Implement comprehensive test suite covering gitHead() with mock repositories, listTrackedFiles() with tracked/untracked mixes, changedFilesSince() with merge scenarios, and collectHistory() with co-change edge cases; validate parsing robustness against malformed git output",
+              "evidenceIds": [
+                "ev_be7f002e05340d0659cd587f4b5aa6524bd19f75c13041c6b2f4ee38a4513fc7",
+                "ev_d6dbc667da0a0d4aa9185766141fda9971aa90d80cd784df5965f84d94e5cda3",
+                "ev_90309b3253f5c3a0e3754a5822db2744f89ebe6fe638f47a52d999a9b8563c13",
+                "ev_4fd25719e3591e1942290dbe22bcfb85d8c313a05c1488113ec6664019ff3c3b"
+              ]
+            },
+            {
+              "claim": "Document and expose configuration mechanism for co-change mining constants (file count threshold 30, minimum pair count 3, top-50 cutoff) to enable repository-specific tuning without code changes",
+              "evidenceIds": [
+                "ev_a54f506d5e639a477ad74b2d36762524948412c178b6c9535041506393f2517e",
+                "ev_76fa0812e5c2aea87988c797c2f1ecf381bd14ef0bcd75ea23c6defe04002c70",
+                "ev_b1cdb4ae8b3a3c4f3aeefc0f32233d036bcd54659f977367c8394ba3237b2497",
+                "ev_8656aa337e23c90dee966edd1f654e132fd7b440591b06bd7eeeee70eb006024",
+                "ev_d3519f689b529b081affd846a6f4bbb6d9cfd082defd79da43ed0f45aa1a6be1"
+              ]
+            },
+            {
+              "claim": "Add runtime validation of git CLI availability at module initialization and create graceful fallback or early error messaging to surface missing dependencies before operation execution",
+              "evidenceIds": [
+                "ev_e2672833fec15211d50ed2d160207d63886a4f34c513f333fd12c2caf804685f",
+                "ev_ec4b5e2a9bd9576c309e12073425390b0f24bd5b727f65303a3976c445c30936"
+              ]
+            },
+            {
+              "claim": "Document co-change heuristic parameter derivation, sensitivity analysis results, and recommended ranges for different repository profiles to justify threshold values and enable informed configuration",
+              "evidenceIds": [
+                "ev_0bf5a7220a0930c5d589882949dfa3a63db9ad9c915b6d22a8ba823e2e8ee286",
+                "ev_a54f506d5e639a477ad74b2d36762524948412c178b6c9535041506393f2517e"
+              ]
+            }
+          ],
+          "testStrategy": "No test links detected in graph (test_links: 0). Establish baseline test coverage for: (1) gitHead() with mock repositories at shallow, medium, and deep commit depths; (2) listTrackedFiles() with varying tracked/untracked file mixes and gitignore patterns; (3) changedFilesSince() with linear history, branched, and merge scenarios; (4) collectHistory() with repositories ranging from small (< 50 commits) to large (> 500 commits) and validate co-change pair extraction against known patterns. Test parsing robustness against malformed git output (missing delimiters, truncated commits). Validate error handling for missing git CLI, invalid repository paths, and buffer overflow conditions. Mock execFile to test subprocess failure paths.",
+          "evidenceIds": [
+            "ev_e6f97e11f4c8997d501221847466d28fc2477d96ff988fa0cb65c0d850c4d582",
+            "ev_797373386e40d4c1dbd7c7b5306fc8b48cf96d5fe7fd96807c529761a2e4c78b",
+            "ev_932f1104205ee039fe7d90b2b899924e5bdf9dc750adf1c89b374fcfc6d8bfa3",
+            "ev_c522946c5aef0e187a1d11167458c37133d38718c9e9d1f2b0d82ae70db275bd",
+            "ev_6e43f51c123bd4a252e6057d0c128086bf141787a3b8dae94d10353391d85bf3",
+            "ev_5a3f464df294fc49608be36df39e81f87038b93fc487afcd71a3a14aa7a95b9c",
+            "ev_152987e6c8caab6984073f3529e4e4f6b30059041c6dad2f817bcb17db4c6cd3",
+            "ev_1a8dafd2cb20f2b50ea42d2e95fc97709ae307617163e1e9107ad9265bd2b702",
+            "ev_a11f0318c7a302408b6f0b3ccba35db7d6b3045a580de29bc0bb703a27c08035",
+            "ev_fed7e35b9da0131b1e03687fee6237e21eed2df728f65639fe6fa6d36e4485a1",
+            "ev_09485779fdd50b0a0de215d0160449a1eb105ecf7b530aed8194c6e32fb27b8f",
+            "ev_94425af3e87318c730ac4c7e23706accb2fc29830e6022e6455cc627fd9d51de",
+            "ev_7b0e92b4c2115f6f826fccf670cd66d2543fc40dcca157d72393258073e5cc5c",
+            "ev_fd1ba98cf37a9d17d360f1be57e3bfaaeb5be999b865b414d601f3dd840b121b",
+            "ev_4f37df7bfe5a58309e29d4560ab5fafe96941aa8952e1d9757f354b2f3d971a9",
+            "ev_9febb980df339c67e4ad3536644b35d89a054b9583a583acd7548de367296ce8",
+            "ev_7f9563030488adc1521e88c5065f69f2bfe81f9fc2647340c5520ac0c95a31c8",
+            "ev_728b849dfd75cf110454b20042a47bac0f1b83ee847103d390d7916278f01233",
+            "ev_955017138a52fc197ffd9e8c5f827b89ffaaf6c6d696774404468da421d8128b",
+            "ev_ab8524d9325eacda0ca1cc9dec722f55f1362d6dee4c95f71329dd6b89dfbfdd",
+            "ev_0ad81f5564728657b426d807e8d4258cf6a2e1ac7d0758e8bfcd7615b2ce469e",
+            "ev_1f3230e3396087d5a882779120debd40bcd146c4fd143d6c418a40cfae12e018",
+            "ev_1c5132d7cf13a0422a5cee945e2008f88afaf515041b3684f819af90971861cd",
+            "ev_be7f002e05340d0659cd587f4b5aa6524bd19f75c13041c6b2f4ee38a4513fc7",
+            "ev_b1cdb4ae8b3a3c4f3aeefc0f32233d036bcd54659f977367c8394ba3237b2497",
+            "ev_bb003463e03dfe3b87749aabc837fe28fe80711fe89fa77245bc563651015e46",
+            "ev_8656aa337e23c90dee966edd1f654e132fd7b440591b06bd7eeeee70eb006024",
+            "ev_361c8911e917e745aeb8075f44fbd7787ece9aea434c361d71676a2fbe53c455",
+            "ev_d3519f689b529b081affd846a6f4bbb6d9cfd082defd79da43ed0f45aa1a6be1",
+            "ev_168677132a84c8c3638908e712827cbaf9a2e27c5dfe307e09a4eb46861c69f8",
+            "ev_93f88ea7f1f9151a055695884f45ab547837dcd2064bf9cfd925540d8c4bc67f",
+            "ev_ec4b5e2a9bd9576c309e12073425390b0f24bd5b727f65303a3976c445c30936",
+            "ev_272d0d36a5851dad68be765ae28c3fbbf1547accd115a0d6da912b967973ba8f",
+            "ev_ed9c69d9010d299a0e5f18887f55aa72a18f2646a965666d75eebd84e8cc8f24",
+            "ev_90309b3253f5c3a0e3754a5822db2744f89ebe6fe638f47a52d999a9b8563c13",
+            "ev_d6dbc667da0a0d4aa9185766141fda9971aa90d80cd784df5965f84d94e5cda3",
+            "ev_70a347b243d95993555e703352c2c17c14c543e81b48ccfa0f71767ad873c41c",
+            "ev_a54f506d5e639a477ad74b2d36762524948412c178b6c9535041506393f2517e",
+            "ev_e2672833fec15211d50ed2d160207d63886a4f34c513f333fd12c2caf804685f",
+            "ev_35a8c9009f59aa545f9f95c1f2c95de29f41c588317aeaa63518f44a6ebd59ae",
+            "ev_0bf5a7220a0930c5d589882949dfa3a63db9ad9c915b6d22a8ba823e2e8ee286",
+            "ev_280fef0cc66f90fd2602ba02ba5dfc441eadf15f797fa350e7dcbaa98fd56621",
+            "ev_b19c693ed3d65ef4d879a7a46556cde49670b47b3fb00fb61ee8b82ae9abcab4",
+            "ev_ecfdf5a7da5a19af9fc42a82a37accbd2ccc446659b000181ad0ab676e5bb232",
+            "ev_292a261c03930a59ed29d455347dee5c984b165bfcf9ff051ac0c64bdf958686",
+            "ev_c81fa233cec86b28a7b8e699031bc521cbc3c0ca3e8b35750ee0ccbc04cfb96e",
+            "ev_76fa0812e5c2aea87988c797c2f1ecf381bd14ef0bcd75ea23c6defe04002c70",
+            "ev_7e0822c984814ea4b272ecbaefa43d92410842938ffd53685ddcdf605400337c",
+            "ev_b84d3817832d743dd36e490615adca148da11be7e7f243070663d0cee4281be1"
+          ],
+          "unknowns": [
+            "Implementation bodies of collectHistory() commit parsing and co-change pair extraction not provided; detailed algorithm for identifying co-change relationships unknown (ev_0bf5a7220a0930c5d589882949dfa3a63db9ad9c915b6d22a8ba823e2e8ee286)",
+            "Content of node:child_process and node:util dependencies not captured; promisify behavior and execFile signature details inferred from usage context only (ev_280fef0cc66f90fd2602ba02ba5dfc441eadf15f797fa350e7dcbaa98fd56621)",
+            "Consumers/dependents of this adapter module indexed in dependency metadata but not fully captured in evidence; call graph fan-in incomplete (ev_b19c693ed3d65ef4d879a7a46556cde49670b47b3fb00fb61ee8b82ae9abcab4)",
+            "Error handling strategy for git subprocess failures not documented; whether errors are logged, retried, or thrown to caller undefined (ev_ecfdf5a7da5a19af9fc42a82a37accbd2ccc446659b000181ad0ab676e5bb232)",
+            "FileHistory interface structure incomplete in evidence; only 'path' property explicitly named; complete property set, type signatures, and semantic meaning not provided (ev_292a261c03930a59ed29d455347dee5c984b165bfcf9ff051ac0c64bdf958686)",
+            "Internal git() helper function export status (private vs. public) not specified (ev_c81fa233cec86b28a7b8e699031bc521cbc3c0ca3e8b35750ee0ccbc04cfb96e)",
+            "Configuration mechanism for 5 co-change/history constants unknown; whether they are tunable via environment variables, config files, or module initialization parameters undocumented (ev_76fa0812e5c2aea87988c797c2f1ecf381bd14ef0bcd75ea23c6defe04002c70)",
+            "Semantic meaning of delimiter constants (COMMIT_MARK \u0001, FIELD_MARK \u0002) and their relationship to git log format string not explicit in evidence (ev_7e0822c984814ea4b272ecbaefa43d92410842938ffd53685ddcdf605400337c)",
+            "8 child dossiers report uncertainty or omitted evidence; inspect their detailed records before treating this synthesis as exhaustive (ev_da7c514b50792b0d67abcca752829c6276973dc6c6694d2fbb14d984112c3ebf)",
+            "2 indexed outgoing dependency targets (node:child_process, node:util) have no captured implementation content (ev_560e0ef66e6e367d3810803141e9e7a8254da67c54cdc8a096d06be3fe512ea2)",
+            "101 evidence entries omitted by token budget; additional details on implementation, error handling, and internals may exist in truncated evidence (ev_5370df50eda81595ae7ba9f3b7c5788775884d539b6690bc23213935cf521c85)",
+            "2 child dossiers report uncertainty or omitted evidence; inspect their detailed records before treating this synthesis as exhaustive.",
+            "2 indexed dependency targets have no captured content."
+          ]
+        }
+      },
+      {
+        "level": "file",
+        "subjectId": "repo://workflow-PHZoM4/adapters/git/src/index.ts",
+        "content": {
+          "responsibility": "Git command adapter exposing high-level repository query operations (HEAD, tracked files, change detection, history analysis) that wrap Node.js subprocess execution of git CLI commands and parse structured output to support change tracking, co-change pattern mining, and repository history introspection.",
+          "publicApi": [
+            "gitHead(rootPath: string): Promise<string>",
+            "listTrackedFiles(rootPath: string): Promise<string[]>",
+            "changedFilesSince(rootPath: string, commitSha: string): Promise<string[]>",
+            "collectHistory(rootPath: string): Promise<RepositoryHistory>",
+            "FileHistory (type export)",
+            "CoChangePair (type export)",
+            "RepositoryHistory (type export)"
+          ],
+          "dependencies": [
+            "node:child_process (IMPORTS)",
+            "node:util (IMPORTS)",
+            "Internal git(rootPath: string, args: string[]): Promise<string> helper function"
+          ],
+          "consumers": [
+            "Unknown; no incoming call references captured in evidence"
+          ],
+          "sideEffects": [
+            "Spawns child processes via execFile to invoke git CLI commands with -C flag for directory scoping",
+            "Reads .git repository state during history collection via git log parsing",
+            "Configures subprocess stdout buffer to MAX_BUFFER (32 * 1024 * 1024 bytes) to prevent truncation of large git output",
+            "Filesystem I/O performed through git subprocess execution",
+            "Uses shell-invoked git commands with structured output parsing (null-delimited and commit-mark delimited formats)"
+          ],
+          "businessRules": [
+            "Commits modifying more than CO_CHANGE_MAX_FILES_PER_COMMIT (30) files excluded from co-change signal contribution (ev_e8fbec9c1540960db091edaa7f8a4660d8caf6128ba3fe62e561eb76bd4714c2, ev_1219e73bc060ff4c25418e1d64f842fd821758c3a157cd3d6f2f01955fb246f0)",
+            "Co-change pair mining requires minimum occurrence count CO_CHANGE_MIN_COUNT (3) (ev_e8fbec9c1540960db091edaa7f8a4660d8caf6128ba3fe62e561eb76bd4714c2)",
+            "Repository history limited to HISTORY_COMMIT_LIMIT (500) most recent commits",
+            "Only top CO_CHANGE_TOP_PAIRS (50) co-change relationships returned, sorted by frequency descending",
+            "Untracked files intentionally excluded from change detection scope; only git ls-files tracked inventory considered valid for invalidation (ev_1219e73bc060ff4c25418e1d64f842fd821758c3a157cd3d6f2f01955fb246f0)",
+            "File tracking via git ls-files -z (null-terminated output)"
+          ],
+          "errors": [
+            "Promise rejection on git subprocess failure (e.g., invalid repository path, git CLI unavailable, command timeout)",
+            "Truncation risk if git output exceeds MAX_BUFFER despite 32 MB ceiling",
+            "Parsing errors if git output format deviates from expected delimiters (COMMIT_MARK \u0001, FIELD_MARK \u0002)"
+          ],
+          "tests": [
+            "No test links detected in graph (test_links value: 0)"
+          ],
+          "risks": [
+            {
+              "claim": "Critical git operations lack linked test coverage, limiting regression detection for HEAD lookup, file tracking, and history collection",
+              "evidenceIds": [
+                "ev_077ddeb0ad82e66f74705d13f1bef4b99944738846500b0043d949dc2189ae41"
+              ],
+              "severity": "high"
+            },
+            {
+              "claim": "Hardcoded buffer limit (32 MB) for subprocess stdout may truncate output from large repositories or verbose log queries",
+              "evidenceIds": [
+                "ev_e8fbec9c1540960db091edaa7f8a4660d8caf6128ba3fe62e561eb76bd4714c2",
+                "ev_91086f9e313f37c7b60daebd6c35240625171209b0cd47506faf4eba92b24dda"
+              ],
+              "severity": "medium"
+            },
+            {
+              "claim": "Co-change mining heuristics (file count threshold 30, minimum count 3, top 50 pairs) are magic numbers without documented validation or tuning guidance",
+              "evidenceIds": [
+                "ev_e8fbec9c1540960db091edaa7f8a4660d8caf6128ba3fe62e561eb76bd4714c2"
+              ],
+              "severity": "medium"
+            },
+            {
+              "claim": "Dependency on external git CLI availability and correct configuration not validated at runtime; subprocess failures propagate as unhandled promise rejections",
+              "evidenceIds": [
+                "ev_c0b0a9dc456023f9dd613f9a0c36621ac0dc7ff7cd19323de9b78a45ec13711e",
+                "ev_a1c3d77b71753b444b8a0773a71960e318885978e767e7954f8063ed5ddce1ec"
+              ],
+              "severity": "medium"
+            },
+            {
+              "claim": "Untracked file exclusion (ev_1219e73bc060ff4c25418e1d64f842fd821758c3a157cd3d6f2f01955fb246f0) assumes git index state is authoritative; race conditions possible between git status checks and actual file modifications",
+              "evidenceIds": [
+                "ev_1219e73bc060ff4c25418e1d64f842fd821758c3a157cd3d6f2f01955fb246f0"
+              ],
+              "severity": "low"
+            }
+          ],
+          "evidenceIds": [
+            "ev_077ddeb0ad82e66f74705d13f1bef4b99944738846500b0043d949dc2189ae41",
+            "ev_e8fbec9c1540960db091edaa7f8a4660d8caf6128ba3fe62e561eb76bd4714c2",
+            "ev_1219e73bc060ff4c25418e1d64f842fd821758c3a157cd3d6f2f01955fb246f0",
+            "ev_6c116045b795091010ea2daeff1475dfdb17f24593ad91f27c022cbbe695bbf0",
+            "ev_2efde6f7d7fe8726af1d5b45bf4ad20dcd58d81ae425bee57dc21724057a4320",
+            "ev_e1fb8fd4f6572b1363d9953ab3c460d9e13d8435a789a22bfe865dcc6b9c99a3",
+            "ev_36cd6db565bede66af108f6a4b72e7eb4eb4b1fcc24551fe411bb10c0c9d3e4e",
+            "ev_073862b115a46d8c8ad50dbccc3ce539bebb5069e4fc012addfa7bd3d982f936",
+            "ev_05abd0616d162eff83e15395e8372e0a679494fa64ee1f1053fa509bf5ce3b80",
+            "ev_eed497b300cebc461f3e32310fd818c640c60f278f77941dc9c972e3a53dccb7",
+            "ev_e79563b7d83b69c7a2cef7e916f9bdad80c27e00347a75cf1da33af413159afb",
+            "ev_cdd4721e3df40b8309e8c870500a6e345de52bc7e614f9b12e623c977ef0e845",
+            "ev_169a5b31aefade2f5653b3c87c1a6443fa34243261bb25f87de554c9a0a99ab2",
+            "ev_e2ecd8f5ba5f7e682d3c1ed6653d78f951bef9fd1915a6f20e1487b9b5abf102",
+            "ev_e3d2a8ae382153879a9ad130a5158726d994c4f85d4dd00292944aff7ba439e3",
+            "ev_650beb0a14faf01ed126cc1a40c3e494138ee1aa1422d9d8599e40ce621646b0",
+            "ev_a1c3d77b71753b444b8a0773a71960e318885978e767e7954f8063ed5ddce1ec",
+            "ev_91086f9e313f37c7b60daebd6c35240625171209b0cd47506faf4eba92b24dda",
+            "ev_2f7ac7ba55ee3cb879be641568e74b1af346fcb2ce4f30df803b64de95a65656",
+            "ev_0fbd414c4d2bd5558840150f1a84af75030e2010f0d48a1b8b009feaa3cddd8e",
+            "ev_6948c70ff04045847fa2c3c22d5d3834d730d36230005297e09b69e8e5e3f6af",
+            "ev_cf5fae49f0ebc524d0a0ec305a33b15e59a2dd38b50fbfc193095512715d01ee"
+          ],
+          "unknowns": [
+            "Full implementation bodies of collectHistory commit parsing and co-change extraction logic not provided (symbol cards report purpose only); algorithm details for identifying co-change pairs unknown",
+            "Content of 2 external node module dependencies (node:child_process, node:util) not captured; actual promisify behavior and execFile signature details inferred only from usage context",
+            "Consumers/dependents of this adapter module not indexed in evidence; call graph fan-in unknown",
+            "Error handling strategy for git subprocess failures not documented; whether errors are logged, retried, or thrown to caller undefined",
+            "FileHistory interface structure incomplete in evidence (ev_675214daff981f08b152f6913f588f0b2ffdde5c844c31056f5df6dc7d0e762f reports 5 required properties, but only 'path' explicitly named in ev_dc52e49a9c725dedc351251aeaf3654e5ad12e8920afa5b965b2f91276a82a82); complete property set and type signatures not provided",
+            "Whether internal git() helper function is exported or module-private not specified",
+            "Configuration mechanism for the 5 co-change/history constants unknown; whether they are tunable via environment, config files, or module parameters undocumented",
+            "Semantic meaning of COMMIT_MARK (\u0001) and FIELD_MARK (\u0002) delimiters undefined in evidence; git log format string inferrable from usage but not explicit",
+            "8 child dossiers report uncertainty or omitted evidence; inspect their detailed records before treating this synthesis as exhaustive.",
+            "2 indexed dependency targets have no captured content.",
+            "101 evidence entries were omitted by the token budget."
+          ]
+        }
+      },
+      {
+        "level": "file",
+        "subjectId": "repo://workflow-PHZoM4/adapters/git/package.json",
+        "content": {
+          "responsibility": "Package manifest for @repolead/adapter-git, a private ES module adapter. Declares version 0.1.0 and designates src/index.ts as the primary entry point for consumers importing this internal package.",
+          "publicApi": [
+            "./src/index.ts (designated entry point via 'main' field)"
+          ],
+          "dependencies": [],
+          "consumers": [],
+          "sideEffects": [
+            "Package marked as 'private': true, restricting publication to npm registry",
+            "Declared as ES module type, requiring module-aware import/export support"
+          ],
+          "businessRules": [
+            "Package is marked private, indicating internal-only usage within the monorepo",
+            "Version 0.1.0 designates pre-release status",
+            "Main entry point references TypeScript source (./src/index.ts), implying downstream compilation or build-time resolution is required"
+          ],
+          "errors": [],
+          "tests": [],
+          "risks": [
+            {
+              "claim": "Pre-release version (0.1.0) may signal unstable or evolving API; consumers may face breaking changes",
+              "evidenceIds": [
+                "ev_aab3f8e20d228887b4207414f2ea3793a75de451981b9b1e8f60b5ae16ee08d2"
+              ],
+              "severity": "medium"
+            },
+            {
+              "claim": "Main entry point targets TypeScript source directly (./src/index.ts); no transpilation or dist artifact is declared, creating risk of import failures without upstream build tooling",
+              "evidenceIds": [
+                "ev_aab3f8e20d228887b4207414f2ea3793a75de451981b9b1e8f60b5ae16ee08d2"
+              ],
+              "severity": "medium"
+            },
+            {
+              "claim": "Package marked private but no enforcement mechanism documented; risk of accidental external dependency or misuse if package structure is misunderstood",
+              "evidenceIds": [
+                "ev_aab3f8e20d228887b4207414f2ea3793a75de451981b9b1e8f60b5ae16ee08d2"
+              ],
+              "severity": "low"
+            }
+          ],
+          "evidenceIds": [
+            "ev_b57200bf00fe0e820d217bb86163339efe525d1d34167316b1400e9d3a3afc0d",
+            "ev_aab3f8e20d228887b4207414f2ea3793a75de451981b9b1e8f60b5ae16ee08d2"
+          ],
+          "unknowns": [
+            "Implementation details and API surface of src/index.ts are not provided",
+            "Actual consumers within the codebase are not indexed in the evidence",
+            "Build configuration, compilation targets, and output artifact paths are not declared in package.json",
+            "Test suite and testing framework configuration are absent; ev_b57200bf00fe0e820d217bb86163339efe525d1d34167316b1400e9d3a3afc0d reports test_links: 0",
+            "Production dependencies, devDependencies, and peer dependencies are not listed in the provided package.json content"
+          ]
+        }
+      },
+      {
+        "level": "symbol",
+        "subjectId": "sym_9ee5acc23d75fa6275ca06d7e29f97e3",
+        "content": {
+          "purpose": "Collects git repository history by executing git log command and parsing commits to extract file changes and co-change patterns. Maps file paths to their change metadata (commit count, author, dates) and identifies file pairs that are frequently modified together.",
+          "inputs": [
+            "rootPath: string - file system path to the git repository root"
+          ],
+          "outputs": [
+            "Promise<RepositoryHistory> - resolves to object with properties:",
+            "  files: Map<string, FileHistory> - maps file paths to their history (commit count, last author, last/first commit dates)",
+            "  coChanges: CoChangePair[] - array of file pairs changed together, sorted by frequency (descending), limited to top pairs"
+          ],
+          "sideEffects": [
+            "Executes external git log command to read repository history via git() function",
+            "Reads .git directory state to retrieve commit metadata"
+          ],
+          "dependencies": [
+            "git() function - executes git command with array of arguments",
+            "RepositoryHistory interface - defines return type structure",
+            "FileHistory interface - defines file metadata structure stored in files Map"
+          ],
+          "invariants": [
+            "Git log output is processed in reverse chronological order (newest commits first)",
+            "For each file path: lastAuthor and lastCommitAt represent the most recent (newest) commit; firstCommitAt is updated as older commits are encountered, capturing the oldest commit date",
+            "Co-change pair tracking only considers commits with 2 to CO_CHANGE_MAX_FILES_PER_COMMIT files changed",
+            "Co-change results filtered: pairs must have count >= CO_CHANGE_MIN_COUNT to be included",
+            "Co-change results sorted descending by count and limited to top CO_CHANGE_TOP_PAIRS pairs",
+            "Commit history limited by HISTORY_COMMIT_LIMIT constant (value not defined in provided source)"
+          ],
+          "errorBehavior": [
+            "Skips empty commit blocks (blank or whitespace-only)",
+            "Skips commit headers with missing author or date fields",
+            "Filters out empty file entries from commit body (blank lines)",
+            "Unhandled: errors from git() function call propagate as promise rejection"
+          ],
+          "tests": [],
+          "evidenceIds": [
+            "ev_6ba4e1b9ee055338ce93b459290ed9214e3d6ab83d77e149bb533067d5f021f9",
+            "ev_5436b9fd3e99657735413cc8a58e3cf0eb04e0d2072cb8c03a1f0cf56e0414e3",
+            "ev_885f1c41f5e57ea1ad43399d6de2d39937d7d883ffa76a2e32e43ded5e505985"
+          ],
+          "unknowns": [
+            "Values of constants HISTORY_COMMIT_LIMIT, CO_CHANGE_MAX_FILES_PER_COMMIT, CO_CHANGE_MIN_COUNT, CO_CHANGE_TOP_PAIRS, COMMIT_MARK, FIELD_MARK not provided in source excerpt",
+            "Complete interface definition of FileHistory and RepositoryHistory",
+            "Error handling and rejection conditions for git() function (timeout, invalid repository, permission denied)",
+            "Test coverage beyond observed file links (file_test_links: 0)",
+            "Performance characteristics with large repository histories or many file changes",
+            "Handling edge cases: special characters in file paths, author names with delimiters, renamed files during --no-renames flag parsing"
+          ]
+        }
+      },
+      {
+        "level": "symbol",
+        "subjectId": "sym_ab3a5ee009f4615358ce4a1eb321e9d5",
+        "content": {
+          "purpose": "RepositoryHistory is a data structure interface that aggregates repository change information, containing a mapping of file paths to file change histories and a collection of file co-change pairs. Used by collectHistory to represent analyzed repository state.",
+          "inputs": [
+            "FileHistory objects (mapped by string keys, typically file identifiers)",
+            "CoChangePair objects (array of detected file co-changes)"
+          ],
+          "outputs": [
+            "files: Map<string, FileHistory> — collection of per-file change histories indexed by identifier",
+            "coChanges: CoChangePair[] — array of co-change relationships between files"
+          ],
+          "sideEffects": [],
+          "dependencies": [
+            "FileHistory (sym_ca38b70d35bd97349bcc1f47db1f03b6) — defines structure of individual file change records",
+            "CoChangePair (sym_b099992d8617f0dd75e1e66a9a714a76) — defines structure of file co-change relationship records"
+          ],
+          "invariants": [
+            "files field must be a Map with string keys and FileHistory values (ev_d5c94fd5e0f15ef4eddf2ee647f7a169da3a74030e959cc863d7a58b6c6b9c2d)",
+            "coChanges field must be an array of CoChangePair objects (ev_d5c94fd5e0f15ef4eddf2ee647f7a169da3a74030e959cc863d7a58b6c6b9c2d)",
+            "Type-only export: RepositoryHistory is exported exclusively as a type, not as a value (ev_9865cde32727e85604e81bbbe4774aadb980a7f56cb99460ef8f23823dcab7c5)"
+          ],
+          "errorBehavior": [],
+          "tests": [],
+          "evidenceIds": [
+            "ev_d5c94fd5e0f15ef4eddf2ee647f7a169da3a74030e959cc863d7a58b6c6b9c2d",
+            "ev_9865cde32727e85604e81bbbe4774aadb980a7f56cb99460ef8f23823dcab7c5",
+            "ev_d462b8f787482e193c41dd3e5c8543352748140aad654be6c86b33333584972d"
+          ],
+          "unknowns": [
+            "Semantic definition of 'coChange' — what criteria determine whether files are co-changed (ev_d462b8f787482e193c41dd3e5c8543352748140aad654be6c86b33333584972d relationship present but definition not included)",
+            "Map key semantics — whether string keys represent file paths, hashes, or other identifiers (ev_d5c94fd5e0f15ef4eddf2ee647f7a169da3a74030e959cc863d7a58b6c6b9c2d source only shows type signature)",
+            "Consumer scope — collectHistory is the only indexed consumer (ev_d462b8f787482e193c41dd3e5c8543352748140aad654be6c86b33333584972d fan_in=1), but additional consumers may exist beyond indexed graph (ev_9865cde32727e85604e81bbbe4774aadb980a7f56cb99460ef8f23823dcab7c5)",
+            "Population mechanism — how RepositoryHistory instances are created and populated (interface definition only, no construction logic in evidence)"
+          ]
+        }
+      },
+      {
+        "level": "symbol",
+        "subjectId": "sym_b099992d8617f0dd75e1e66a9a714a76",
+        "content": {
+          "purpose": "Define a data structure representing a pair of items that change together in version control, with a count of co-occurrences. The interface establishes a type contract with two string identifiers (a and b) and a numeric count metric.",
+          "inputs": [],
+          "outputs": [
+            "Type definition with property a: string",
+            "Type definition with property b: string",
+            "Type definition with property count: number"
+          ],
+          "sideEffects": [],
+          "dependencies": [],
+          "invariants": [
+            "Property a must be of type string",
+            "Property b must be of type string",
+            "Property count must be of type number"
+          ],
+          "errorBehavior": [],
+          "tests": [],
+          "evidenceIds": [
+            "ev_c0307eb563498724aea0bc281c6eaa1f4ee4c20dc0076f7fdae4d0f0e6727a2e",
+            "ev_cc52167da46ca11eff7b3395f73da0e3f617e8882d2083e3f4eafdd21ec1adf8",
+            "ev_6c69081aefae59c7e40881e34ca8b835627b111ec55d6892f7a1df756e35b366"
+          ],
+          "unknowns": [
+            "Semantic meaning of string values a and b is not documented in source",
+            "No constraints documented for count field (e.g., whether it must be non-negative, represents absolute count vs. percentage, or other business rules)",
+            "Whether values a and b must be unique, distinct, or have other relational constraints",
+            "Coverage status is unknown (not imported)",
+            "Specific use case semantics not documented; inferred meaning based on symbol name and property names only"
+          ]
+        }
+      },
+      {
+        "level": "symbol",
+        "subjectId": "sym_ca38b70d35bd97349bcc1f47db1f03b6",
+        "content": {
+          "purpose": "TypeScript interface specification for git file history metadata, defining the required structure for representing version control history information including file path, commit statistics, and authorship data",
+          "inputs": [],
+          "outputs": [],
+          "sideEffects": [],
+          "dependencies": [],
+          "invariants": [
+            "All five properties are required without optional modifiers (ev_efb4c8b5d51128a848048a257a6062aa8a684f7742c64f668a67a008e7bf9338)",
+            "path is a string type property representing the file path (ev_efb4c8b5d51128a848048a257a6062aa8a684f7742c64f668a67a008e7bf9338)",
+            "commitCount is a number type property representing commit statistics (ev_efb4c8b5d51128a848048a257a6062aa8a684f7742c64f668a67a008e7bf9338)",
+            "lastAuthor and lastCommitAt are string properties capturing most recent commit metadata (ev_efb4c8b5d51128a848048a257a6062aa8a684f7742c64f668a67a008e7bf9338)",
+            "firstCommitAt is a string property capturing the first commit timestamp (ev_efb4c8b5d51128a848048a257a6062aa8a684f7742c64f668a67a008e7bf9338)"
+          ],
+          "errorBehavior": [],
+          "tests": [],
+          "evidenceIds": [
+            "ev_efb4c8b5d51128a848048a257a6062aa8a684f7742c64f668a67a008e7bf9338",
+            "ev_4da95f62fa7eda8165635444b12b28f69916895d64ce7ce8efa5c013bbcccb26",
+            "ev_e7120c4fcf1505df3e62ec7b807249a15f1a8be2904d8452a580c6b70c6cfdca"
+          ],
+          "unknowns": [
+            "No test coverage is linked to this interface (ev_4da95f62fa7eda8165635444b12b28f69916895d64ce7ce8efa5c013bbcccb26: file_test_links=0)",
+            "Coverage status cannot be determined (ev_4da95f62fa7eda8165635444b12b28f69916895d64ce7ce8efa5c013bbcccb26: coverage.status=unknown)",
+            "Syntax analysis is partial, indicating potentially omitted source context (ev_4da95f62fa7eda8165635444b12b28f69916895d64ce7ce8efa5c013bbcccb26: status.syntax=partial)",
+            "Validation constraints and semantic specifications for properties are not documented",
+            "Implementation behavior of consumers (collectHistory and RepositoryHistory) is not detailed in supplied evidence"
+          ]
+        }
+      },
+      {
+        "level": "symbol",
+        "subjectId": "sym_f6a6030c09c5baaaed04d08860c8bb6a",
+        "content": {
+          "purpose": "Retrieves the list of files modified since a specified commit by executing a git diff command. The function normalizes output by splitting on newlines, trimming whitespace, filtering empty entries, and deduplicating the result.",
+          "inputs": [
+            "rootPath: string – the root directory path of the git repository",
+            "commitSha: string – the commit SHA to diff against"
+          ],
+          "outputs": [
+            "Promise<string[]> – resolves to an array of file paths changed since the specified commit, deduplicated and sorted"
+          ],
+          "sideEffects": [
+            "Executes external git command via the git helper function",
+            "No observable local state mutations"
+          ],
+          "dependencies": [
+            "git(rootPath: string, args: string[]): Promise<string> – located at adapters/git/src/index.ts, used to execute the underlying git diff command"
+          ],
+          "invariants": [
+            "Output array contains no duplicate file paths (enforced via Set deduplication)",
+            "All whitespace-only or empty lines are removed from output",
+            "Output is always an array, never null or undefined on success"
+          ],
+          "errorBehavior": [
+            "No explicit error handling; exceptions from the git function propagate as rejected Promises",
+            "Command execution failures, invalid commit SHAs, or malformed git output are not caught and bubble to the caller"
+          ],
+          "tests": [],
+          "evidenceIds": [
+            "ev_7086a721a8b780f17e65c40af78c28d7974131ec7b66c79207146c2d15c4298e",
+            "ev_7f4b50d4e37d888ca87235908d3b4d3d143204227b0aba68a5407fbfd3df31ef",
+            "ev_9e0d6f7632c637ba4ca7fd7de4265e3660ca43de54cc4cd336847281865eb82a"
+          ],
+          "unknowns": [
+            "Actual test coverage is unknown; file_test_links metric reports 0, but no source evidence of tests was provided",
+            "Behavior when the git command fails, times out, or returns unexpected output",
+            "Whether the git helper function handles errors internally before returning to this function",
+            "Performance characteristics with repositories containing large numbers of changed files",
+            "Fan-in is 0 in the indexed scope; external callers outside this indexed graph are unknown",
+            "Whether the git diff output is guaranteed to be line-delimited text or may contain special characters"
+          ]
+        }
+      },
+      {
+        "level": "symbol",
+        "subjectId": "sym_25fe320634deca4c1a64d2333af4ccf8",
+        "content": {
+          "purpose": "Lists all files tracked by Git in a repository at the specified root path. Executes the Git `ls-files -z` command to retrieve null-terminated file listings, parses the output by splitting on null delimiters, and returns a filtered array of tracked file paths.",
+          "inputs": [
+            "rootPath: string — filesystem path to the Git repository root"
+          ],
+          "outputs": [
+            "Promise<string[]> — resolves to an array of tracked file paths from the Git index"
+          ],
+          "sideEffects": [
+            "Spawns a Git child process via the git() function to execute ls-files command",
+            "Performs filesystem I/O through Git command execution",
+            "Potential environment variable or Git configuration dependencies (delegated to git function)"
+          ],
+          "dependencies": [
+            "git function (adapters/git/src/index.ts) — invoked with arguments rootPath and ['ls-files', '-z']"
+          ],
+          "invariants": [
+            "Output string from git() is split on null character ('\\0') delimiter (produced by ls-files -z flag)",
+            "Empty strings are filtered from results via filter(Boolean)",
+            "Function is async and returns a Promise; all callers must await or chain .then()",
+            "Cyclomatic complexity of 1 indicates a single linear execution path with no branching"
+          ],
+          "errorBehavior": [
+            "Errors from git() function are propagated directly to the caller (no try-catch or error handling)",
+            "If the Git repository is invalid or ls-files fails, the error type and message depend on the git() implementation",
+            "Promise rejection is the only error mechanism; no fallback behavior is defined"
+          ],
+          "tests": [
+            "No test files directly linked to this symbol (file_test_links metric is 0); test coverage status is unknown"
+          ],
+          "evidenceIds": [
+            "ev_66e01aec36f6ca57099ec5bd9f8ea33bb2a010690104c81c8abd114bcfcaa2d8",
+            "ev_0a53d43549795a290c5329bd40744ae8ec200bcad6d3b36ba5b469cad5f8fa4b",
+            "ev_81b0435cbb03ae8ac4110983f28d6955272a321a731eb4ece3035c40401ad990"
+          ],
+          "unknowns": [
+            "Exact error types and messages thrown by the git() function and underlying child process",
+            "Behavior with symlinks, submodules, or special files in the Git index",
+            "Path format of returned results (relative vs. absolute, platform-specific separators, case sensitivity)",
+            "Git environment variable or configuration dependencies that affect ls-files behavior",
+            "Whether integration or end-to-end tests cover this function outside the indexed references",
+            "Performance implications for repositories with very large file counts"
+          ]
+        }
+      },
+      {
+        "level": "symbol",
+        "subjectId": "sym_9cbe8e1a731bf162ed4d51568c8c5893",
+        "content": {
+          "purpose": "Retrieve the current Git HEAD commit hash from a repository by executing `git rev-parse HEAD` and trimming whitespace",
+          "inputs": [
+            "rootPath: string — file system path to the root of the git repository"
+          ],
+          "outputs": [
+            "Promise<string> — resolves to the trimmed git HEAD commit hash (e.g., SHA-1 hash)"
+          ],
+          "sideEffects": [
+            "Invokes the underlying git() function, which executes a git subprocess command",
+            "No state mutations to the calling context"
+          ],
+          "dependencies": [
+            "sym_04891b59254bbc01954cd2533be46414 (git function) — executes the actual git rev-parse command"
+          ],
+          "invariants": [
+            "Always returns a Promise (never synchronous)",
+            "Always calls .trim() on the git output to strip leading/trailing whitespace",
+            "Requires rootPath to point to a valid git repository"
+          ],
+          "errorBehavior": [
+            "Promise rejects if the git command fails (e.g., rootPath is not a git repository)",
+            "Promise rejects if git is not installed or unavailable",
+            "Error handling is delegated to the underlying git() function; no try-catch in gitHead itself"
+          ],
+          "tests": [
+            "No direct test file links recorded (file_test_links: 0)"
+          ],
+          "evidenceIds": [
+            "ev_e4deb2786cda6f3603d81ff770d0c3cb83bd6aa3f273239e5fbfb8a47914cf12",
+            "ev_1cebd22c5f01686ba939c164637bc84250a4ab7b48cd6aaa0bb7abd546f043c1",
+            "ev_86fe570d3a2f4aafb46561b4ecf4d6fc900a6f411b983027c9980500fe6af0cd"
+          ],
+          "unknowns": [
+            "Actual test coverage (coverage status: unknown)",
+            "Specific error messages or retry logic in the underlying git() function",
+            "Timeout behavior or constraints on very large repositories",
+            "Whether rootPath validation occurs before invoking git()"
+          ]
+        }
+      },
+      {
+        "level": "symbol",
+        "subjectId": "sym_04891b59254bbc01954cd2533be46414",
+        "content": {
+          "purpose": "Wrapper function that executes git CLI commands by invoking a subprocess runner function, capturing and returning stdout output with a configured buffer limit.",
+          "inputs": [
+            "rootPath: string - the root directory path where git command will be executed (passed via -C flag)",
+            "args: string[] - array of git command arguments to append after the directory flag"
+          ],
+          "outputs": [
+            "Promise&lt;string&gt; - resolves to the stdout text output from git command execution"
+          ],
+          "sideEffects": [
+            "Invokes the external run function to spawn a git subprocess",
+            "Subprocess execution performs operations determined by git arguments (e.g., file changes, network calls for remote operations, index updates)",
+            "Stdout buffer is configured with maxBuffer option set to MAX_BUFFER constant to prevent truncation",
+            "Process lifecycle and side effects depend on the specific git command being invoked"
+          ],
+          "dependencies": [
+            "run function (called at line 17)",
+            "MAX_BUFFER constant (referenced at line 17)",
+            "git CLI tool availability in runtime environment"
+          ],
+          "invariants": [
+            "Command execution always uses -C flag to set working directory to rootPath",
+            "Return value is always the stdout property extracted from run function result",
+            "Function is declared async and returns Promise&lt;string&gt; type",
+            "Arguments are passed as [...args] spread operator after directory flag"
+          ],
+          "errorBehavior": [
+            "No try-catch or explicit error handling; errors from run function propagate directly to caller",
+            "If git command execution fails, rejected promise contains error from subprocess",
+            "If stdout exceeds maxBuffer limit, an error is raised by the run function",
+            "Promise rejection occurs if run function throws or rejects"
+          ],
+          "tests": [],
+          "evidenceIds": [
+            "ev_de2d559bd9d4c74adcdaf20c8a41d6f02b621c8e68bfa50390aba2a1abb698bd",
+            "ev_6ec52d3523087885db0e76737378a105089571c1bf0a9aa78365629cc5b807d6",
+            "ev_e29692cc1fe64a43683391e3193f79d87cbd21df2a2d998e0d6ba9eb0f4de6a6"
+          ],
+          "unknowns": [
+            "Implementation and error handling semantics of the run function",
+            "Source location and definition of MAX_BUFFER constant and its numeric value",
+            "Specific character encoding or text normalization applied by run function to stdout",
+            "Actual test file links and test coverage (file_test_links metric was 0)",
+            "Import sources for run function and MAX_BUFFER constant",
+            "Complete command execution environment and PATH resolution for git binary"
+          ]
+        }
+      }
+    ],
+    "limits": "Remote preparation is counted separately; local embedding computation is recorded as time/counts, not remote generative tokens or a dollar invoice.",
+    "usageBreakdown": {
+      "uncachedInputTokens": 58675,
+      "cacheWriteInputTokens": 41228,
+      "cacheReadInputTokens": 9736,
+      "outputTokens": 34475,
+      "totalTokens": 144114
+    }
+  },
+  "comparisons": [
+    {
+      "id": "inventory",
+      "question": "En el adaptador Git de RepoLead, explica cómo obtiene los archivos versionados y los cambios desde un commit. ¿Incluye archivos nuevos sin seguimiento? ¿Incluye ediciones del working tree? ¿Elimina rutas repetidas y cómo separa las rutas de archivos versionados?",
+      "expected": {
+        "onlyTrackedFiles": true,
+        "includesUntracked": false,
+        "workingTreeIncluded": true,
+        "changedPathsDeduplicated": true,
+        "trackedPathsNullSeparated": true
+      },
+      "order": [
+        "manual",
+        "repolead"
+      ],
+      "manual": {
+        "mode": "manual",
+        "usage": {
+          "uncachedInputTokens": 716,
+          "cacheWriteInputTokens": 7056,
+          "cacheReadInputTokens": 14363,
+          "outputTokens": 1651,
+          "totalTokens": 23786
+        },
+        "estimatedCostUsd": 0.0718719,
+        "durationMs": 20134,
+        "modelUsage": {
+          "claude-haiku-4-5-20251001": {
+            "inputTokens": 708,
+            "outputTokens": 27,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.000843,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "canonicalModel": "claude-haiku-4-5",
+            "provider": "firstParty"
+          },
+          "claude-sonnet-5": {
+            "inputTokens": 8,
+            "outputTokens": 1624,
+            "cacheReadInputTokens": 14363,
+            "cacheCreationInputTokens": 7056,
+            "webSearchRequests": 0,
+            "costUSD": 0.0710289,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "canonicalModel": "claude-sonnet-5",
+            "provider": "firstParty"
+          }
+        },
+        "answer": {
+          "facts": {
+            "onlyTrackedFiles": true,
+            "includesUntracked": false,
+            "workingTreeIncluded": true,
+            "changedPathsDeduplicated": true,
+            "trackedPathsNullSeparated": true
+          },
+          "explanation": "En adapters/git/src/index.ts: listTrackedFiles usa `git ls-files -z` y separa las rutas por el byte nulo `\\0` (líneas 26-27). changedFilesSince ejecuta `git diff --name-only <commitSha>` (línea 36), comparación que incluye commits posteriores y cambios aún no confirmados en el working tree, como aclara el comentario \"Archivos cambiados desde un commit (committed + working tree)\" (líneas 30-31). Los archivos untracked quedan excluidos a propósito, según el comentario \"Los untracked se excluyen a propósito: el scan solo indexa archivos trackeados\" (líneas 30-33), y además `git diff` nunca reporta untracked. Las rutas repetidas se eliminan con un `Set` antes de devolver el resultado (líneas 38-43), y la separación de líneas en changedFilesSince es por `\\n` con trim (líneas 39-42), mientras que listTrackedFiles separa por `\\0` gracias al flag `-z`.",
+          "citations": [
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 26
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 27
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 30
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 31
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 33
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 36
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 38
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 39
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 42
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 43
+            }
+          ]
+        },
+        "checks": {
+          "onlyTrackedFiles": true,
+          "includesUntracked": true,
+          "workingTreeIncluded": true,
+          "changedPathsDeduplicated": true,
+          "trackedPathsNullSeparated": true,
+          "citations": true
+        },
+        "correct": true,
+        "structuredOutputAttempts": 1,
+        "toolCalls": [
+          {
+            "name": "Glob",
+            "input": {
+              "pattern": "adapters/git/**/*"
+            }
+          },
+          {
+            "name": "Read",
+            "input": {
+              "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-PHZoM4/adapters/git/src/index.ts"
+            }
+          },
+          {
+            "name": "StructuredOutput",
+            "input": {
+              "facts": {
+                "onlyTrackedFiles": true,
+                "includesUntracked": false,
+                "workingTreeIncluded": true,
+                "changedPathsDeduplicated": true,
+                "trackedPathsNullSeparated": true
+              },
+              "explanation": "En adapters/git/src/index.ts: listTrackedFiles usa `git ls-files -z` y separa las rutas por el byte nulo `\\0` (líneas 26-27). changedFilesSince ejecuta `git diff --name-only <commitSha>` (línea 36), comparación que incluye commits posteriores y cambios aún no confirmados en el working tree, como aclara el comentario \"Archivos cambiados desde un commit (committed + working tree)\" (líneas 30-31). Los archivos untracked quedan excluidos a propósito, según el comentario \"Los untracked se excluyen a propósito: el scan solo indexa archivos trackeados\" (líneas 30-33), y además `git diff` nunca reporta untracked. Las rutas repetidas se eliminan con un `Set` antes de devolver el resultado (líneas 38-43), y la separación de líneas en changedFilesSince es por `\\n` con trim (líneas 39-42), mientras que listTrackedFiles separa por `\\0` gracias al flag `-z`.",
+              "citations": [
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 26
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 27
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 30
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 31
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 33
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 36
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 38
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 39
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 42
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 43
+                }
+              ]
+            }
+          }
+        ],
+        "errors": []
+      },
+      "repolead": {
+        "mode": "repolead",
+        "usage": {
+          "uncachedInputTokens": 739,
+          "cacheWriteInputTokens": 12377,
+          "cacheReadInputTokens": 3545,
+          "outputTokens": 1603,
+          "totalTokens": 18264
+        },
+        "estimatedCostUsd": 0.0998875,
+        "durationMs": 18136,
+        "modelUsage": {
+          "claude-haiku-4-5-20251001": {
+            "inputTokens": 735,
+            "outputTokens": 23,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.00085,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "canonicalModel": "claude-haiku-4-5",
+            "provider": "firstParty"
+          },
+          "claude-sonnet-5": {
+            "inputTokens": 4,
+            "outputTokens": 1580,
+            "cacheReadInputTokens": 3545,
+            "cacheCreationInputTokens": 12377,
+            "webSearchRequests": 0,
+            "costUSD": 0.0990375,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "canonicalModel": "claude-sonnet-5",
+            "provider": "firstParty"
+          }
+        },
+        "answer": {
+          "facts": {
+            "onlyTrackedFiles": true,
+            "includesUntracked": false,
+            "workingTreeIncluded": true,
+            "changedPathsDeduplicated": true,
+            "trackedPathsNullSeparated": true
+          },
+          "explanation": "Se inspeccionó la memoria técnica del módulo adapters/git y se verificó contra el código fuente actual en adapters/git/src/index.ts. listTrackedFiles usa `git ls-files -z` y separa por NUL, por lo que solo devuelve archivos tracked (no incluye untracked). changedFilesSince usa `git diff --name-only <commitSha>` (comparación contra working tree, por tanto incluye ediciones no confirmadas) y deduplica resultados usando un Set antes de devolver el arreglo.\"",
+          "citations": [
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 25
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 26
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 27
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 36
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 38
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 40
+            }
+          ]
+        },
+        "checks": {
+          "onlyTrackedFiles": true,
+          "includesUntracked": true,
+          "workingTreeIncluded": true,
+          "changedPathsDeduplicated": true,
+          "trackedPathsNullSeparated": true,
+          "citations": true
+        },
+        "correct": true,
+        "structuredOutputAttempts": 1,
+        "toolCalls": [
+          {
+            "name": "mcp__repolead__context_pack",
+            "input": {
+              "mode": "evidence",
+              "module": "adapters/git",
+              "queries": [
+                "obtener archivos versionados (tracked files) del repositorio git",
+                "obtener cambios desde un commit (diff/changed files) incluyendo working tree y untracked",
+                "deduplicar rutas de archivos y separador NUL para rutas versionadas"
+              ],
+              "types": [
+                "symbol",
+                "summary"
+              ]
+            }
+          },
+          {
+            "name": "StructuredOutput",
+            "input": {
+              "facts": {
+                "onlyTrackedFiles": true,
+                "includesUntracked": false,
+                "workingTreeIncluded": true,
+                "changedPathsDeduplicated": true,
+                "trackedPathsNullSeparated": true
+              },
+              "explanation": "Se inspeccionó la memoria técnica del módulo adapters/git y se verificó contra el código fuente actual en adapters/git/src/index.ts. listTrackedFiles usa `git ls-files -z` y separa por NUL, por lo que solo devuelve archivos tracked (no incluye untracked). changedFilesSince usa `git diff --name-only <commitSha>` (comparación contra working tree, por tanto incluye ediciones no confirmadas) y deduplica resultados usando un Set antes de devolver el arreglo.\"",
+              "citations": [
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 25
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 26
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 27
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 36
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 38
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 40
+                }
+              ]
+            }
+          }
+        ],
+        "errors": []
+      },
+      "correctnessPreserved": true,
+      "tokenReductionPercent": 23.21533675271168,
+      "estimatedCostReductionPercent": -38.97990730730647
+    },
+    {
+      "id": "cochange",
+      "question": "En el adaptador Git de RepoLead, explica cómo calcula co-cambios. Indica el límite de commits inspeccionados, el mínimo y máximo de archivos de un commit que aporta pares, el mínimo de coincidencias para devolver un par, el máximo de pares devueltos y si activa detección de renombres.",
+      "expected": {
+        "historyCommitLimit": 500,
+        "minimumFilesPerCommit": 2,
+        "maximumFilesPerCommit": 30,
+        "minimumPairOccurrences": 3,
+        "maximumReturnedPairs": 50,
+        "renameDetectionEnabled": false
+      },
+      "order": [
+        "repolead",
+        "manual"
+      ],
+      "manual": {
+        "mode": "manual",
+        "usage": {
+          "uncachedInputTokens": 719,
+          "cacheWriteInputTokens": 6338,
+          "cacheReadInputTokens": 8132,
+          "outputTokens": 960,
+          "totalTokens": 16149
+        },
+        "estimatedCostUsd": 0.055368600000000004,
+        "durationMs": 12623,
+        "modelUsage": {
+          "claude-haiku-4-5-20251001": {
+            "inputTokens": 713,
+            "outputTokens": 23,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.000828,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "canonicalModel": "claude-haiku-4-5",
+            "provider": "firstParty"
+          },
+          "claude-sonnet-5": {
+            "inputTokens": 6,
+            "outputTokens": 937,
+            "cacheReadInputTokens": 8132,
+            "cacheCreationInputTokens": 6338,
+            "webSearchRequests": 0,
+            "costUSD": 0.05454060000000001,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "canonicalModel": "claude-sonnet-5",
+            "provider": "firstParty"
+          }
+        },
+        "answer": {
+          "facts": {
+            "historyCommitLimit": 500,
+            "minimumFilesPerCommit": 2,
+            "maximumFilesPerCommit": 30,
+            "minimumPairOccurrences": 3,
+            "maximumReturnedPairs": 50,
+            "renameDetectionEnabled": false
+          },
+          "explanation": "El adaptador Git (`adapters/git/src/index.ts`) calcula co-cambios dentro de `collectHistory`. Primero obtiene el historial con `git log -n500 --name-only --no-renames ...` (límite de 500 commits, constante `HISTORY_COMMIT_LIMIT`), desactivando explícitamente la detección de renombres (`--no-renames`). Para cada commit, solo se generan pares de co-cambio si el commit modificó entre 2 y 30 archivos (`changed.length >= 2 && changed.length <= CO_CHANGE_MAX_FILES_PER_COMMIT`), descartando commits muy grandes que no aportan señal. Cada par ordenado alfabéticamente de archivos del commit incrementa un contador `pairCounts`. Al final, solo se devuelven los pares con al menos 3 coincidencias (`CO_CHANGE_MIN_COUNT`), ordenados por frecuencia descendente y truncados a un máximo de 50 pares (`CO_CHANGE_TOP_PAIRS`).",
+          "citations": [
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 7
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 9
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 10
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 11
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 76
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 116
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 127
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 128
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 130
+            }
+          ]
+        },
+        "checks": {
+          "historyCommitLimit": true,
+          "minimumFilesPerCommit": true,
+          "maximumFilesPerCommit": true,
+          "minimumPairOccurrences": true,
+          "maximumReturnedPairs": true,
+          "renameDetectionEnabled": true,
+          "citations": true
+        },
+        "correct": true,
+        "structuredOutputAttempts": 1,
+        "toolCalls": [
+          {
+            "name": "Glob",
+            "input": {
+              "pattern": "adapters/git/**/*"
+            }
+          },
+          {
+            "name": "Read",
+            "input": {
+              "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-PHZoM4/adapters/git/src/index.ts"
+            }
+          },
+          {
+            "name": "StructuredOutput",
+            "input": {
+              "facts": {
+                "historyCommitLimit": 500,
+                "minimumFilesPerCommit": 2,
+                "maximumFilesPerCommit": 30,
+                "minimumPairOccurrences": 3,
+                "maximumReturnedPairs": 50,
+                "renameDetectionEnabled": false
+              },
+              "explanation": "El adaptador Git (`adapters/git/src/index.ts`) calcula co-cambios dentro de `collectHistory`. Primero obtiene el historial con `git log -n500 --name-only --no-renames ...` (límite de 500 commits, constante `HISTORY_COMMIT_LIMIT`), desactivando explícitamente la detección de renombres (`--no-renames`). Para cada commit, solo se generan pares de co-cambio si el commit modificó entre 2 y 30 archivos (`changed.length >= 2 && changed.length <= CO_CHANGE_MAX_FILES_PER_COMMIT`), descartando commits muy grandes que no aportan señal. Cada par ordenado alfabéticamente de archivos del commit incrementa un contador `pairCounts`. Al final, solo se devuelven los pares con al menos 3 coincidencias (`CO_CHANGE_MIN_COUNT`), ordenados por frecuencia descendente y truncados a un máximo de 50 pares (`CO_CHANGE_TOP_PAIRS`).",
+              "citations": [
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 7
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 9
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 10
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 11
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 76
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 116
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 127
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 128
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 130
+                }
+              ]
+            }
+          }
+        ],
+        "errors": []
+      },
+      "repolead": {
+        "mode": "repolead",
+        "usage": {
+          "uncachedInputTokens": 744,
+          "cacheWriteInputTokens": 10758,
+          "cacheReadInputTokens": 3576,
+          "outputTokens": 1597,
+          "totalTokens": 16675
+        },
+        "estimatedCostUsd": 0.09009779999999999,
+        "durationMs": 15975,
+        "modelUsage": {
+          "claude-haiku-4-5-20251001": {
+            "inputTokens": 740,
+            "outputTokens": 23,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.000855,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "canonicalModel": "claude-haiku-4-5",
+            "provider": "firstParty"
+          },
+          "claude-sonnet-5": {
+            "inputTokens": 4,
+            "outputTokens": 1574,
+            "cacheReadInputTokens": 3576,
+            "cacheCreationInputTokens": 10758,
+            "webSearchRequests": 0,
+            "costUSD": 0.0892428,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "canonicalModel": "claude-sonnet-5",
+            "provider": "firstParty"
+          }
+        },
+        "answer": {
+          "facts": {
+            "historyCommitLimit": 500,
+            "minimumFilesPerCommit": 2,
+            "maximumFilesPerCommit": 30,
+            "minimumPairOccurrences": 3,
+            "maximumReturnedPairs": 50,
+            "renameDetectionEnabled": false
+          },
+          "explanation": "collectHistory ejecuta `git log -n500 --name-only --no-renames` y por cada commit, si tiene entre 2 y 30 archivos modificados, genera todos los pares combinatorios de esos archivos acumulando un contador. Al finalizar, filtra pares con count>=3, ordena descendente y se queda con los 50 primeros. La flag --no-renames desactiva la detección de renombres en el log de git.",
+          "citations": [
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 7
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 9
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 10
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 11
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 76
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 116
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 117
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 128
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 130
+            }
+          ]
+        },
+        "checks": {
+          "historyCommitLimit": true,
+          "minimumFilesPerCommit": true,
+          "maximumFilesPerCommit": true,
+          "minimumPairOccurrences": true,
+          "maximumReturnedPairs": true,
+          "renameDetectionEnabled": true,
+          "citations": true
+        },
+        "correct": true,
+        "structuredOutputAttempts": 1,
+        "toolCalls": [
+          {
+            "name": "mcp__repolead__context_pack",
+            "input": {
+              "mode": "evidence",
+              "module": "adapters/git",
+              "queries": [
+                "cálculo de co-cambios (co-changes) entre archivos basado en commits",
+                "límite de commits inspeccionados para co-change history commit limit",
+                "mínimo y máximo de archivos por commit para generar pares de co-cambio",
+                "mínimo de coincidencias (minimum pair occurrences) para devolver un par",
+                "máximo de pares devueltos (maximum returned pairs)",
+                "detección de renombres (rename detection) en el adaptador git"
+              ],
+              "types": [
+                "symbol",
+                "summary"
+              ]
+            }
+          },
+          {
+            "name": "StructuredOutput",
+            "input": {
+              "facts": {
+                "historyCommitLimit": 500,
+                "minimumFilesPerCommit": 2,
+                "maximumFilesPerCommit": 30,
+                "minimumPairOccurrences": 3,
+                "maximumReturnedPairs": 50,
+                "renameDetectionEnabled": false
+              },
+              "explanation": "collectHistory ejecuta `git log -n500 --name-only --no-renames` y por cada commit, si tiene entre 2 y 30 archivos modificados, genera todos los pares combinatorios de esos archivos acumulando un contador. Al finalizar, filtra pares con count>=3, ordena descendente y se queda con los 50 primeros. La flag --no-renames desactiva la detección de renombres en el log de git.",
+              "citations": [
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 7
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 9
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 10
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 11
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 76
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 116
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 117
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 128
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 130
+                }
+              ]
+            }
+          }
+        ],
+        "errors": []
+      },
+      "correctnessPreserved": true,
+      "tokenReductionPercent": -3.25716762647843,
+      "estimatedCostReductionPercent": -62.7236375852017
+    },
+    {
+      "id": "history",
+      "question": "En el adaptador Git de RepoLead, explica cómo obtiene último autor y fecha, qué significa la primera fecha observada, y qué ocurre con commits que cambian más de 30 archivos. ¿Esos commits cuentan para el historial por archivo y para co-cambios? ¿Los co-cambios demuestran una dependencia de código?",
+      "expected": {
+        "lastAuthorFromNewestCommit": true,
+        "lastCommitAtFromNewestCommit": true,
+        "firstCommitAtLimitedToInspectedWindow": true,
+        "bulkCommitsContributeFileCounts": true,
+        "bulkCommitsContributeCoChanges": false,
+        "coChangesProveCodeDependency": false
+      },
+      "order": [
+        "manual",
+        "repolead"
+      ],
+      "manual": {
+        "mode": "manual",
+        "usage": {
+          "uncachedInputTokens": 723,
+          "cacheWriteInputTokens": 7918,
+          "cacheReadInputTokens": 14952,
+          "outputTokens": 2568,
+          "totalTokens": 26161
+        },
+        "estimatedCostUsd": 0.0910126,
+        "durationMs": 29134,
+        "modelUsage": {
+          "claude-haiku-4-5-20251001": {
+            "inputTokens": 715,
+            "outputTokens": 24,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.000835,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "canonicalModel": "claude-haiku-4-5",
+            "provider": "firstParty"
+          },
+          "claude-sonnet-5": {
+            "inputTokens": 8,
+            "outputTokens": 2544,
+            "cacheReadInputTokens": 14952,
+            "cacheCreationInputTokens": 7918,
+            "webSearchRequests": 0,
+            "costUSD": 0.0901776,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "canonicalModel": "claude-sonnet-5",
+            "provider": "firstParty"
+          }
+        },
+        "answer": {
+          "facts": {
+            "lastAuthorFromNewestCommit": true,
+            "lastCommitAtFromNewestCommit": true,
+            "firstCommitAtLimitedToInspectedWindow": true,
+            "bulkCommitsContributeFileCounts": true,
+            "bulkCommitsContributeCoChanges": false,
+            "coChangesProveCodeDependency": false
+          },
+          "explanation": "El adaptador Git (adapters/git/src/index.ts) ejecuta `git log -n500 --name-only --no-renames --format=%an%aI` sobre los 500 commits más recientes, en orden de más nuevo a más antiguo. Por eso, al procesar cada archivo, la PRIMERA vez que aparece (commit más reciente) fija lastAuthor/lastCommitAt; las apariciones posteriores (commits más antiguos) solo incrementan commitCount y sobrescriben firstCommitAt, que por tanto representa el commit más antiguo DENTRO de la ventana inspeccionada (500 commits), no necesariamente el origen real del archivo si este es más antiguo que esa ventana. Los commits que cambian más de 30 archivos (CO_CHANGE_MAX_FILES_PER_COMMIT) sí actualizan las estadísticas por archivo (el bucle de actualización no tiene esa restricción), pero quedan excluidos del cálculo de pares de co-cambio (condición changed.length <= 30). Finalmente, el propio comentario del código indica que los co-cambios son archivos que cambian juntos 'sin dependencia declarada', es decir, son una señal estadística de coincidencia temporal y no una prueba de dependencia de código real.",
+          "citations": [
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 9
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 68
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 72
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 77
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 99
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 101
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 105
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 111
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 116
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 128
+            }
+          ]
+        },
+        "checks": {
+          "lastAuthorFromNewestCommit": true,
+          "lastCommitAtFromNewestCommit": true,
+          "firstCommitAtLimitedToInspectedWindow": true,
+          "bulkCommitsContributeFileCounts": true,
+          "bulkCommitsContributeCoChanges": true,
+          "coChangesProveCodeDependency": true,
+          "citations": true
+        },
+        "correct": true,
+        "structuredOutputAttempts": 1,
+        "toolCalls": [
+          {
+            "name": "Glob",
+            "input": {
+              "pattern": "**/adapters/git/**/*.*",
+              "path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-PHZoM4"
+            }
+          },
+          {
+            "name": "Read",
+            "input": {
+              "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-PHZoM4/adapters/git/src/index.ts"
+            }
+          },
+          {
+            "name": "StructuredOutput",
+            "input": {
+              "facts": {
+                "lastAuthorFromNewestCommit": true,
+                "lastCommitAtFromNewestCommit": true,
+                "firstCommitAtLimitedToInspectedWindow": true,
+                "bulkCommitsContributeFileCounts": true,
+                "bulkCommitsContributeCoChanges": false,
+                "coChangesProveCodeDependency": false
+              },
+              "explanation": "El adaptador Git (adapters/git/src/index.ts) ejecuta `git log -n500 --name-only --no-renames --format=%an%aI` sobre los 500 commits más recientes, en orden de más nuevo a más antiguo. Por eso, al procesar cada archivo, la PRIMERA vez que aparece (commit más reciente) fija lastAuthor/lastCommitAt; las apariciones posteriores (commits más antiguos) solo incrementan commitCount y sobrescriben firstCommitAt, que por tanto representa el commit más antiguo DENTRO de la ventana inspeccionada (500 commits), no necesariamente el origen real del archivo si este es más antiguo que esa ventana. Los commits que cambian más de 30 archivos (CO_CHANGE_MAX_FILES_PER_COMMIT) sí actualizan las estadísticas por archivo (el bucle de actualización no tiene esa restricción), pero quedan excluidos del cálculo de pares de co-cambio (condición changed.length <= 30). Finalmente, el propio comentario del código indica que los co-cambios son archivos que cambian juntos 'sin dependencia declarada', es decir, son una señal estadística de coincidencia temporal y no una prueba de dependencia de código real.",
+              "citations": [
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 9
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 68
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 72
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 77
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 99
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 101
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 105
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 111
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 116
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 128
+                }
+              ]
+            }
+          }
+        ],
+        "errors": []
+      },
+      "repolead": {
+        "mode": "repolead",
+        "usage": {
+          "uncachedInputTokens": 746,
+          "cacheWriteInputTokens": 13102,
+          "cacheReadInputTokens": 3650,
+          "outputTokens": 2869,
+          "totalTokens": 20367
+        },
+        "estimatedCostUsd": 0.12326599999999999,
+        "durationMs": 30436,
+        "modelUsage": {
+          "claude-haiku-4-5-20251001": {
+            "inputTokens": 742,
+            "outputTokens": 23,
+            "cacheReadInputTokens": 0,
+            "cacheCreationInputTokens": 0,
+            "webSearchRequests": 0,
+            "costUSD": 0.000857,
+            "contextWindow": 200000,
+            "maxOutputTokens": 32000,
+            "canonicalModel": "claude-haiku-4-5",
+            "provider": "firstParty"
+          },
+          "claude-sonnet-5": {
+            "inputTokens": 4,
+            "outputTokens": 2846,
+            "cacheReadInputTokens": 3650,
+            "cacheCreationInputTokens": 13102,
+            "webSearchRequests": 0,
+            "costUSD": 0.12240899999999999,
+            "contextWindow": 1000000,
+            "maxOutputTokens": 64000,
+            "canonicalModel": "claude-sonnet-5",
+            "provider": "firstParty"
+          }
+        },
+        "answer": {
+          "facts": {
+            "lastAuthorFromNewestCommit": true,
+            "lastCommitAtFromNewestCommit": true,
+            "firstCommitAtLimitedToInspectedWindow": true,
+            "bulkCommitsContributeFileCounts": true,
+            "bulkCommitsContributeCoChanges": false,
+            "coChangesProveCodeDependency": false
+          },
+          "explanation": "collectHistory recorre git log del commit más reciente al más antiguo; el primer avistamiento de cada archivo fija lastAuthor/lastCommitAt (comentario explícito), y cada reaparición posterior sobreescribe firstCommitAt, quedando limitado a la ventana de los últimos 500 commits (HISTORY_COMMIT_LIMIT). El conteo por archivo (commitCount, autor, fechas) se actualiza para todos los commits sin tope de archivos, pero el cálculo de pares de co-cambio se omite por completo cuando un commit cambia más de 30 archivos (CO_CHANGE_MAX_FILES_PER_COMMIT). Los co-cambios son solo conteos de co-ocurrencia en commits (con umbral mínimo y top-N), sin ningún análisis estructural de código, por lo que no constituyen prueba de dependencia real.",
+          "citations": [
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 99
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 105
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 103
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 7
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 74
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 9
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 116
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 10
+            },
+            {
+              "path": "adapters/git/src/index.ts",
+              "line": 127
+            }
+          ]
+        },
+        "checks": {
+          "lastAuthorFromNewestCommit": true,
+          "lastCommitAtFromNewestCommit": true,
+          "firstCommitAtLimitedToInspectedWindow": true,
+          "bulkCommitsContributeFileCounts": true,
+          "bulkCommitsContributeCoChanges": true,
+          "coChangesProveCodeDependency": true,
+          "citations": true
+        },
+        "correct": true,
+        "structuredOutputAttempts": 1,
+        "toolCalls": [
+          {
+            "name": "mcp__repolead__context_pack",
+            "input": {
+              "mode": "evidence",
+              "module": "adapters/git",
+              "queries": [
+                "cómo se obtiene el último autor y la fecha del último commit en el adaptador Git",
+                "qué significa la primera fecha observada (firstCommitAt) en el historial de archivos",
+                "límite de 30 archivos cambiados por commit, commits bulk, qué ocurre con el conteo de archivos y co-cambios",
+                "co-cambios (co-changes) entre archivos cómo se calculan y qué representan"
+              ],
+              "types": [
+                "symbol",
+                "summary"
+              ]
+            }
+          },
+          {
+            "name": "StructuredOutput",
+            "input": {
+              "facts": {
+                "lastAuthorFromNewestCommit": true,
+                "lastCommitAtFromNewestCommit": true,
+                "firstCommitAtLimitedToInspectedWindow": true,
+                "bulkCommitsContributeFileCounts": true,
+                "bulkCommitsContributeCoChanges": false,
+                "coChangesProveCodeDependency": false
+              },
+              "explanation": "collectHistory recorre git log del commit más reciente al más antiguo; el primer avistamiento de cada archivo fija lastAuthor/lastCommitAt (comentario explícito), y cada reaparición posterior sobreescribe firstCommitAt, quedando limitado a la ventana de los últimos 500 commits (HISTORY_COMMIT_LIMIT). El conteo por archivo (commitCount, autor, fechas) se actualiza para todos los commits sin tope de archivos, pero el cálculo de pares de co-cambio se omite por completo cuando un commit cambia más de 30 archivos (CO_CHANGE_MAX_FILES_PER_COMMIT). Los co-cambios son solo conteos de co-ocurrencia en commits (con umbral mínimo y top-N), sin ningún análisis estructural de código, por lo que no constituyen prueba de dependencia real.",
+              "citations": [
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 99
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 105
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 103
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 7
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 74
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 9
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 116
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 10
+                },
+                {
+                  "path": "adapters/git/src/index.ts",
+                  "line": 127
+                }
+              ]
+            }
+          }
+        ],
+        "errors": []
+      },
+      "correctnessPreserved": true,
+      "tokenReductionPercent": 22.14747142693322,
+      "estimatedCostReductionPercent": -35.43838984931755
+    }
+  ],
+  "totals": {
+    "manual": {
+      "tokens": 66096,
+      "estimatedCostUsd": 0.2182531,
+      "durationMs": 61891,
+      "usageBreakdown": {
+        "uncachedInputTokens": 2158,
+        "cacheWriteInputTokens": 21312,
+        "cacheReadInputTokens": 37447,
+        "outputTokens": 5179,
+        "totalTokens": 66096
+      }
+    },
+    "repolead": {
+      "tokens": 55306,
+      "estimatedCostUsd": 0.3132513,
+      "durationMs": 64547,
+      "usageBreakdown": {
+        "uncachedInputTokens": 2229,
+        "cacheWriteInputTokens": 36237,
+        "cacheReadInputTokens": 10771,
+        "outputTokens": 6069,
+        "totalTokens": 55306
+      }
+    }
+  },
+  "correctnessPreserved": true,
+  "tokenReductionPercent": 16.32473977245219,
+  "estimatedCostReductionPercent": -43.526621156812894,
+  "breakEvenQueriesByTokens": 41,
+  "breakEvenQueriesByEstimatedCost": null,
+  "limits": [
+    "Three fixed questions on one complete real module; each pair uses the same source, model and schema. No required minimum source reads or padded repository.",
+    "This module is small; results do not establish savings for every repository or workload. Ordering alternates, but one pair per task is not a statistical confidence interval.",
+    "No artificial response-length schema cap; formatting retries and tool errors remain included.",
+    "Total tokens include uncached input, cache creation, cache reads and output; categories are preserved separately. Cached input is not equivalent to newly billed input.",
+    "SDK estimated cost is not a subscription invoice. Not an Astra/Fable measurement. Preparation and query costs are separate; break-even applies only if answers are correct and the observed average saving persists.",
+    "All answer facts and citations require source review before accepting quality equivalence.",
+    "The 41-query token break-even is an arithmetic projection across Haiku preparation and Sonnet query tokens, not a cost break-even or a measured 41-query session. Cache conditions and question mix can change it."
+  ],
+  "preparationPlusMeasuredQueries": {
+    "manualTokens": 66096,
+    "repoleadTokens": 199420,
+    "manualEstimatedCostUsd": 0.2182531,
+    "repoleadEstimatedCostUsd": 0.6277309,
+    "scope": "Remote generative SDK usage only; local indexing is separately timed, not billed here."
+  },
+  "review": {
+    "status": "accepted-for-requested-facts",
+    "acceptedSavings": true,
+    "acceptedSavingsScope": "Query-stage logical SDK token count only, for these three questions. No monetary or cold-workflow saving.",
+    "acceptedEstimatedCostSavings": false,
+    "acceptedPreparationPlusQueriesSavings": false,
+    "method": "Assistant source review of both final explanations, all requested facts, citations and recorded MCP source excerpts against the checksummed capture; not an independent blinded reviewer.",
+    "source": "adapters/git/src/index.ts",
+    "checks": [
+      {
+        "case": "inventory",
+        "accepted": true,
+        "sourceLines": [
+          25,
+          26,
+          27,
+          30,
+          31,
+          32,
+          33,
+          35,
+          36,
+          38,
+          40,
+          41,
+          42
+        ],
+        "finding": "Both answers preserve tracked-only inventory, NUL splitting, untracked exclusion, working-tree comparison and Set deduplication."
+      },
+      {
+        "case": "cochange",
+        "accepted": true,
+        "sourceLines": [
+          7,
+          9,
+          10,
+          11,
+          74,
+          76,
+          116,
+          117,
+          120,
+          121,
+          128,
+          129,
+          130
+        ],
+        "finding": "Both preserve the 500-commit window, 2..30-file pair gate, count>=3, top 50 and disabled rename detection. Neither claims renamed paths are omitted."
+      },
+      {
+        "case": "history",
+        "accepted": true,
+        "sourceLines": [
+          7,
+          68,
+          74,
+          77,
+          99,
+          102,
+          103,
+          105,
+          109,
+          110,
+          111,
+          116,
+          121
+        ],
+        "finding": "Both preserve newest-observation attribution, window-limited first observation, file counting before the co-change gate and correlation rather than code dependency."
+      }
+    ],
+    "precisionNotes": [
+      "The manual history explanation abbreviates the quoted --format string, omitting COMMIT_MARK and FIELD_MARK separators. The requested history semantics remain correct; the abbreviation is not a runnable replacement command.",
+      "All six answers used one StructuredOutput attempt with no recorded tool errors. Raw outputs and counts were not edited.",
+      "All three MCP answers received generated memory and relevant current source in one context_pack call. This does not isolate the causal benefit of generated memory or validate summary-only answers.",
+      "The source review covers requested answer facts, not every claim in the 11 generated dossiers."
+    ],
+    "conclusion": "16.3247% fewer query-stage logical tokens, but 43.5266% higher SDK estimated query cost; preparation adds 144114 tokens and USD 0.3144796. No economic break-even at the observed rates."
+  }
+}

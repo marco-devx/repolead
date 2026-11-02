@@ -1,0 +1,187 @@
+{
+  "generatedAt": "2026-11-01T00:35:40.530Z",
+  "passed": true,
+  "distribution": {
+    "engine": "Joern OSS dataflow",
+    "version": "4.0.666",
+    "identity": "Installed x2cpg core JAR filename; installer must verify release checksums independently"
+  },
+  "scriptHash": "fb52c330ba50e23dca311b7f734b9062f3eb1c97641034ca414db41aac95c2b2",
+  "positive": {
+    "status": "reported",
+    "snapshotId": "snap_562645ac-ab04-44d8-9f6d-d122dca060ba",
+    "language": "javascript",
+    "version": 1,
+    "sourceCount": 1,
+    "sinkCount": 2,
+    "truncated": false,
+    "paths": [
+      [
+        {
+          "path": "flow.js",
+          "line": 1,
+          "kind": "METHOD_PARAMETER_IN",
+          "sourceHash": "2058fc297879b3758729e4390fa4bdba3cb1961f0132e4a80c16fa29b56933d7",
+          "lineHash": "3dfdb698ba9d0fa2bd842ec5dd5216f46d76ecd74d5dff8654dd4c502a27e4bb"
+        },
+        {
+          "path": "flow.js",
+          "line": 2,
+          "kind": "IDENTIFIER",
+          "sourceHash": "2058fc297879b3758729e4390fa4bdba3cb1961f0132e4a80c16fa29b56933d7",
+          "lineHash": "fe82236df852e3e87dee0416791e13ea7f6b3c838e937e2f7b9eed09437144bf"
+        },
+        {
+          "path": "flow.js",
+          "line": 2,
+          "kind": "IDENTIFIER",
+          "sourceHash": "2058fc297879b3758729e4390fa4bdba3cb1961f0132e4a80c16fa29b56933d7",
+          "lineHash": "fe82236df852e3e87dee0416791e13ea7f6b3c838e937e2f7b9eed09437144bf"
+        },
+        {
+          "path": "flow.js",
+          "line": 3,
+          "kind": "IDENTIFIER",
+          "sourceHash": "2058fc297879b3758729e4390fa4bdba3cb1961f0132e4a80c16fa29b56933d7",
+          "lineHash": "e82ada49012db188904e497c5f970f1e35baf139efd208f4898e869f561837d6"
+        }
+      ]
+    ],
+    "durationMs": 3951,
+    "queryVersion": "parameter-to-call-argument-v1",
+    "queryHash": "cf94c296234df0aec875f871fd79b9f6e5d44e87e21b60f4cf3fcc0cec570270",
+    "engine": "Joern OSS dataflow",
+    "engineVersion": "4.0.666",
+    "binary": "/home/marco-devx/marco-devx/opensource/repolead/.repolead-tools/joern/joern-cli/joern",
+    "sourceMethod": "entry",
+    "sinkCall": "sink",
+    "limits": {
+      "maxPaths": 10,
+      "timeoutMs": 300000,
+      "files": 1
+    },
+    "unknowns": [
+      "Static parameter-to-call-argument data flow under Joern default semantics; not runtime reachability or vulnerability proof.",
+      "Exact method/call names may select several declarations. Empty/bounded results do not prove absence of a flow.",
+      "External library models, dynamic dispatch and unsupported frontend constructs can omit or overapproximate flows."
+    ],
+    "analyzedFiles": [
+      {
+        "path": "flow.js",
+        "sourceHash": "2058fc297879b3758729e4390fa4bdba3cb1961f0132e4a80c16fa29b56933d7"
+      }
+    ],
+    "createdAt": "2026-11-01T00:35:32.544Z"
+  },
+  "negative": {
+    "status": "reported",
+    "snapshotId": "snap_562645ac-ab04-44d8-9f6d-d122dca060ba",
+    "language": "javascript",
+    "version": 1,
+    "sourceCount": 1,
+    "sinkCount": 2,
+    "truncated": false,
+    "paths": [],
+    "durationMs": 3987,
+    "queryVersion": "parameter-to-call-argument-v1",
+    "queryHash": "cf94c296234df0aec875f871fd79b9f6e5d44e87e21b60f4cf3fcc0cec570270",
+    "engine": "Joern OSS dataflow",
+    "engineVersion": "4.0.666",
+    "binary": "/home/marco-devx/marco-devx/opensource/repolead/.repolead-tools/joern/joern-cli/joern",
+    "sourceMethod": "safe",
+    "sinkCall": "sink",
+    "limits": {
+      "maxPaths": 10,
+      "timeoutMs": 300000,
+      "files": 1
+    },
+    "unknowns": [
+      "Static parameter-to-call-argument data flow under Joern default semantics; not runtime reachability or vulnerability proof.",
+      "Exact method/call names may select several declarations. Empty/bounded results do not prove absence of a flow.",
+      "External library models, dynamic dispatch and unsupported frontend constructs can omit or overapproximate flows."
+    ],
+    "analyzedFiles": [
+      {
+        "path": "flow.js",
+        "sourceHash": "2058fc297879b3758729e4390fa4bdba3cb1961f0132e4a80c16fa29b56933d7"
+      }
+    ],
+    "createdAt": "2026-11-01T00:35:36.531Z"
+  },
+  "python": {
+    "status": "reported",
+    "snapshotId": "snap_562645ac-ab04-44d8-9f6d-d122dca060ba",
+    "language": "python",
+    "version": 1,
+    "sourceCount": 1,
+    "sinkCount": 1,
+    "truncated": false,
+    "paths": [
+      [
+        {
+          "path": "flow.py",
+          "line": 1,
+          "kind": "METHOD_PARAMETER_IN",
+          "sourceHash": "e808fc13da3dadf2422760035700ce40db35e0b17522ce481577c9397cd39213",
+          "lineHash": "094fbfb730cdf9700944fc712f1cc9cefed8796189261702dd97a26920d2f680"
+        },
+        {
+          "path": "flow.py",
+          "line": 2,
+          "kind": "IDENTIFIER",
+          "sourceHash": "e808fc13da3dadf2422760035700ce40db35e0b17522ce481577c9397cd39213",
+          "lineHash": "0694761ed2374ffadc300c7c272c5cf5d21171e4c8d50074a616625e3aca0f69"
+        },
+        {
+          "path": "flow.py",
+          "line": 2,
+          "kind": "IDENTIFIER",
+          "sourceHash": "e808fc13da3dadf2422760035700ce40db35e0b17522ce481577c9397cd39213",
+          "lineHash": "0694761ed2374ffadc300c7c272c5cf5d21171e4c8d50074a616625e3aca0f69"
+        },
+        {
+          "path": "flow.py",
+          "line": 3,
+          "kind": "IDENTIFIER",
+          "sourceHash": "e808fc13da3dadf2422760035700ce40db35e0b17522ce481577c9397cd39213",
+          "lineHash": "9107b4b38ba25784c8c9e07fd666365198af19c749822a8c7b2165d5bfd6a759"
+        }
+      ]
+    ],
+    "durationMs": 3682,
+    "queryVersion": "parameter-to-call-argument-v1",
+    "queryHash": "cf94c296234df0aec875f871fd79b9f6e5d44e87e21b60f4cf3fcc0cec570270",
+    "engine": "Joern OSS dataflow",
+    "engineVersion": "4.0.666",
+    "binary": "/home/marco-devx/marco-devx/opensource/repolead/.repolead-tools/joern/joern-cli/joern",
+    "sourceMethod": "entry",
+    "sinkCall": "sink",
+    "limits": {
+      "maxPaths": 10,
+      "timeoutMs": 300000,
+      "files": 1
+    },
+    "unknowns": [
+      "Static parameter-to-call-argument data flow under Joern default semantics; not runtime reachability or vulnerability proof.",
+      "Exact method/call names may select several declarations. Empty/bounded results do not prove absence of a flow.",
+      "External library models, dynamic dispatch and unsupported frontend constructs can omit or overapproximate flows."
+    ],
+    "analyzedFiles": [
+      {
+        "path": "flow.py",
+        "sourceHash": "e808fc13da3dadf2422760035700ce40db35e0b17522ce481577c9397cd39213"
+      }
+    ],
+    "createdAt": "2026-11-01T00:35:40.214Z"
+  },
+  "checks": [
+    "Real JavaScript and Python frontend/dataflow execution",
+    "Literal sink counterexample has zero observed flows",
+    "Source and line hashes verified",
+    "Compiled Node CLI and no-source MCP",
+    "Refresh withholds previous report"
+  ],
+  "limits": [
+    "Finite fixtures, default OSS semantics; not runtime proof or security precision/recall."
+  ]
+}

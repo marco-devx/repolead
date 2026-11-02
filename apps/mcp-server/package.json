@@ -6,6 +6,7 @@
   "main": "./src/index.ts",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "@repolead/change-analysis": "workspace:*",
     "@repolead/domain": "workspace:*",
     "@repolead/knowledge-store": "workspace:*",
     "@repolead/retrieval": "workspace:*",

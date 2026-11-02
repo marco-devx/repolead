@@ -5,9 +5,12 @@
   "type": "module",
   "main": "./src/index.ts",
   "dependencies": {
+    "@repolead/change-analysis": "workspace:*",
     "@repolead/domain": "workspace:*",
     "@repolead/knowledge-store": "workspace:*",
     "@repolead/lead-analyzer": "workspace:*",
-    "yaml": "^2.9.0"
+    "@repolead/retrieval": "workspace:*",
+    "yaml": "^2.9.0",
+    "zod": "^4.4.3"
   }
 }

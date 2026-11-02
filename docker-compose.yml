@@ -1,4 +1,17 @@
 services:
+  leaf-model:
+    profiles: [leaf]
+    image: ollama/ollama:0.40.13
+    ports:
+      - "127.0.0.1:11434:11434"
+    environment:
+      OLLAMA_NUM_PARALLEL: 1
+      OLLAMA_MAX_LOADED_MODELS: 1
+      OLLAMA_FLASH_ATTENTION: 1
+      OLLAMA_KV_CACHE_TYPE: q8_0
+    volumes:
+      - leaf-models:/root/.ollama
+
   qdrant:
     image: qdrant/qdrant:latest
     ports:
@@ -8,35 +21,29 @@ services:
       - qdrant-storage:/qdrant/storage
 
   embeddings:
-    # TEI sirviendo Qwen3-Embedding-0.6B (Fase 4).
-    # Imagen CPU por defecto; para GPU cambia a ghcr.io/huggingface/text-embeddings-inference:latest
-    # y descomenta el bloque deploy.
-    image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
-    command: --model-id Qwen/Qwen3-Embedding-0.6B
+    # 4B multilingual/code embeddings; use the GPU override on the RTX 4080.
+    image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.4
+    command: --model-id Qwen/Qwen3-Embedding-4B --revision ${REPOLEAD_EMBEDDING_REVISION:-5cf2132abc99cad020ac570b19d031efec650f2b} --max-batch-tokens 32768 --max-concurrent-requests 64 --auto-truncate true
     ports:
       - "8080:80"
     volumes:
       - tei-data:/data
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
 
   reranker:
-    # Reranking vía TEI (Fase 4). bge-reranker-v2-m3: multilingüe y soportado
-    # nativamente por TEI CPU (la conversión seq-cls de Qwen3-Reranker no tiene
-    # pesos ONNX y candle no soporta esa arquitectura en CPU).
-    image: ghcr.io/huggingface/text-embeddings-inference:cpu-latest
-    command: --model-id BAAI/bge-reranker-v2-m3
+    # Qwen's causal reranker needs yes/no logit scoring, not TEI seq-cls.
+    # CPU leaves VRAM for 4B embeddings and the optional local generator.
+    build: ./services/reranker
+    environment:
+      MODEL_ID: Qwen/Qwen3-Reranker-0.6B
+      MODEL_REVISION: ${REPOLEAD_RERANKER_REVISION:-e61197ed45024b0ed8a2d74b80b4d909f1255473}
+      TORCH_NUM_THREADS: 8
     ports:
       - "8081:80"
     volumes:
       - reranker-data:/data
 
 volumes:
+  leaf-models:
   qdrant-storage:
   tei-data:
   reranker-data:

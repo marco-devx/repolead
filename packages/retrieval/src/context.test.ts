@@ -55,6 +55,8 @@ test('prioriza el s√≠mbolo solicitado sobre utilidades populares y entrega su c√
     expect(pack.sourceSymbolIds).toContain(symbols[0]!.id);
     expect(pack.text).toContain('return role === "admin";');
     expect(pack.text).not.toContain('utility99');
+    const exactQuery = buildContextPack({ store, snapshotId: snapshot.id, query: 'Explain authorize behavior', seedIds: [symbols[1]!.id], maxTokens: 300, includeSource: true });
+    expect(exactQuery.sourceSymbolIds).toEqual([symbols[0]!.id]);
     const report = benchmarkTokens(store, snapshot.id, [{ name: 'authorization', symbols: ['authorize'] }], 300);
     expect(report.totals.completeTargetSources).toBe(1);
     expect(report.totals.savedTokens).toBeGreaterThan(0);

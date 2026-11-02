@@ -1,0 +1,16 @@
+id: QUALITY-PYTHON-001
+version: 1
+name: Python correctness diagnostics
+severity: medium
+description: Ruff E9, F and B diagnostics provide concrete candidates; style-only warnings are excluded.
+required_evidence: [location, metric, source_excerpt]
+candidate_detectors:
+  - name: tool_issue
+    params:
+      analyzer: quality:ruff
+      rule: '^(E9|F8|B|syntax-error|invalid-syntax)'
+llm_judgment:
+  question: >
+    Does this diagnostic identify a real correctness or error-handling defect in
+    the provided source? Reject intentional patterns supported by context.
+    Do not equate lint severity with runtime impact without evidence.

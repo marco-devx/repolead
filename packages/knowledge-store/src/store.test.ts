@@ -3,8 +3,9 @@ import { expect, test } from '@rstest/core';
 import type { CodeSymbol, Edge } from '@repolead/domain';
 import { contentHash, fileUri, stableSymbolId } from '@repolead/domain';
 
-import { applyMigrations } from './migrations';
-import { openStore } from './store';
+import { applyMigrations, MIGRATIONS } from './migrations';
+import { openDatabase } from './driver';
+import { KnowledgeStore, openStore } from './store';
 
 const REPO = 'payments-api';
 
@@ -175,4 +176,61 @@ test('upsertRepository es idempotente y las migraciones también', async () => {
   }).not.toThrow();
 
   store.close();
+});
+
+test('migration preserves v1 summaries and adds atomic, reusable provenance links', async () => {
+  const db = await openDatabase(':memory:');
+  db.exec('PRAGMA foreign_keys = ON;');
+  db.exec(MIGRATIONS[0]!.sql);
+  db.exec("CREATE TABLE schema_migrations (version INTEGER PRIMARY KEY, name TEXT NOT NULL, applied_at TEXT NOT NULL); INSERT INTO schema_migrations VALUES (1, 'initial-schema', 'initial');");
+  const store = new KnowledgeStore(db);
+  try {
+    const repo = store.upsertRepository({ name: 'legacy', rootPath: '/legacy' });
+    const snapshot = store.createSnapshot({ repositoryId: repo.id, commitSha: 'old' });
+    const base = { id: 'legacy-summary', snapshotId: snapshot.id, subjectId: 'repo://legacy', level: 'repository' as const,
+      contentJson: '{"objective":"old knowledge"}', model: 'old-model', promptVersion: '2', contentHash: 'old', createdAt: '2020-01-01' };
+    // A v1 database has no provenance tables; use its original write shape.
+    db.prepare('INSERT INTO summaries VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)')
+      .run(base.id, base.snapshotId, base.subjectId, base.level, base.contentJson, base.model, base.promptVersion, base.contentHash, base.createdAt);
+    db.prepare('INSERT INTO coverage (snapshot_id, path, line_rate, branch_rate) VALUES (?, ?, ?, ?)').run(snapshot.id, 'legacy.ts', 0.5, null);
+    applyMigrations(db);
+    expect(store.listCoverage(snapshot.id)[0]).toMatchObject({ path: 'legacy.ts', lineRate: 0.5, branchRate: null,
+      analyzer: 'legacy-unverified', sourceHash: '', lines: [], provenance: { sourceBinding: 'unknown' } });
+    expect(store.getSummary(snapshot.id, base.subjectId, 'repository')!.contentJson).toBe(base.contentJson);
+    expect(store.getSummaryEvidence(base.id)).toEqual([]);
+    const evidence = { id: 'ev_1', kind: 'source' as const, path: 'src/a.ts', startLine: 1, endLine: 2, contentHash: 'content', parentIds: [] };
+    store.insertSummary({ ...base, id: 'new-summary', createdAt: '2026-01-01' }, [evidence]);
+    expect(store.getSummaryEvidence('new-summary')).toEqual([evidence]);
+    // Duplicate links fail the whole write, including the summary row.
+    expect(() => store.insertSummary({ ...base, id: 'rollback' }, [evidence, evidence])).toThrow();
+    expect(db.prepare('SELECT id FROM summaries WHERE id = ?').get('rollback')).toBeUndefined();
+    expect(store.listSummaries(snapshot.id)).toHaveLength(1);
+    expect(store.listSummaries(snapshot.id)[0]!.id).toBe('new-summary');
+    store.rebuildSearchIndex(snapshot.id);
+    expect(store.searchKnowledge(snapshot.id, 'old knowledge')[0]?.item.entityKind).toBe('summary');
+    db.prepare('UPDATE summaries SET content_json = ? WHERE id = ?').run('{"objective":"replacement marker"}', 'new-summary');
+    store.rebuildSearchIndex(snapshot.id);
+    expect(store.searchKnowledge(snapshot.id, 'old')).toEqual([]);
+    expect(store.searchKnowledge(snapshot.id, 'replacement')[0]?.item.entityKind).toBe('summary');
+  } finally { store.close(); }
+});
+
+test('quality metrics/issues/coverage round-trip and non-finite metrics roll back atomically', async () => {
+  const { store, snapshot } = await seedSnapshot();
+  try {
+    const metric = { snapshotId: snapshot.id, subjectId: 'subject', name: 'cyclomatic_complexity', value: 5, analyzer: 'quality:radon' };
+    store.insertMetrics([metric]);
+    expect(store.listMetrics(snapshot.id, 'subject')).toEqual([metric]);
+    expect(() => store.insertMetrics([{ ...metric, value: 10 }, { ...metric, name: 'invalid', value: Infinity }])).toThrow();
+    expect(store.listMetrics(snapshot.id, 'subject')).toEqual([metric]);
+    const issue = { id: 'issue', snapshotId: snapshot.id, analyzer: 'quality:ruff', ruleId: 'F821', message: 'undefined name',
+      locations: [{ path: 'code.py', startLine: 2, endLine: 2 }], details: { column: 4 } };
+    store.insertQualityIssues([issue, issue]);
+    expect(store.listQualityIssues(snapshot.id, 'code.py')).toEqual([issue]);
+    expect(store.listQualityIssues(snapshot.id, 'another.py')).toEqual([]);
+    const coverage = { snapshotId: snapshot.id, path: 'code.py', lineRate: 0.5, branchRate: null, analyzer: 'lcov', sourceHash: 'hash',
+      lines: [{ line: 2, hits: 1 }, { line: 3, hits: 0 }], provenance: { sourceBinding: 'unverified' } };
+    store.insertCoverage([coverage]);
+    expect(store.listCoverage(snapshot.id)).toEqual([coverage]);
+  } finally { store.close(); }
 });

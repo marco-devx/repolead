@@ -1,0 +1,18 @@
+id: ARCH-FRAMEWORK-TYPES-001
+version: 1
+name: Framework types cross a domain contract
+severity: high
+description: An imported framework type appears in the explicit public signature of a domain symbol.
+required_evidence: [location, source_symbol, dependency_path, source_excerpt]
+candidate_detectors:
+  - name: framework_type_leak
+    params:
+      from: '(^|/)(domain|core|entities|use-cases)/'
+      framework: '^(express|@nestjs/common|@nestjs/core|fastify|koa|fastapi|starlette|django)([./]|$)'
+llm_judgment:
+  question: >
+    Does this public contract make a business/domain interface depend on the web
+    framework? A type-only import still couples an API when it is exposed in
+    inputs/outputs. Reject framework adapters intentionally housed in this path,
+    test-only contracts or an incorrect module-boundary assumption. Confirm only
+    from the supplied import and signature evidence.

@@ -1,0 +1,103 @@
+{
+  "generatedAt": "2026-11-01T23:36:51.740Z",
+  "passed": true,
+  "fixture": "/tmp/repolead-file-mode-0WwO36",
+  "model": "qwen3.5:9b-q4_K_M",
+  "durationMs": 55439,
+  "initialCalls": 5,
+  "preexistingCalls": 3,
+  "resumed": true,
+  "repeatCalls": 0,
+  "calls": [
+    {
+      "inputTokens": 1805,
+      "outputTokens": 760,
+      "durationMs": 41131
+    },
+    {
+      "inputTokens": 1837,
+      "outputTokens": 562,
+      "durationMs": 27401
+    },
+    {
+      "inputTokens": 1559,
+      "outputTokens": 539,
+      "durationMs": 26037
+    },
+    {
+      "inputTokens": 1856,
+      "outputTokens": 485,
+      "durationMs": 25144
+    },
+    {
+      "inputTokens": 1534,
+      "outputTokens": 572,
+      "durationMs": 29603
+    }
+  ],
+  "productFacts": [
+    {
+      "category": "permission",
+      "detail": "Requires 'access.create' in permissions array to proceed; otherwise throws 'Access denied'.",
+      "evidenceIds": [
+        "ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0"
+      ]
+    },
+    {
+      "category": "field",
+      "detail": "Input field 'document' must be a non-empty string.",
+      "evidenceIds": [
+        "ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0"
+      ]
+    },
+    {
+      "category": "validation",
+      "detail": "Document length must not exceed 12 characters; otherwise throws 'Document exceeds 12 characters'.",
+      "evidenceIds": [
+        "ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0"
+      ]
+    },
+    {
+      "category": "field",
+      "detail": "Input field 'age' must be a number.",
+      "evidenceIds": [
+        "ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0"
+      ]
+    },
+    {
+      "category": "validation",
+      "detail": "Age must be at least 18; otherwise returns rejected state with message 'Minimum age is 18'.",
+      "evidenceIds": [
+        "ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0"
+      ]
+    },
+    {
+      "category": "state",
+      "detail": "Returns status 'rejected' when age < 18.",
+      "evidenceIds": [
+        "ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0"
+      ]
+    },
+    {
+      "category": "state",
+      "detail": "Returns status 'approved' with document field when all validations pass.",
+      "evidenceIds": [
+        "ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0"
+      ]
+    },
+    {
+      "category": "audit",
+      "detail": "Emits console.info('ACCESS_CREATED') upon successful creation.",
+      "evidenceIds": [
+        "ev_60bcd195687b9b4de926f6e4374ce7f7b5fa42e6f01d9651663a5abe270aebd0"
+      ]
+    }
+  ],
+  "limits": "Real local model and compiled CLI on a small synthetic TS permission/validation/audit fixture. Checks preservation of selected concrete facts and valid evidence citations; not proof of universal quality equivalence or WLT wall-clock speed. Literal messages are also checked in the dedicated errors list; architectural risk interpretations are not scored.",
+  "messages": [
+    "Access denied",
+    "Document is required",
+    "Document exceeds 12 characters",
+    "Minimum age is 18"
+  ]
+}

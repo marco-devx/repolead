@@ -1,0 +1,11 @@
+export { traceFlow, FLOW_DEFAULTS } from './flow';
+export type { FlowOptions } from './flow';
+export type { AnalysisEdge, AnalysisNode, Location, TraversalLimits } from './graph';
+export { impactAnalysis, IMPACT_SCORE_VERSION } from './impact';
+export type { ImpactOptions, ChangeFacts, ImpactFactor } from './impact';
+export { listHotspots, refreshOpportunities, improvementOpportunities, opportunityEvidence, PRIORITIZATION_VERSION, OPPORTUNITY_ANALYZER } from './prioritization';
+export type { PriorityOptions, Hotspot, HotspotFactor } from './prioritization';
+export { mutationPlan, runMutationPlan, importMutationReport, mutationResults } from './mutation';
+export type { MutationPlan } from './mutation';
+export { analyzeDataFlow, dataFlowResults } from './dataflow';
+export type { DataFlowQuery } from './dataflow';

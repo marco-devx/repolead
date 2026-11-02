@@ -4,6 +4,8 @@ coverage/
 *.log
 .DS_Store
 .repolead/
+.repolead-tools/
 .env
 /docs/*
 !/docs/guia-tecnica.md
+!/docs/roadmap-status.json

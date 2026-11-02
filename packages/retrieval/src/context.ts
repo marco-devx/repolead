@@ -1,4 +1,5 @@
 import type { CodeSymbol, Edge, Module } from '@repolead/domain';
+import { sliceSource, DEFAULT_CONTEXT_TOKENS } from '@repolead/domain';
 import type { KnowledgeStore } from '@repolead/knowledge-store';
 
 import { rankSymbols } from './ranking';
@@ -38,7 +39,7 @@ export interface ContextPack {
 /** Task-specific map and optional complete source spans, under a measured token budget. */
 export function buildContextPack(options: ContextOptions): ContextPack {
   const { store, snapshotId } = options;
-  const budget = validateTokenBudget(options.maxTokens ?? 2000);
+  const budget = validateTokenBudget(options.maxTokens ?? DEFAULT_CONTEXT_TOKENS);
   if ((options.query?.length ?? 0) > 2000) {
     throw new Error('La consulta admite hasta 2000 caracteres.');
   }
@@ -66,6 +67,15 @@ export function buildContextPack(options: ContextOptions): ContextPack {
       throw new Error(`Símbolo desconocido o ambiguo: ${name}; usa su ID o limita el módulo.`);
     }
     seeds.add(matches[0]!.id);
+  }
+  // Mentioned identifiers outrank broad lexical hits (including tests mentioning them).
+  if (options.query && !options.symbols?.length) {
+    const identifiers = new Set(options.query.match(/[\p{L}_$][\p{L}\p{N}_.$]*/gu) ?? []);
+    const exact = candidates.filter((symbol) => identifiers.has(symbol.qualifiedName));
+    if (exact.length > 0 && exact.length <= 20) {
+      seeds.clear();
+      for (const symbol of exact) { seeds.add(symbol.id); }
+    }
   }
   const ranked = rankSymbols(graph, options.query, seeds).filter((symbol) => eligible.has(symbol.id));
   if (seeds.size === 0 && options.query) {
@@ -143,7 +153,7 @@ export function buildContextPack(options: ContextOptions): ContextPack {
         if (sources.some((entry) => entry.symbol.path === symbol.path && entry.symbol.startLine <= symbol.startLine && entry.symbol.endLine >= symbol.endLine)) {
           continue;
         }
-        const text = source.split('\n').slice(symbol.startLine - 1, symbol.endLine)
+        const text = sliceSource(source, symbol).split('\n')
           .map((line, index) => `${symbol.startLine + index}\t${line}`).join('\n');
         sources.push({ symbol, text });
         if (!fits()) {

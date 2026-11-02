@@ -138,6 +138,7 @@ test('hybridSearch fusiona FTS + vector + grafo y el reranker reordena', async (
     qdrant,
   });
   expect(indexed).toBe(3);
+  expect(store.getSnapshotMetadata(snapshot.id, 'vector_refresh_pending')).toBe('false');
 
   const hits = await hybridSearch({
     store,

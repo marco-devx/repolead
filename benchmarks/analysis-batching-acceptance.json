@@ -1,0 +1,437 @@
+{
+  "generatedAt": "2026-11-01T21:38:47.839Z",
+  "root": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/analysis-batch-N8Qg3h",
+  "dbPath": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/analysis-batch-N8Qg3h/.repolead/repolead.db",
+  "sources": {
+    "scale.ts": "export function scale(amount: number, rate: number) {\n  if (amount < 0) throw new RangeError(\"negative amount\");\n  return amount * (1 + rate);\n}\n",
+    "canEdit.ts": "export function canEdit(role: string, enabled: boolean) {\n  if (!enabled) return false;\n  return role === \"editor\";\n}\n",
+    "normalize.ts": "export function normalize(value: string) {\n  return value.trim().toLowerCase();\n}\n",
+    "parsePort.ts": "export function parsePort(text: string) {\n  const value = Number(text);\n  if (!Number.isInteger(value) || value < 1 || value > 65535) throw new RangeError(\"port\");\n  return value;\n}\n"
+  },
+  "model": "claude-code:haiku:isolated-v1",
+  "preparationScope": "Four complete independent symbol cards, same snapshot and underlying model; no generated parent dossiers in this comparison.",
+  "transport": [
+    {
+      "name": "canEdit",
+      "storedTokens": 942,
+      "modelTokens": 663
+    },
+    {
+      "name": "normalize",
+      "storedTokens": 917,
+      "modelTokens": 646
+    },
+    {
+      "name": "parsePort",
+      "storedTokens": 954,
+      "modelTokens": 686
+    },
+    {
+      "name": "scale",
+      "storedTokens": 939,
+      "modelTokens": 666
+    }
+  ],
+  "results": {
+    "individual": {
+      "inputTokens": 15316,
+      "outputTokens": 6597,
+      "calls": 4,
+      "newCallsOnRepeat": 0,
+      "checks": {
+        "scale": true,
+        "editor": true,
+        "normalization": true,
+        "port": true
+      },
+      "cards": {
+        "canEdit": {
+          "purpose": "Determines whether editing is permitted based on an enabled flag and the user's role. Returns true only when editing is globally enabled AND the user's role is exactly \"editor\".",
+          "inputs": [
+            "role: string – The user's assigned role (compared for exact match against \"editor\")",
+            "enabled: boolean – Global flag indicating whether editing capability is active"
+          ],
+          "outputs": [
+            "boolean – true if both enabled is true and role equals \"editor\"; false otherwise"
+          ],
+          "sideEffects": [
+            "None – function performs no mutations, side effects, or external operations"
+          ],
+          "dependencies": [],
+          "invariants": [
+            "When enabled is false, the function returns false unconditionally before checking role (line 2, ev_8a158be1b01dea4198505dcbb158c3d29ed8cf6f9aa75a10573256693ba72575)",
+            "When enabled is true, only a role value of exactly \"editor\" returns true (line 3, ev_8a158be1b01dea4198505dcbb158c3d29ed8cf6f9aa75a10573256693ba72575)",
+            "The function is deterministic – identical inputs always produce identical outputs",
+            "No state, randomness, or time-dependency affects the result"
+          ],
+          "errorBehavior": [
+            "No exception handling – the function will not throw or catch errors",
+            "Type mismatches or null/undefined inputs are not caught at runtime; behavior depends on runtime type coercion",
+            "Any non-\"editor\" role string when enabled=true results in false return; no error is raised for unexpected role values"
+          ],
+          "tests": [
+            "No linked test files detected (ev_894768ae9c749c7fc1ebf5d50bd8c130542235aa8d0d3185c9a30e81926c37b0: file_test_links=0)"
+          ],
+          "evidenceIds": [
+            "ev_8a158be1b01dea4198505dcbb158c3d29ed8cf6f9aa75a10573256693ba72575",
+            "ev_894768ae9c749c7fc1ebf5d50bd8c130542235aa8d0d3185c9a30e81926c37b0",
+            "ev_f1d081d24a5de6443d1768ae8193462e77e95ccc1a83fd2bc31b51fdc74282b5"
+          ],
+          "unknowns": [
+            "Whether null or undefined role values are possible at runtime and how they behave under string equality comparison",
+            "The business context for the enabled parameter and when it would be false",
+            "Whether \"editor\" is the sole permitted role or if other roles should also return true in future versions",
+            "Whether role comparison should be case-insensitive or handle whitespace normalization",
+            "Why the symbol is exported (ev_894768ae9c749c7fc1ebf5d50bd8c130542235aa8d0d3185c9a30e81926c37b0) but shows zero incoming consumers (ev_f1d081d24a5de6443d1768ae8193462e77e95ccc1a83fd2bc31b51fdc74282b5 fan_in=0) – potential dead code or timing gap in graph analysis",
+            "Whether test coverage exists but was not linked to this symbol",
+            "The role enumeration or permitted values – no schema or documentation constrains the role parameter"
+          ]
+        },
+        "normalize": {
+          "purpose": "Normalize a string by removing leading and trailing whitespace and converting all characters to lowercase [ev_967dd03a775752872e4efce04ee12c8d3b28a61d6c1c1093d0699bf71990c338]",
+          "inputs": [
+            "value: string — the input string to be normalized"
+          ],
+          "outputs": [
+            "string — the normalized result of trim().toLowerCase() applied to the input value"
+          ],
+          "sideEffects": [
+            "None — this is a pure function with no side effects"
+          ],
+          "dependencies": [
+            "No external dependencies; outgoingDependencies array is empty [ev_56233005b1be728f10e7c824bb0150856167960cb80afc59e8b33d4990030898]"
+          ],
+          "invariants": [
+            "The function always applies String.prototype.trim() before String.prototype.toLowerCase() in sequence [ev_967dd03a775752872e4efce04ee12c8d3b28a61d6c1c1093d0699bf71990c338]",
+            "Accepts exactly one parameter of type string and always returns a string [ev_967dd03a775752872e4efce04ee12c8d3b28a61d6c1c1093d0699bf71990c338, ev_ee373d12294ecd9bde57a066b6f9a8c4af91545f018acd7704890f2a04ce9ad1]",
+            "No conditional branching or looping logic; cyclomatic complexity is 1 [ev_ee373d12294ecd9bde57a066b6f9a8c4af91545f018acd7704890f2a04ce9ad1]"
+          ],
+          "errorBehavior": [
+            "No explicit error handling (no try-catch blocks present) [ev_967dd03a775752872e4efce04ee12c8d3b28a61d6c1c1093d0699bf71990c338]",
+            "Type signature requires a string parameter, enforced by TypeScript [ev_967dd03a775752872e4efce04ee12c8d3b28a61d6c1c1093d0699bf71990c338, ev_ee373d12294ecd9bde57a066b6f9a8c4af91545f018acd7704890f2a04ce9ad1]",
+            "Runtime errors would occur if null or undefined are passed despite the type signature",
+            "Built-in string methods trim() and toLowerCase() may fail if the runtime type is not a string"
+          ],
+          "tests": [
+            "No test files are linked to this symbol; file_test_links metric is 0 [ev_ee373d12294ecd9bde57a066b6f9a8c4af91545f018acd7704890f2a04ce9ad1]",
+            "Test coverage status is unknown [ev_ee373d12294ecd9bde57a066b6f9a8c4af91545f018acd7704890f2a04ce9ad1]"
+          ],
+          "evidenceIds": [
+            "ev_967dd03a775752872e4efce04ee12c8d3b28a61d6c1c1093d0699bf71990c338",
+            "ev_ee373d12294ecd9bde57a066b6f9a8c4af91545f018acd7704890f2a04ce9ad1",
+            "ev_56233005b1be728f10e7c824bb0150856167960cb80afc59e8b33d4990030898"
+          ],
+          "unknowns": [
+            "Actual test coverage and whether unit tests exist (coverage status marked 'unknown' in ev_ee373d12294ecd9bde57a066b6f9a8c4af91545f018acd7704890f2a04ce9ad1)",
+            "Real-world callers of this function (observed graph shows fan_in: 0, but semantic references are not available [ev_ee373d12294ecd9bde57a066b6f9a8c4af91545f018acd7704890f2a04ce9ad1, ev_56233005b1be728f10e7c824bb0150856167960cb80afc59e8b33d4990030898])",
+            "Business logic or domain context the normalization serves",
+            "Whether the exported normalize function is actually imported and used elsewhere in the codebase"
+          ]
+        },
+        "parsePort": {
+          "purpose": "Validates and parses a port number from a string input, returning an integer if the value is a valid port number (1–65535), otherwise throws a RangeError.",
+          "inputs": [
+            "text: string - the port number to parse"
+          ],
+          "outputs": [
+            "number - the parsed port value when valid (1–65535)",
+            "throws RangeError with message 'port' when input fails validation"
+          ],
+          "sideEffects": [
+            "Throws RangeError exception on invalid input",
+            "No state mutations or external side effects"
+          ],
+          "dependencies": [],
+          "invariants": [
+            "Input text must convert to an integer via Number(text)",
+            "Result must satisfy: Number.isInteger(value) && value >= 1 && value <= 65535",
+            "Function is a stateless validator with deterministic behavior",
+            "Port range constraint: valid ports are 1 through 65535 inclusive"
+          ],
+          "errorBehavior": [
+            "RangeError('port') thrown if Number(text) does not produce an integer",
+            "RangeError('port') thrown if parsed value < 1",
+            "RangeError('port') thrown if parsed value > 65535",
+            "Number.isInteger() returns false for Infinity, NaN, and non-integer values, triggering the error condition"
+          ],
+          "tests": [
+            "No test links observed (ev_51e54a5dc97d8e883148dfb64aab4c8c319223c7915e5e5132874eb890234a57: file_test_links = 0)",
+            "Test coverage status unknown (marked not_imported)"
+          ],
+          "evidenceIds": [
+            "ev_dacad33ced55cc617dcbf91d62aee9e23a17363715a34191287b1553e6a8ca4c",
+            "ev_51e54a5dc97d8e883148dfb64aab4c8c319223c7915e5e5132874eb890234a57",
+            "ev_3e155f7591c20e82b3c5b26f2b7154a25dbad7085a35ad9282d4521709d97280"
+          ],
+          "unknowns": [
+            "Actual test coverage and execution paths unknown",
+            "Runtime callers: observed fan_in = 0, but semantic references unavailable—actual usage unclear (ev_51e54a5dc97d8e883148dfb64aab4c8c319223c7915e5e5132874eb890234a57, ev_3e155f7591c20e82b3c5b26f2b7154a25dbad7085a35ad9282d4521709d97280)",
+            "Handling of edge cases: empty string, whitespace-only string, decimal numbers, scientific notation, special Number values such as Infinity or -0",
+            "Whether the single error message 'port' is intended to cover all validation failure modes without distinguishing the failure reason"
+          ]
+        },
+        "scale": {
+          "purpose": "Applies a scaling transformation to a numerical amount by multiplying it by (1 + rate), suitable for financial calculations such as interest accrual or percentage-based growth (ev_5e5dcdb1b7c47390917fddfb549527c5b78b1bec10914ebf8744d272879a0f03).",
+          "inputs": [
+            "amount: number - the base numerical value to scale",
+            "rate: number - the rate multiplicand, added to 1 before multiplication (ev_5e5dcdb1b7c47390917fddfb549527c5b78b1bec10914ebf8744d272879a0f03)"
+          ],
+          "outputs": [
+            "number - the result of amount * (1 + rate) (ev_5e5dcdb1b7c47390917fddfb549527c5b78b1bec10914ebf8744d272879a0f03)"
+          ],
+          "sideEffects": [
+            "Throws RangeError('negative amount') when amount < 0 (ev_5e5dcdb1b7c47390917fddfb549527c5b78b1bec10914ebf8744d272879a0f03)"
+          ],
+          "dependencies": [],
+          "invariants": [
+            "If amount >= 0, returns amount * (1 + rate) for any rate value (ev_5e5dcdb1b7c47390917fddfb549527c5b78b1bec10914ebf8744d272879a0f03)",
+            "If amount < 0, RangeError is thrown immediately; no computation occurs (ev_5e5dcdb1b7c47390917fddfb549527c5b78b1bec10914ebf8744d272879a0f03)",
+            "Cyclomatic complexity is 2: one decision point (the if condition) branching to throw or return (ev_c9bc1f0647197fb1748486ed6d27850965bac9c91fd446c1da75ec7f9a5f0a03)"
+          ],
+          "errorBehavior": [
+            "RangeError('negative amount') is thrown when amount parameter is negative (ev_5e5dcdb1b7c47390917fddfb549527c5b78b1bec10914ebf8744d272879a0f03)"
+          ],
+          "tests": [],
+          "evidenceIds": [
+            "ev_5e5dcdb1b7c47390917fddfb549527c5b78b1bec10914ebf8744d272879a0f03",
+            "ev_c9bc1f0647197fb1748486ed6d27850965bac9c91fd446c1da75ec7f9a5f0a03",
+            "ev_d39bb279a635d6a689969fd7a3b1575598fe2b5738504a9458298656921285e2"
+          ],
+          "unknowns": [
+            "Semantic meaning of rate: source does not specify whether rate represents a decimal multiplier (e.g. 0.1 = 10% increase) or an absolute factor; both interpretations are mathematically valid (ev_5e5dcdb1b7c47390917fddfb549527c5b78b1bec10914ebf8744d272879a0f03)",
+            "Test coverage: file_test_links metric is 0, but this reflects observed graph references, not absence of tests; actual test suite status is unknown (ev_c9bc1f0647197fb1748486ed6d27850965bac9c91fd446c1da75ec7f9a5f0a03)",
+            "Call graph completeness: fan_in and fan_out are both 0 and semanticReferencesAvailable is false, indicating no observed consumers or callees; however, semantic graph resolution may be incomplete (ev_c9bc1f0647197fb1748486ed6d27850965bac9c91fd446c1da75ec7f9a5f0a03, ev_d39bb279a635d6a689969fd7a3b1575598fe2b5738504a9458298656921285e2)",
+            "Whether the function is actively used in production or is part of unused library code"
+          ]
+        }
+      }
+    },
+    "batch": {
+      "inputTokens": 30733,
+      "outputTokens": 5288,
+      "calls": 1,
+      "newCallsOnRepeat": 0,
+      "checks": {
+        "scale": true,
+        "editor": true,
+        "normalization": true,
+        "port": true
+      },
+      "cards": {
+        "canEdit": {
+          "purpose": "Determines whether editing is permitted by checking if editing is enabled and the user role is 'editor'. Returns false immediately if enabled is false, otherwise returns true only when role equals 'editor'.",
+          "inputs": [
+            "role: string – The user's role identifier",
+            "enabled: boolean – Flag indicating whether editing capability is active"
+          ],
+          "outputs": [
+            "boolean – Returns true if enabled is true AND role is 'editor'; returns false otherwise"
+          ],
+          "sideEffects": [],
+          "dependencies": [],
+          "invariants": [
+            "If enabled is false, the function always returns false regardless of role value",
+            "If enabled is true, the function returns true if and only if role is exactly 'editor' (case-sensitive string equality)",
+            "Output is deterministic for identical inputs"
+          ],
+          "errorBehavior": [
+            "No error handling – function does not throw exceptions under normal conditions",
+            "No validation of input types beyond the conditional logic"
+          ],
+          "tests": [],
+          "evidenceIds": [
+            "ev_8a158be1b01dea4198505dcbb158c3d29ed8cf6f9aa75a10573256693ba72575",
+            "ev_894768ae9c749c7fc1ebf5d50bd8c130542235aa8d0d3185c9a30e81926c37b0",
+            "ev_f1d081d24a5de6443d1768ae8193462e77e95ccc1a83fd2bc31b51fdc74282b5"
+          ],
+          "unknowns": [
+            "No incoming consumers observed; actual runtime usage patterns are unknown",
+            "Test coverage status is not available",
+            "Whether callers expect case-insensitive role matching or other role variants",
+            "Semantic reference graph is unavailable"
+          ]
+        },
+        "normalize": {
+          "purpose": "Normalizes a string by removing leading and trailing whitespace and converting all characters to lowercase. Applies trim() followed by toLowerCase() for consistent string representation.",
+          "inputs": [
+            "value: string – The string to normalize"
+          ],
+          "outputs": [
+            "string – The normalized string with whitespace trimmed and all characters converted to lowercase"
+          ],
+          "sideEffects": [],
+          "dependencies": [],
+          "invariants": [
+            "Output is always lowercase",
+            "Leading and trailing whitespace is always removed",
+            "Output is deterministic for identical inputs",
+            "Transformation is idempotent (normalizing a normalized string returns the same result)"
+          ],
+          "errorBehavior": [
+            "No explicit error handling",
+            "May throw TypeError if value is null or undefined (type constraint indicates string is required)"
+          ],
+          "tests": [],
+          "evidenceIds": [
+            "ev_967dd03a775752872e4efce04ee12c8d3b28a61d6c1c1093d0699bf71990c338",
+            "ev_ee373d12294ecd9bde57a066b6f9a8c4af91545f018acd7704890f2a04ce9ad1",
+            "ev_56233005b1be728f10e7c824bb0150856167960cb80afc59e8b33d4990030898"
+          ],
+          "unknowns": [
+            "No incoming consumers observed; actual usage context is unknown",
+            "Test coverage status is not available",
+            "Behavior on null or undefined inputs not tested or documented",
+            "Semantic reference graph is unavailable"
+          ]
+        },
+        "parsePort": {
+          "purpose": "Parses and validates a string as a port number. Converts the input to a number and verifies it is an integer within the valid port range (1 to 65535 inclusive).",
+          "inputs": [
+            "text: string – The text representation to parse as a port number"
+          ],
+          "outputs": [
+            "number – A valid port number (integer in range 1-65535)"
+          ],
+          "sideEffects": [],
+          "dependencies": [],
+          "invariants": [
+            "Returns only integers in the range [1, 65535]",
+            "Result matches the IANA valid port range constraint",
+            "Validation logic is consistent across all input conditions"
+          ],
+          "errorBehavior": [
+            "Throws RangeError with message 'port' if Number.isInteger(value) returns false",
+            "Throws RangeError with message 'port' if value < 1",
+            "Throws RangeError with message 'port' if value > 65535"
+          ],
+          "tests": [],
+          "evidenceIds": [
+            "ev_dacad33ced55cc617dcbf91d62aee9e23a17363715a34191287b1553e6a8ca4c",
+            "ev_51e54a5dc97d8e883148dfb64aab4c8c319223c7915e5e5132874eb890234a57",
+            "ev_3e155f7591c20e82b3c5b26f2b7154a25dbad7085a35ad9282d4521709d97280"
+          ],
+          "unknowns": [
+            "No incoming consumers observed; actual usage patterns are unknown",
+            "Test coverage status is not available",
+            "Behavior on edge cases (NaN, Infinity, very large strings, empty string) not explicitly tested",
+            "Whether the error message 'port' is sufficient for client error handling",
+            "Semantic reference graph is unavailable"
+          ]
+        },
+        "scale": {
+          "purpose": "Scales a numeric amount by applying a rate multiplier. The formula amount * (1 + rate) suggests the rate is additive; the specific business meaning (tax, discount, growth rate, etc.) is not specified in the source.",
+          "inputs": [
+            "amount: number – The base amount to scale",
+            "rate: number – The rate multiplier (applied as 1 + rate)"
+          ],
+          "outputs": [
+            "number – The scaled result calculated as amount * (1 + rate)"
+          ],
+          "sideEffects": [],
+          "dependencies": [],
+          "invariants": [
+            "Amount must be non-negative (>= 0)",
+            "Output equals amount * (1 + rate) mathematically",
+            "Preserves numerical precision within JavaScript Number constraints"
+          ],
+          "errorBehavior": [
+            "Throws RangeError with message 'negative amount' if amount < 0"
+          ],
+          "tests": [],
+          "evidenceIds": [
+            "ev_5e5dcdb1b7c47390917fddfb549527c5b78b1bec10914ebf8744d272879a0f03",
+            "ev_c9bc1f0647197fb1748486ed6d27850965bac9c91fd446c1da75ec7f9a5f0a03",
+            "ev_d39bb279a635d6a689969fd7a3b1575598fe2b5738504a9458298656921285e2"
+          ],
+          "unknowns": [
+            "The business meaning of the rate parameter is not documented; could represent tax, discount, growth percentage, or other multiplicative adjustment",
+            "No incoming consumers observed; actual usage context is unknown",
+            "Test coverage status is not available",
+            "Whether negative rate values (which reduce the amount) are intentionally allowed",
+            "Whether the formula correctly implements the intended business logic",
+            "Semantic reference graph is unavailable"
+          ]
+        }
+      }
+    }
+  },
+  "calls": [
+    {
+      "arm": "individual",
+      "inputTokens": 3824,
+      "outputTokens": 1661,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001"
+        ],
+        "estimatedCostUsd": 0.012129,
+        "durationMs": 15115,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      }
+    },
+    {
+      "arm": "individual",
+      "inputTokens": 3780,
+      "outputTokens": 1447,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001"
+        ],
+        "estimatedCostUsd": 0.011015,
+        "durationMs": 12745,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      }
+    },
+    {
+      "arm": "individual",
+      "inputTokens": 3880,
+      "outputTokens": 1666,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001"
+        ],
+        "estimatedCostUsd": 0.01221,
+        "durationMs": 13453,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      }
+    },
+    {
+      "arm": "individual",
+      "inputTokens": 3832,
+      "outputTokens": 1823,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001"
+        ],
+        "estimatedCostUsd": 0.012947,
+        "durationMs": 15673,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      }
+    },
+    {
+      "arm": "batch",
+      "inputTokens": 30733,
+      "outputTokens": 5288,
+      "telemetry": {
+        "provider": "claude-code",
+        "models": [
+          "claude-haiku-4-5-20251001"
+        ],
+        "estimatedCostUsd": 0.0526377,
+        "durationMs": 39812,
+        "accounting": "SDK query-pipeline totals including cache input; cost estimate, not subscription billing"
+      }
+    }
+  ],
+  "reductionPercent": -64.38187377355908,
+  "passed": true,
+  "limits": [
+    "Finite fixtures; not proof of arbitrary batch semantic quality.",
+    "SDK totals include cache, auxiliary work and formatting retries, not invoices.",
+    "This measures preparation, not the roadmap MCP architectural-query target. Per-card usage inside a batch is allocated by a tokenizer proxy; batch/provider totals match exactly."
+  ]
+}

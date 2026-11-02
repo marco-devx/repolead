@@ -1,0 +1,1238 @@
+{
+  "generatedAt": "2026-11-01T21:25:21.940Z",
+  "fixtureRoot": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS",
+  "sourceManifestHash": "3cd248bf72e45ad4b69940cfb3f0012f127ffcc74f094f614a55c4407d47b533",
+  "files": 187,
+  "preparation": {
+    "generativeTokens": 0,
+    "installMs": 306,
+    "scanMs": 3275,
+    "vectorMs": 4971,
+    "vectorIndex": {
+      "collection": "repolead-acceptance-workflow-AYBNVS",
+      "generation": "2f4c078985db6d2149072300f388553ea0590f7253341e8b3d2b62cbde52f611",
+      "modelKey": "256c40a8e054be312c6d31767706513957ffc259d2a6c7888891db15d7d2b77f",
+      "indexed": 862,
+      "embedded": 862,
+      "reused": 0,
+      "metadataUpdated": 0,
+      "incompleteSources": 9,
+      "omitted": []
+    },
+    "scip": true,
+    "scipDiagnostics": {
+      "indexers": [
+        {
+          "tool": "scip-typescript",
+          "status": "complete",
+          "message": "137 documents indexed",
+          "durationMs": 2713
+        }
+      ],
+      "reconciliationCount": 4054
+    },
+    "excluded": [
+      "benchmarks/change-analysis-acceptance.json",
+      "benchmarks/clean-install-acceptance.json",
+      "benchmarks/deterministic-acceptance.json",
+      "benchmarks/generative-acceptance.json",
+      "benchmarks/incremental-acceptance.json",
+      "benchmarks/joern-acceptance.json",
+      "benchmarks/mcp-catalog-acceptance.json",
+      "benchmarks/mcp-http-acceptance.json",
+      "benchmarks/memory-acceptance.json",
+      "benchmarks/mutation-acceptance.json",
+      "benchmarks/policy-quality-acceptance.json",
+      "benchmarks/prioritization-acceptance.json",
+      "benchmarks/python-acceptance.json",
+      "benchmarks/quality-acceptance.json",
+      "benchmarks/repo-workflow-acceptance.json",
+      "benchmarks/repo-workflow-batched.json",
+      "benchmarks/repo-workflow-before.json",
+      "benchmarks/repo-workflow-cascade-raw.json",
+      "benchmarks/retrieval-acceptance.json",
+      "benchmarks/token-cases.json",
+      "benchmarks/token-results.json",
+      "benchmarks/token-workflow-acceptance.json",
+      "benchmarks/token-workflow-before.json",
+      "docs/roadmap-status.json",
+      "scripts/capture-workflow.ts",
+      "scripts/verify-change-analysis.ts",
+      "scripts/verify-clean-install.ts",
+      "scripts/verify-deterministic.ts",
+      "scripts/verify-generative.ts",
+      "scripts/verify-incremental.ts",
+      "scripts/verify-joern.ts",
+      "scripts/verify-mcp-http.ts",
+      "scripts/verify-memory.ts",
+      "scripts/verify-mutation.ts",
+      "scripts/verify-policy-quality.ts",
+      "scripts/verify-prioritization.ts",
+      "scripts/verify-python.ts",
+      "scripts/verify-quality.ts",
+      "scripts/verify-repo-workflow.ts",
+      "scripts/verify-retrieval.ts",
+      "scripts/verify-token-workflow.ts"
+    ],
+    "rationale": "Same isolated application source for both arms; evaluation answers/harnesses excluded. Deterministic parsing and optional local embeddings only; no generative dossiers."
+  },
+  "question": "Revisa la implementación actual de RepoLead. Explica con evidencia cómo refresh --analyze detecta cambios sin commit, reutiliza el parseo, invalida las fichas y síntesis técnicas/de producto, y decide qué embeddings recalcular. Identifica el límite de profundidad predeterminado, qué pasa si nada cambió, si puede omitir producto, todos los componentes de identidad/versiones usados en la caché de resúmenes y si solo un cambio de líneas obliga a regenerar una ficha. No respondas solo desde README: cita las funciones de implementación que sustentan cada respuesta.",
+  "toolProfile": "context",
+  "checkVersion": "facts-plus-cascade-v3-clean-capture-structured-output-allowed",
+  "manual": {
+    "mode": "manual",
+    "inputTokens": 719433,
+    "outputTokens": 17640,
+    "estimatedCostUsd": 0.8218057000000001,
+    "durationMs": 191709,
+    "structuredOutputAttempts": 3,
+    "models": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "answer": {
+      "worksWithoutCommit": true,
+      "reusesUnchangedFileParse": true,
+      "defaultDependencyDepth": 3,
+      "unchangedAnalyzeUsesCache": true,
+      "canSkipProduct": true,
+      "regeneratesEveryEmbedding": false,
+      "lineMoveAlwaysRegeneratesSymbol": false,
+      "summaryCacheIdentity": [
+        "subject_id",
+        "level",
+        "model.name",
+        "prompt_version (PROMPT_VERSION='7')",
+        "EVIDENCE_ENCODING_VERSION='short-citations-v2'",
+        "policyVersion ('hierarchical-evidence-v2' o 'product-provenance-v1')",
+        "packHash=contentHash(cacheBinding.fingerprint ?? packJson)",
+        "símbolos: fingerprint 'symbol-relocation-v1' (body contentHash, relations, dependencyScope.fingerprint, quality, líneas relativas)"
+      ],
+      "invalidationFlow": {
+        "dependencies": "forSubjects(ids,maxDepth) recorre graph.outgoing hasta max_reanalysis_depth saltos -> fingerprint=contentHash({maxDepth,dependencies,topology,unresolved,boundary}); entra en fingerprint del símbolo/archivo, invalidando la ficha si una dependencia en el radio cambia.",
+        "parents": "summaryEntries incrusta subjectId+content+contentHash del hijo como evidencia del padre (archivo->módulo->brief repo; documento->Product Context). Cambiar un hijo cambia su contentHash, la evidencia del padre y su packHash, propagando la invalidación hacia arriba.",
+        "product": "analyzeProductContext empaqueta documentos + enlaces DOCUMENTED_BY a summaries técnicos; Product Context usa fingerprint=[documentId,contentHash] y summaryEntries(technical). Cambiar un documento o el brief técnico repropaga al Product Context."
+      },
+      "explanation": "1) Sin commit: refreshRepository compara bytes, no git. oldFileHashes viene de la tabla files del snapshot previo (refresh.ts:53-55); currentFileHashes=contentHash(readFileSync) sobre listTrackedFiles (59-66); changedFiles es la diferencia (67-68).\n\n2) Nada cambió: si head===previous.commitSha, changedFiles.length===0 y no cambió config/extracción, retorna upToDate:true sin reescanear (refresh.ts:69-80). CLI (refresh.ts cli:52-54) retorna ya sin --analyze; con --analyze, analyzeSnapshot halla cache idéntico (punto 4).\n\n3) Reuso de parseo: scan.ts busca cachedExtractions por path con analyzer_version=EXTRACTION_VERSION; si content_hash coincide (línea 230) reutiliza JSON (reusedFiles++), si no re-extrae (233-239).\n\n4) Invalidación de fichas: findCachedSummary (store.ts:749) filtra subject_id+level+content_hash+prompt_version+model. content_hash=packHash (analyze.ts:81)=contentHash(cacheBinding?.fingerprint ?? packJson, PROMPT_VERSION, EVIDENCE_ENCODING_VERSION, policyVersion, model.name). buildSymbolPack (hierarchy.ts:150-175) usa líneas relativas al inicio del símbolo; symbol.contentHash=contentHash(sliceSource) (scan.ts:269) y stableSymbolId es independiente de líneas (ids.test.ts:13-16). Por eso un corrimiento puro de líneas no cambia el packHash y la ficha se reutiliza; si solo cambian IDs de evidencia, analyze.ts:92-104 remapea ev_... sin reanalizar (salvo hasWrittenLocations:94). Archivos/módulos no tienen cacheBinding: su fingerprint usa file.contentHash completo (hierarchy.ts:225), así cualquier cambio de contenido del archivo fuerza reanálisis de esa ficha — la protección es a nivel símbolo, no de archivo.\n\n5) Profundidad: max_reanalysis_depth=3 por defecto (config/src/index.ts:33, min 0 max 32), usado en dependencies.ts y en refresh.ts:109 para el BFS de módulos afectados.\n\n6) Módulos afectados: refresh.ts calcula changedSymbolIds/removedSymbolIds por contentHash (87-89), halla el módulo dueño (owner,93) y expande por graph.incoming filtrando DEPENDENCY_EDGE_TYPES hasta max_reanalysis_depth en ambos snapshots (104-123); si cambió config/extracción, marca TODOS los módulos (125-127).\n\n7) Embeddings: indexSnapshot ignora en la práctica symbolIds (comentario \"compatibility hint\", indexer.ts:27) y decide por contentHash real: reutiliza vector solo si embedding_model===modelKey Y embedding_hash===item.contentHash (90-96); el resto se reembebe (107-121).\n\n8) --no-product: refresh.ts cli (88-90) solo llama analyzeProductAndPrint si options.product.\n\n9) Versiones en la caché: EXTRACTION_VERSION (parseo), PROMPT_VERSION='7', ANALYSIS_POLICY_VERSION='hierarchical-evidence-v2'/'product-provenance-v1', EVIDENCE_ENCODING_VERSION='short-citations-v2', model.name, 'symbol-relocation-v1'.",
+      "citations": [
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 67
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 69
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 109
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 125
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 230
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 269
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 81
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 92
+        },
+        {
+          "path": "packages/lead-analyzer/src/hierarchy.ts",
+          "line": 150
+        },
+        {
+          "path": "packages/lead-analyzer/src/hierarchy.ts",
+          "line": 169
+        },
+        {
+          "path": "packages/lead-analyzer/src/dependencies.ts",
+          "line": 32
+        },
+        {
+          "path": "packages/knowledge-store/src/store.ts",
+          "line": 749
+        },
+        {
+          "path": "packages/retrieval/src/indexer.ts",
+          "line": 90
+        },
+        {
+          "path": "packages/config/src/index.ts",
+          "line": 33
+        },
+        {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "line": 88
+        },
+        {
+          "path": "packages/domain/src/ids.test.ts",
+          "line": 13
+        }
+      ]
+    },
+    "checks": {
+      "workingTree": true,
+      "parseReuse": true,
+      "depth": true,
+      "unchangedCache": true,
+      "productOption": true,
+      "selectiveVectors": true,
+      "relocation": true,
+      "cacheIdentity": true,
+      "dependencyCascade": true,
+      "synthesisCascade": true,
+      "productCascade": true,
+      "citations": true
+    },
+    "correct": true,
+    "calls": [
+      {
+        "name": "Glob",
+        "input": {
+          "pattern": "**/*refresh*"
+        }
+      },
+      {
+        "name": "Glob",
+        "input": {
+          "pattern": "**/*analyze*"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/code-graph/src/refresh.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/apps/cli/src/commands/refresh.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/lead-analyzer/src/analyze.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "max_reanalysis_depth",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/lead-analyzer/src/hierarchy.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "findCachedSummary",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/knowledge-store/src/store.ts",
+          "offset": 735,
+          "limit": 30
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "reusedFiles|parsedFiles|contentHash.*===|reuse",
+          "path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/apps/cli/src/commands/scan.ts",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "parsedFiles|reusedFiles|reused|unchanged",
+          "path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/apps/cli/src/commands/scan.ts",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "forSubjects",
+          "path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/lead-analyzer/src/dependencies.ts",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/lead-analyzer/src/dependencies.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/apps/cli/src/commands/scan.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "parsedFiles|reusedFiles",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Glob",
+        "input": {
+          "pattern": "packages/code-graph/src/scan.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/code-graph/src/scan.ts",
+          "offset": 150,
+          "limit": 100
+        }
+      },
+      {
+        "name": "Glob",
+        "input": {
+          "pattern": "packages/lead-analyzer/src/**/*.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/apps/cli/src/commands/product-analysis.ts"
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/lead-analyzer/src/product.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "export async function indexSnapshot|symbolIds",
+          "path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/retrieval/src",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/retrieval/src/indexer.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "function stableSymbolId|function contentHash\\b",
+          "output_mode": "content",
+          "-n": true,
+          "-C": 8
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "stableSymbolId|export function contentHash",
+          "path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/domain/src",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "contentHash:|stableSymbolId(\" \"{",
+          "path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/code-graph/src/scan.ts",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Read",
+        "input": {
+          "file_path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/domain/src/ids.test.ts"
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "symbols.set|contentHash\\(\" |contentHash\\(.*extracted|contentHash:\" \"extracted\\.body\"",
+          "path": "/home/marco-devx/marco-devx/opensource/repolead/.repolead/acceptance/workflow-AYBNVS/packages/code-graph/src/scan.ts",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "Grep",
+        "input": {
+          "pattern": "EXTRACTION_VERSION =|PROMPT_VERSION =|EVIDENCE_ENCODING_VERSION =|ANALYSIS_POLICY_VERSION =",
+          "output_mode": "content",
+          "-n": true
+        }
+      },
+      {
+        "name": "StructuredOutput",
+        "input": {
+          "worksWithoutCommit": true,
+          "reusesUnchangedFileParse": true,
+          "defaultDependencyDepth": 3,
+          "unchangedAnalyzeUsesCache": true,
+          "canSkipProduct": true,
+          "regeneratesEveryEmbedding": false,
+          "lineMoveAlwaysRegeneratesSymbol": false,
+          "summaryCacheIdentity": [
+            "subject_id",
+            "level",
+            "model.name",
+            "prompt_version (PROMPT_VERSION='7')",
+            "EVIDENCE_ENCODING_VERSION='short-citations-v2'",
+            "ANALYSIS_POLICY_VERSION/policyVersion ('hierarchical-evidence-v2' o 'product-provenance-v1')",
+            "packHash = contentHash(cacheBinding.fingerprint ?? packJson)",
+            "para símbolos: fingerprint simbólico-relocatable ('symbol-relocation-v1') que incluye body contentHash, relations, dependencyScope.fingerprint, quality, evidencia con líneas relativas al inicio del símbolo"
+          ],
+          "invalidationFlow": {
+            "dependencies": "buildDependencyIndex.forSubjects(ids, maxReanalysisDepth) recorre graph.outgoing hasta max_reanalysis_depth saltos (dependencies.ts:32-58) y produce un fingerprint = contentHash({maxDepth, dependencies, topology, unresolved, boundary}). Ese fingerprint entra en fingerprint={body, relations, dependencies: scope.fingerprint, quality} de buildSymbolPack/buildFilePack (hierarchy.ts:150,225), así un cambio en cualquier dependencia dentro del radio permitido altera el fingerprint y por tanto el packHash, forzando reanálisis aunque el propio símbolo/archivo no cambie.",
+            "parents": "Cada nivel se re-empaqueta con fitHierarchyPack usando los hijos vía summaryEntries (hierarchy.ts:51-74), que incrustan subjectId+content+fingerprint (=summary.contentHash) de los hijos como evidencia del padre. Si un hijo cambia de contenido, su contentHash cambia, lo que cambia la evidencia del padre, cambia pack.fingerprint y por ende el packHash del padre (archivo→módulo→brief de repositorio, y documento→Product Context en product.ts:111-128), propagando la invalidación hacia arriba sin reanalizar explícitamente lo no afectado.",
+            "product": "analyzeProductContext (product.ts:75-131) reempaqueta cada documento con buildDocumentPacks y linkedTechnicalEvidence (enlaces DOCUMENTED_BY hacia summaries 'symbol'/'file'), y el Product Context final incluye summaryEntries(cards) + summaryEntries(technical repository briefs) + fingerprint sobre [documentId, document.contentHash] por cada doc. Si el brief técnico (nivel 'repository') cambia, su contentHash cambia, lo que altera la evidencia de Product Context y dispara su reanálisis; análogamente un documento modificado cambia su propio contentHash y se repropaga."
+          },
+          "explanation": "1) Detección sin commit: refreshRepository (packages/code-graph/src/refresh.ts) no exige un commit nuevo. Lee `oldFileHashes` desde la tabla `files` del snapshot previo (líneas 53-55) y recalcula `currentFileHashes` con `contentHash(readFileSync(...))` sobre `listTrackedFiles` (líneas 59-66), comparando bytes, no SHAs de git — el comentario del archivo lo dice explícitamente (\"including an already-indexed dirty working tree\", línea 26). `changedFiles` es la diferencia de ambos mapas (línea 67-68).\n\n2) \"Nada cambió\": si `head === previous.commitSha`, `changedFiles.length === 0`, y no cambiaron config/extracción, se retorna `upToDate:true` sin reescanear (líneas 69-80); aun así se recalculan métricas de calidad y `refreshOpportunities` sobre el snapshot existente. En el CLI, `registerRefresh` imprime \"Sin cambios...\" y, si no se pidió `--analyze`, retorna de inmediato (refresh.ts cli línea 52-54); si se pidió `--analyze`, igualmente ejecuta `analyzeSnapshot`, que para cada subject hallará summary cacheado idéntico (ver punto 4).\n\n3) Reuso del parseo: en scan.ts (líneas 154-157, 228-239), por cada archivo se busca `cachedExtractions` por `path` del snapshot anterior filtrando por `analyzer_version = EXTRACTION_VERSION` ('tree-sitter-ts-js-py-route-handlers-visibility-v11', scan.ts:56); si `cached.content_hash === hash` del archivo actual, se reutiliza el JSON de extracción (`parsing.reusedFiles += 1`) sin re-parsear; si no, se re-extrae (`parsing.parsedFiles += 1`). El CLI imprime ambos contadores (`refresh.ts` cli línea 60).\n\n4) Invalidación de fichas (caché de summaries): `findCachedSummary` (knowledge-store/src/store.ts:749-762) busca por `subject_id + level + content_hash + prompt_version + model`. Ese `content_hash` es `packHash` calculado en `analyzeSubject` (analyze.ts:81) como `contentHash(cacheBinding?.fingerprint ?? packJson, PROMPT_VERSION, EVIDENCE_ENCODING_VERSION, policyVersion, model.name)`. Para símbolos, `buildSymbolPack` construye un `cacheBinding.fingerprint` (hierarchy.ts:150-175) basado en `symbol.contentHash` (cuerpo), relaciones del grafo, `dependencyScope.fingerprint` y `quality`, usando líneas **relativas** al inicio del símbolo — por eso un corrimiento puro de líneas (inserción de código arriba sin tocar el cuerpo) no cambia `symbol.contentHash` (`contentHash(sliceSource(source, extracted))`, scan.ts:269) ni el `stableSymbolId` (determinístico e independiente de líneas, probado en domain/src/ids.test.ts:13-16), así el packHash permanece igual y `findCachedSummary` reutiliza el summary. Además, si solo cambiaron los IDs de evidencia (porque las líneas absolutas se movieron) pero el contenido es idéntico, `analyzeSubject` detecta `relocated` (línea 92) y remapea los `ev_...` dentro del JSON cacheado (línea 101-104) sin reanalizar, salvo que el texto ya contenga referencias de línea escritas por el modelo (`hasWrittenLocations`, línea 94) o el número de evidencias cambie — en ese caso sí regenera. Para archivos y módulos no hay `cacheBinding`: su fingerprint incluye `file.contentHash` completo, de modo que **cualquier** cambio de contenido del archivo (incluido reordenar/mover líneas) cambia el hash y fuerza reanálisis de la ficha de archivo (hierarchy.ts:225) — es decir, la protección contra \"solo corrimiento de líneas\" existe a nivel símbolo, no a nivel archivo.\n\n5) Propagación padre: `summaryEntries` (hierarchy.ts:51-74) incrusta `subjectId/content/fingerprint=summary.contentHash` de cada hijo como evidencia del padre (archivo, módulo, repository brief; y documento→Product Context en product.ts). Si el contentHash de un hijo cambia, cambia la evidencia del padre y por ende su propio packHash, re-disparando el nivel superior en cascada — sin tocar subjects no relacionados.\n\n6) Dependencias y profundidad: `buildDependencyIndex.forSubjects(ids, maxReanalysisDepth)` (dependencies.ts:32-68) expande `maxDepth` saltos salientes por el grafo y memoiza por `[ids,maxDepth]`; su `fingerprint` entra en el fingerprint del símbolo/archivo (hierarchy.ts:150,225), de forma que un cambio en una dependencia dentro del radio invalida la ficha aun sin tocar el propio código. El límite predeterminado es `max_reanalysis_depth: 3` (packages/config/src/index.ts:33, validado 0–32 en dependencies.ts `validateReanalysisDepth`), confirmado también en refresh.ts:109 donde se usa el mismo límite para expandir el BFS de módulos afectados tras un refresh.\n\n7) Qué módulos quedan \"afectados\" tras refresh: refresh.ts calcula `changedSymbolIds`/`removedSymbolIds` comparando `contentHash` por símbolo (líneas 87-89), determina el módulo dueño de cada ruta cambiada (función `owner`, línea 93) y luego hace BFS sobre `graph.incoming` filtrando `DEPENDENCY_EDGE_TYPES` hasta `max_reanalysis_depth` (líneas 104-123) tanto en el snapshot previo como el nuevo (para no perder la cadena si hubo rename/delete). Si cambió la configuración o la versión de extracción, se marca **todo** módulo como afectado (líneas 125-127).\n\n8) Decisión de embeddings a recalcular: `indexSnapshot` (retrieval/src/indexer.ts) ignora en la práctica el parámetro `symbolIds` (documentado como \"compatibility hint... hashes remain authoritative\", línea 27) y decide por `contentHash` real: recupera puntos existentes de Qdrant y solo reutiliza el vector si `old.payload.embedding_model === modelKey` **y** `old.payload.embedding_hash === item.contentHash` (líneas 90-96); lo demás se re-embebe en lotes de 32 (líneas 107-121). Así, cambiar el modelo de embeddings o el contenido del ítem fuerza recálculo; un cambio de metadata pura (módulo, ruta) sin cambio de contenido solo actualiza payload (`updatePayloads`, líneas 135-143) sin regenerar el vector.\n\n9) `--no-product`: en el CLI (`apps/cli/src/commands/refresh.ts:88-90`), `analyzeProductAndPrint` solo se invoca `if (options.product)`, y `--no-product` setea `options.product=false` vía Commander; por tanto `--analyze` sin `--no-product` siempre corre producto, y se puede omitir explícitamente.\n\n10) Versiones/identidad usadas en toda la caché de resúmenes: `EXTRACTION_VERSION` (scan.ts:56) para reuso de parseo; `PROMPT_VERSION='7'` y `ANALYSIS_POLICY_VERSION='hierarchical-evidence-v2'` (lead-analyzer/src/prompts.ts:6-7, o `'product-provenance-v1'` para producto en product.ts:96); `EVIDENCE_ENCODING_VERSION='short-citations-v2'` (model-evidence.ts:2); `model.name`; y para símbolos el literal `'symbol-relocation-v1'` embebido en el fingerprint de reubicación (hierarchy.ts:170). Todos entran en el `packHash` de `findCachedSummary`, de modo que subir de versión cualquiera de ellos invalida toda la caché de ese nivel.",
+          "citations": [
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 67
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 69
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 109
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 125
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 230
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 269
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 81
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 92
+            },
+            {
+              "path": "packages/lead-analyzer/src/hierarchy.ts",
+              "line": 150
+            },
+            {
+              "path": "packages/lead-analyzer/src/hierarchy.ts",
+              "line": 169
+            },
+            {
+              "path": "packages/lead-analyzer/src/dependencies.ts",
+              "line": 32
+            },
+            {
+              "path": "packages/knowledge-store/src/store.ts",
+              "line": 749
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "line": 90
+            },
+            {
+              "path": "packages/config/src/index.ts",
+              "line": 33
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 88
+            },
+            {
+              "path": "packages/domain/src/ids.test.ts",
+              "line": 13
+            }
+          ]
+        }
+      },
+      {
+        "name": "StructuredOutput",
+        "input": {
+          "worksWithoutCommit": true,
+          "reusesUnchangedFileParse": true,
+          "defaultDependencyDepth": 3,
+          "unchangedAnalyzeUsesCache": true,
+          "canSkipProduct": true,
+          "regeneratesEveryEmbedding": false,
+          "lineMoveAlwaysRegeneratesSymbol": false,
+          "summaryCacheIdentity": [
+            "subject_id",
+            "level",
+            "model.name",
+            "prompt_version (PROMPT_VERSION='7')",
+            "EVIDENCE_ENCODING_VERSION='short-citations-v2'",
+            "policyVersion/ANALYSIS_POLICY_VERSION ('hierarchical-evidence-v2' o 'product-provenance-v1')",
+            "packHash=contentHash(cacheBinding.fingerprint ?? packJson)",
+            "para símbolos: fingerprint 'symbol-relocation-v1' con body contentHash, relations, dependencyScope.fingerprint, quality y líneas relativas al inicio del símbolo"
+          ],
+          "invalidationFlow": {
+            "dependencies": "buildDependencyIndex.forSubjects(ids, maxReanalysisDepth) recorre graph.outgoing hasta max_reanalysis_depth saltos y produce fingerprint=contentHash({maxDepth, dependencies, topology, unresolved, boundary}). Ese fingerprint entra en el fingerprint={body, relations, dependencies, quality} del símbolo/archivo, así un cambio en una dependencia dentro del radio invalida la ficha aunque el subject no cambie.",
+            "parents": "summaryEntries incrusta subjectId+content+fingerprint(=summary.contentHash) de cada hijo como evidencia del padre (archivo→módulo→brief repo, documento→Product Context). Si un hijo cambia de contenido, su contentHash cambia, altera la evidencia del padre y su packHash, propagando la invalidación hacia arriba.",
+            "product": "analyzeProductContext reempaqueta cada documento (buildDocumentPacks) más enlaces DOCUMENTED_BY hacia summaries técnicos; el Product Context final usa fingerprint sobre [documentId, contentHash] y summaryEntries(technical). Si el brief técnico o un documento cambia de contentHash, se repropaga al Product Context."
+          },
+          "explanation": "1) Sin commit: refreshRepository (code-graph/src/refresh.ts) compara bytes, no git. Lee oldFileHashes de la tabla files del snapshot previo (53-55) y currentFileHashes=contentHash(readFileSync) sobre listTrackedFiles (59-66); changedFiles es la diferencia (67-68), por eso detecta un working tree sucio sin commit nuevo.\n\n2) Nada cambió: si head===previous.commitSha, changedFiles.length===0 y no cambió config/extracción, retorna upToDate:true sin reescanear (69-80), solo recalcula métricas/opportunities. El CLI (apps/cli/.../refresh.ts:52-54) si no hay --analyze retorna ya; con --analyze sigue, pero analyzeSnapshot hallará cache idéntico (punto 4).\n\n3) Reuso de parseo: scan.ts busca cachedExtractions por path filtrando analyzer_version=EXTRACTION_VERSION; si content_hash coincide (230) reutiliza el JSON (reusedFiles++), si no re-extrae (parsedFiles++, 233-239). CLI imprime ambos contadores.\n\n4) Invalidación de fichas: findCachedSummary (store.ts:749) busca por subject_id+level+content_hash+prompt_version+model. content_hash=packHash (analyze.ts:81)=contentHash(cacheBinding?.fingerprint ?? packJson, PROMPT_VERSION, EVIDENCE_ENCODING_VERSION, policyVersion, model.name). Para símbolos, buildSymbolPack (hierarchy.ts:150-175) construye un cacheBinding.fingerprint con líneas RELATIVAS al inicio del símbolo; symbol.contentHash=contentHash(sliceSource(source,extracted)) (scan.ts:269) y stableSymbolId es determinístico e independiente de líneas (domain/ids.test.ts:13-16). Por eso un corrimiento puro de líneas (código insertado arriba) NO cambia packHash y la ficha se reutiliza; si solo cambiaron los IDs de evidencia por reubicación, analyze.ts:92-104 remapea los ev_... sin reanalizar (salvo que el texto cacheado ya contenga referencias de línea escritas, hasWrittenLocations:94). Para archivos/módulos no hay cacheBinding: su fingerprint usa file.contentHash completo (hierarchy.ts:225), así cualquier cambio de contenido del archivo fuerza reanálisis de esa ficha — la protección contra \"solo líneas\" es a nivel símbolo, no de archivo.\n\n5) Profundidad por defecto: max_reanalysis_depth=3 (config/src/index.ts:33, z.number().int().min(0).max(32).default(3)), usado tanto en dependencies.ts (forSubjects) como en refresh.ts:109 para el BFS de módulos afectados.\n\n6) Módulos afectados: refresh.ts calcula changedSymbolIds/removedSymbolIds por contentHash (87-89), halla el módulo dueño (owner, 93) y expande por graph.incoming filtrando DEPENDENCY_EDGE_TYPES hasta max_reanalysis_depth en ambos snapshots (104-123); si cambió config/extracción, marca TODOS los módulos (125-127).\n\n7) Embeddings: indexSnapshot (retrieval/src/indexer.ts) ignora en la práctica symbolIds (comentario \"compatibility hint\", 27) y decide por contentHash real: reutiliza vector solo si embedding_model===modelKey Y embedding_hash===item.contentHash (90-96); el resto se reembebe (107-121).\n\n8) --no-product: refresh.ts cli (88-90) solo llama analyzeProductAndPrint si options.product, por lo que --no-product lo omite.\n\n9) Versiones usadas en toda la caché: EXTRACTION_VERSION (parseo), PROMPT_VERSION='7', ANALYSIS_POLICY_VERSION='hierarchical-evidence-v2' (o 'product-provenance-v1'), EVIDENCE_ENCODING_VERSION='short-citations-v2', model.name, y 'symbol-relocation-v1' en el fingerprint de símbolos.",
+          "citations": [
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 67
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 69
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 109
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 125
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 230
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 269
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 81
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 92
+            },
+            {
+              "path": "packages/lead-analyzer/src/hierarchy.ts",
+              "line": 150
+            },
+            {
+              "path": "packages/lead-analyzer/src/hierarchy.ts",
+              "line": 169
+            },
+            {
+              "path": "packages/lead-analyzer/src/dependencies.ts",
+              "line": 32
+            },
+            {
+              "path": "packages/knowledge-store/src/store.ts",
+              "line": 749
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "line": 90
+            },
+            {
+              "path": "packages/config/src/index.ts",
+              "line": 33
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 88
+            },
+            {
+              "path": "packages/domain/src/ids.test.ts",
+              "line": 13
+            }
+          ]
+        }
+      },
+      {
+        "name": "StructuredOutput",
+        "input": {
+          "worksWithoutCommit": true,
+          "reusesUnchangedFileParse": true,
+          "defaultDependencyDepth": 3,
+          "unchangedAnalyzeUsesCache": true,
+          "canSkipProduct": true,
+          "regeneratesEveryEmbedding": false,
+          "lineMoveAlwaysRegeneratesSymbol": false,
+          "summaryCacheIdentity": [
+            "subject_id",
+            "level",
+            "model.name",
+            "prompt_version (PROMPT_VERSION='7')",
+            "EVIDENCE_ENCODING_VERSION='short-citations-v2'",
+            "policyVersion ('hierarchical-evidence-v2' o 'product-provenance-v1')",
+            "packHash=contentHash(cacheBinding.fingerprint ?? packJson)",
+            "símbolos: fingerprint 'symbol-relocation-v1' (body contentHash, relations, dependencyScope.fingerprint, quality, líneas relativas)"
+          ],
+          "invalidationFlow": {
+            "dependencies": "forSubjects(ids,maxDepth) recorre graph.outgoing hasta max_reanalysis_depth saltos -> fingerprint=contentHash({maxDepth,dependencies,topology,unresolved,boundary}); entra en fingerprint del símbolo/archivo, invalidando la ficha si una dependencia en el radio cambia.",
+            "parents": "summaryEntries incrusta subjectId+content+contentHash del hijo como evidencia del padre (archivo->módulo->brief repo; documento->Product Context). Cambiar un hijo cambia su contentHash, la evidencia del padre y su packHash, propagando la invalidación hacia arriba.",
+            "product": "analyzeProductContext empaqueta documentos + enlaces DOCUMENTED_BY a summaries técnicos; Product Context usa fingerprint=[documentId,contentHash] y summaryEntries(technical). Cambiar un documento o el brief técnico repropaga al Product Context."
+          },
+          "explanation": "1) Sin commit: refreshRepository compara bytes, no git. oldFileHashes viene de la tabla files del snapshot previo (refresh.ts:53-55); currentFileHashes=contentHash(readFileSync) sobre listTrackedFiles (59-66); changedFiles es la diferencia (67-68).\n\n2) Nada cambió: si head===previous.commitSha, changedFiles.length===0 y no cambió config/extracción, retorna upToDate:true sin reescanear (refresh.ts:69-80). CLI (refresh.ts cli:52-54) retorna ya sin --analyze; con --analyze, analyzeSnapshot halla cache idéntico (punto 4).\n\n3) Reuso de parseo: scan.ts busca cachedExtractions por path con analyzer_version=EXTRACTION_VERSION; si content_hash coincide (línea 230) reutiliza JSON (reusedFiles++), si no re-extrae (233-239).\n\n4) Invalidación de fichas: findCachedSummary (store.ts:749) filtra subject_id+level+content_hash+prompt_version+model. content_hash=packHash (analyze.ts:81)=contentHash(cacheBinding?.fingerprint ?? packJson, PROMPT_VERSION, EVIDENCE_ENCODING_VERSION, policyVersion, model.name). buildSymbolPack (hierarchy.ts:150-175) usa líneas relativas al inicio del símbolo; symbol.contentHash=contentHash(sliceSource) (scan.ts:269) y stableSymbolId es independiente de líneas (ids.test.ts:13-16). Por eso un corrimiento puro de líneas no cambia el packHash y la ficha se reutiliza; si solo cambian IDs de evidencia, analyze.ts:92-104 remapea ev_... sin reanalizar (salvo hasWrittenLocations:94). Archivos/módulos no tienen cacheBinding: su fingerprint usa file.contentHash completo (hierarchy.ts:225), así cualquier cambio de contenido del archivo fuerza reanálisis de esa ficha — la protección es a nivel símbolo, no de archivo.\n\n5) Profundidad: max_reanalysis_depth=3 por defecto (config/src/index.ts:33, min 0 max 32), usado en dependencies.ts y en refresh.ts:109 para el BFS de módulos afectados.\n\n6) Módulos afectados: refresh.ts calcula changedSymbolIds/removedSymbolIds por contentHash (87-89), halla el módulo dueño (owner,93) y expande por graph.incoming filtrando DEPENDENCY_EDGE_TYPES hasta max_reanalysis_depth en ambos snapshots (104-123); si cambió config/extracción, marca TODOS los módulos (125-127).\n\n7) Embeddings: indexSnapshot ignora en la práctica symbolIds (comentario \"compatibility hint\", indexer.ts:27) y decide por contentHash real: reutiliza vector solo si embedding_model===modelKey Y embedding_hash===item.contentHash (90-96); el resto se reembebe (107-121).\n\n8) --no-product: refresh.ts cli (88-90) solo llama analyzeProductAndPrint si options.product.\n\n9) Versiones en la caché: EXTRACTION_VERSION (parseo), PROMPT_VERSION='7', ANALYSIS_POLICY_VERSION='hierarchical-evidence-v2'/'product-provenance-v1', EVIDENCE_ENCODING_VERSION='short-citations-v2', model.name, 'symbol-relocation-v1'.",
+          "citations": [
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 67
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 69
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 109
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 125
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 230
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 269
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 81
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 92
+            },
+            {
+              "path": "packages/lead-analyzer/src/hierarchy.ts",
+              "line": 150
+            },
+            {
+              "path": "packages/lead-analyzer/src/hierarchy.ts",
+              "line": 169
+            },
+            {
+              "path": "packages/lead-analyzer/src/dependencies.ts",
+              "line": 32
+            },
+            {
+              "path": "packages/knowledge-store/src/store.ts",
+              "line": 749
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "line": 90
+            },
+            {
+              "path": "packages/config/src/index.ts",
+              "line": 33
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 88
+            },
+            {
+              "path": "packages/domain/src/ids.test.ts",
+              "line": 13
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "repolead": {
+    "mode": "repolead",
+    "inputTokens": 705667,
+    "outputTokens": 18629,
+    "estimatedCostUsd": 0.9668665,
+    "durationMs": 217980,
+    "structuredOutputAttempts": 2,
+    "models": [
+      "claude-haiku-4-5-20251001",
+      "claude-sonnet-5"
+    ],
+    "answer": {
+      "worksWithoutCommit": true,
+      "reusesUnchangedFileParse": true,
+      "defaultDependencyDepth": 3,
+      "unchangedAnalyzeUsesCache": true,
+      "canSkipProduct": true,
+      "regeneratesEveryEmbedding": false,
+      "lineMoveAlwaysRegeneratesSymbol": false,
+      "summaryCacheIdentity": [
+        "subjectId",
+        "level (symbol|file|module|document|product|repository)",
+        "contentHash/packHash (fingerprint del pack o packJson completo, incluye dependencias y resúmenes hijos)",
+        "promptVersion (PROMPT_VERSION)",
+        "model.name",
+        "EVIDENCE_ENCODING_VERSION",
+        "policyVersion"
+      ],
+      "invalidationFlow": {
+        "dependencies": "contentHash de un símbolo = contentHash(sliceSource(texto)), basado en offsets del span, no en la línea (scan.ts:269; source.ts:4-11); el id estable tampoco usa línea (scan.ts:246-252). refreshRepository solo agrega a changedSymbolIds si ese contentHash cambió vs el snapshot previo (refresh.ts code-graph:87-88), lo que invalida el packHash cacheado en summaries (analyze.ts:81; store.ts:749-762).",
+        "parents": "El pack de archivo embebe los SummaryDoc de sus símbolos hijos y el de módulo embebe los de archivo más un fingerprint de dependencias (analyze.ts:259-268); si un hijo cambia, el packHash del padre cambia. analyze.ts:65 deja explícito que la síntesis archivo→módulo→brief 'siempre se actualiza' en cada corrida, aunque fichas de símbolo individuales puedan servirse de caché.",
+        "product": "analyzeProductContext mete en el pack 'product' los resúmenes de documentos y del brief técnico más el contentHash de cada documento (product.ts:117-128); documentos enlazados vía DOCUMENTED_BY arrastran el summary técnico correspondiente (product.ts:51-65). Un cambio técnico que regenere el brief o un summary enlazado cambia el packHash de documento/producto, forzando su regeneración; puede omitirse con --no-product o --audience technical (refresh.ts:30,88-90; analyze.ts:33,52,115)."
+      },
+      "explanation": "refreshRepository (code-graph/refresh.ts) compara bytes del árbol de trabajo actual (readFileSync+contentHash sobre archivos trackeados) contra content_hash del snapshot previo, no git diff de commits; el comentario \"Compare against indexed bytes, including an already-indexed dirty working tree\" (línea 26) lo confirma: aunque el commit no cambie, ediciones sin commitear alteran el hash y upToDate=false. Sin cambios de bytes/config/extracción, devuelve upToDate:true sin reescanear (líneas 69-79); si se pasó --analyze, analyzeSnapshot corre igual y sirve todo de caché (refresh.test.ts:32-36: segunda corrida sin cambios no añade packs nuevos).\n\nEl parseo se reutiliza en scanRepository: si el hash del archivo coincide con la extracción cacheada, se reusa el JSON (reusedFiles++); si no, se reparsea (scan.ts:229-239).\n\nInvalidación por símbolo: contentHash viene del texto exacto (sliceSource por offsets), no de la posición (scan.ts:269); el id estable tampoco depende de línea (scan.ts:246-252). Solo se marca changedSymbolIds si ese hash difiere (refresh.ts:87-88); por eso mover líneas sin tocar texto NO regenera esa ficha, aunque el archivo sí cambia de bytes y dispara en cascada archivo→módulo→brief (analyze.ts:65,259-268) porque estos niveles incrustan los resúmenes hijos. Producto cascada un nivel más: analyzeProductContext incluye resúmenes de documentos y del brief (product.ts:117-128) y arrastra enlaces DOCUMENTED_BY (product.ts:51-65).\n\nIdentidad de caché de resumen: subjectId+level+contentHash(packHash)+promptVersion+model, consultados en findCachedSummary (store.ts:749-762); packHash = contentHash(fingerprint-o-packJson + PROMPT_VERSION + EVIDENCE_ENCODING_VERSION + policyVersion + model.name) (analyze.ts:81).\n\nProfundidad por defecto = 3: config/src/index.ts:33 (max_reanalysis_depth default 3) y dependencies.ts:5,32,61.\n\nEmbeddings: indexSnapshot solo re-embebe lo que cambió de contentHash/modelo frente a lo cacheado en Qdrant (indexer.ts:40,89-96); el parámetro symbolIds es solo un \"compatibility hint\", los hashes son la autoridad (indexer.ts:27-28).\n\nProducto es omitible: --no-product en refresh (línea 30, usado en líneas 88-90) y --audience technical/el check de línea 33,90,115 en analyze.ts.",
+      "citations": [
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 26
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 64
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 69
+        },
+        {
+          "path": "packages/code-graph/src/refresh.ts",
+          "line": 87
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 230
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 269
+        },
+        {
+          "path": "packages/code-graph/src/scan.ts",
+          "line": 246
+        },
+        {
+          "path": "packages/domain/src/source.ts",
+          "line": 4
+        },
+        {
+          "path": "packages/config/src/index.ts",
+          "line": 33
+        },
+        {
+          "path": "packages/lead-analyzer/src/dependencies.ts",
+          "line": 5
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 81
+        },
+        {
+          "path": "packages/knowledge-store/src/store.ts",
+          "line": 759
+        },
+        {
+          "path": "packages/lead-analyzer/src/analyze.ts",
+          "line": 65
+        },
+        {
+          "path": "packages/lead-analyzer/src/product.ts",
+          "line": 126
+        },
+        {
+          "path": "packages/retrieval/src/indexer.ts",
+          "line": 40
+        },
+        {
+          "path": "apps/cli/src/commands/refresh.ts",
+          "line": 88
+        }
+      ]
+    },
+    "checks": {
+      "workingTree": true,
+      "parseReuse": true,
+      "depth": true,
+      "unchangedCache": true,
+      "productOption": true,
+      "selectiveVectors": true,
+      "relocation": true,
+      "cacheIdentity": true,
+      "dependencyCascade": false,
+      "synthesisCascade": true,
+      "productCascade": true,
+      "citations": true
+    },
+    "correct": false,
+    "calls": [
+      {
+        "name": "mcp__repolead__context_pack",
+        "input": {
+          "mode": "evidence",
+          "repo": "workflow-AYBNVS",
+          "types": [
+            "symbol",
+            "summary"
+          ],
+          "maxTokens": 8000,
+          "queries": [
+            "refresh --analyze detección de cambios sin commit (working tree diff) uncommitted changes hash",
+            "reutilización de parseo de archivo no modificado cache parse AST reuse",
+            "invalidación de fichas de símbolo y propagación a síntesis de archivo/módulo/repositorio",
+            "invalidación de síntesis de producto y documentos vinculados cuando cambia código técnico",
+            "decisión de qué embeddings recalcular tras cambios (regeneratesEveryEmbedding, embedding cache)",
+            "límite de profundidad de dependencias por defecto defaultDependencyDepth",
+            "qué pasa si nada cambió en refresh --analyze no-op skip unchanged",
+            "identidad y versiones usadas en caché de resúmenes (hash, mtime, git blob, content hash) summaryCache key"
+          ]
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "ranges": [
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "startLine": 1,
+              "endLine": 140
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "startLine": 1,
+              "endLine": 135
+            },
+            {
+              "path": "packages/lead-analyzer/src/dependencies.ts",
+              "startLine": 1,
+              "endLine": 69
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "startLine": 60,
+              "endLine": 180
+            }
+          ]
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "query": "symbol contentHash computed from text normalized start end line",
+          "type": "symbol"
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "query": "validateReanalysisDepth maxReanalysisDepth default analysisBudget",
+          "type": "symbol"
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "query": "canSkipProduct product flag default --no-product option refresh command"
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "query": "max_reanalysis_depth default config analysis_budget",
+          "type": "symbol"
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "query": "symbol contentHash normalized text excluding line numbers extraction CodeSymbol",
+          "type": "symbol"
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "path": "apps/cli/src/commands/refresh.test.ts",
+          "startLine": 1,
+          "endLine": 60
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "path": "packages/config/src/index.ts",
+          "startLine": 1,
+          "endLine": 90
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "query": "contentHash: contentHash(text) symbol extraction CodeSymbol assign startLine endLine slice",
+          "type": "symbol"
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "query": "extractFromSource function node text slice contentHash CodeSymbol",
+          "type": "symbol"
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "ranges": [
+            {
+              "path": "adapters/typescript/src/extract.ts",
+              "startLine": 69,
+              "endLine": 170
+            },
+            {
+              "path": "packages/domain/src/source.ts",
+              "startLine": 1,
+              "endLine": 20
+            }
+          ]
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "query": "contentHash: contentHash(sliceSource symbol.startLine symbol.endLine scan.ts insertSymbols",
+          "type": "symbol"
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "path": "packages/code-graph/src/scan.ts",
+          "startLine": 230,
+          "endLine": 330
+        }
+      },
+      {
+        "name": "mcp__repolead__context_pack",
+        "input": {
+          "mode": "evidence",
+          "repo": "workflow-AYBNVS",
+          "types": [
+            "symbol"
+          ],
+          "maxTokens": 6000,
+          "queries": [
+            "analyzeProductAndPrint product synthesis cache fingerprint depends on technical summaries documents",
+            "buildDocumentPacks file module brief hierarchy always regenerated cache binding fingerprint",
+            "selectSymbols file module cascade summary cache always update regardless unchanged"
+          ]
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "path": "apps/cli/src/commands/product-analysis.ts",
+          "startLine": 1,
+          "endLine": 90
+        }
+      },
+      {
+        "name": "mcp__repolead__search",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "query": "analyzeProductContext function documents brief fingerprint product summary cache",
+          "type": "symbol"
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "path": "packages/lead-analyzer/src/product.ts",
+          "startLine": 1,
+          "endLine": 131
+        }
+      },
+      {
+        "name": "mcp__repolead__get_evidence",
+        "input": {
+          "repo": "workflow-AYBNVS",
+          "path": "packages/retrieval/src/indexer.ts",
+          "startLine": 1,
+          "endLine": 41
+        }
+      },
+      {
+        "name": "StructuredOutput",
+        "input": {
+          "worksWithoutCommit": true,
+          "reusesUnchangedFileParse": true,
+          "defaultDependencyDepth": 3,
+          "unchangedAnalyzeUsesCache": true,
+          "canSkipProduct": true,
+          "regeneratesEveryEmbedding": false,
+          "lineMoveAlwaysRegeneratesSymbol": false,
+          "summaryCacheIdentity": [
+            "subjectId",
+            "level (symbol|file|module|document|product|repository)",
+            "contentHash/packHash (derivado del fingerprint del pack o del packJson completo, que incluye dependencias y resúmenes hijos)",
+            "promptVersion (PROMPT_VERSION)",
+            "model.name",
+            "EVIDENCE_ENCODING_VERSION",
+            "policyVersion"
+          ],
+          "invalidationFlow": {
+            "dependencies": "El contentHash de un símbolo se calcula sobre el texto extraído por sliceSource (span de offsets), no sobre su posición/línea (scan.ts:269; source.ts:4-11), y el id estable tampoco incluye línea (scan.ts:246-252). refreshRepository compara ese contentHash contra el snapshot previo; solo si cambia entra en changedSymbolIds (refresh.ts code-graph:87-88), lo que a su vez hace que el packHash de su ficha (subjectId+pack+promptVersion+evidenceEncodingVersion+policyVersion+model, analyze.ts:81) ya no coincida con el cacheado en summaries (store.ts:749-762), forzando reanálisis de esa ficha.",
+            "parents": "El pack de archivo embebe los SummaryDoc de sus símbolos hijos y el de módulo embebe los de sus archivos hijos más un fingerprint estructural de dependencias (analyze.ts:259-268, hierarchy summaryEntries); si cualquier hijo cambia de resumen, el packHash del padre cambia y se recalcula. El CLI de analyze deja explícito que 'la síntesis archivo → módulo → brief siempre se actualiza' en cada corrida (analyze.ts:65), aunque las fichas de símbolo individuales se sirvan de caché.",
+            "product": "analyzeProductContext inyecta en el pack 'product' los resúmenes de todos los documentos y del brief repositorio (summaryEntries(cards), summaryEntries(technical), product.ts:117-128) más el contentHash de cada documento; los documentos enlazados a símbolos vía DOCUMENTED_BY arrastran el summary técnico correspondiente (linkedTechnicalEvidence, product.ts:51-65). Cualquier cambio técnico que regenere el brief o un summary de símbolo/archivo enlazado cambia el packHash de documento y de producto, forzando su regeneración. Puede omitirse explícitamente con --no-product en refresh o --audience technical en analyze (refresh.ts:30,88-90; analyze.ts:33,52,115)."
+          },
+          "explanation": "refreshRepository (packages/code-graph/src/refresh.ts) detecta cambios comparando bytes del árbol de trabajo actual (readFileSync + contentHash sobre los archivos trackeados por git) contra los content_hash guardados en la tabla files del snapshot previo, no mediante git diff de commits; el comentario del propio archivo lo explicita: \"Compare against indexed bytes, including an already-indexed dirty working tree\" (línea 26). Incluso si el commit (gitHead) no cambió, si hay ediciones sin commitear los hashes de archivo difieren y upToDate pasa a false. Cuando no hay cambios de bytes, config ni extracción, refresh devuelve upToDate:true sin reescanear ni reanalizar (líneas 69-79) y el CLI imprime \"Sin cambios\" (refresh.ts CLI:52-53); si se pasó --analyze de todos modos, analyzeSnapshot se ejecuta igual y sirve todo desde caché (confirmado por refresh.test.ts:32-36, donde una segunda corrida sin cambios produce exactamente el mismo total de packs, es decir ninguna llamada generativa nueva).\n\nEl parseo se reutiliza en scanRepository (scan.ts:229-239): por archivo se compara el hash contra la extracción cacheada de la corrida previa; si coincide se reutiliza el JSON ya extraído (reusedFiles++) y solo se reparsea si cambió (parsedFiles++), independientemente de si hubo commit.\n\nLa invalidación de fichas es por símbolo: contentHash se calcula sobre el texto exacto extraído con sliceSource usando offsets de span (scan.ts:269; source.ts:4-11), y el id estable del símbolo no depende de la línea (scan.ts:246-252). refreshRepository solo marca un símbolo como changedSymbolIds si su contentHash difiere del snapshot previo (refresh.ts:87-88). Por eso mover líneas sin tocar el texto del símbolo NO regenera su ficha (el hash es idéntico); sin embargo el archivo sí cambia de bytes, y analyze.ts explicita que la síntesis archivo→módulo→brief \"siempre se actualiza\" (línea 65) porque esos niveles incrustan los resúmenes de sus hijos (summaryEntries) y recalculan su propio packHash en cascada (analyze.ts:259-268). La síntesis de producto hace lo mismo un nivel más arriba: analyzeProductContext mete en el pack 'product' los resúmenes de documentos y del brief técnico más el contentHash de cada documento (product.ts:117-128), de modo que un cambio técnico que regenere el brief o un resumen enlazado (DOCUMENTED_BY, product.ts:51-65) cascada hasta el contexto de producto.\n\nLa identidad/versión que decide si una ficha se sirve de caché combina subjectId + level + contentHash(packHash) + promptVersion + model, consultados literalmente en findCachedSummary (store.ts:749-762); el packHash en sí se construye con contentHash(`${fingerprint||packJson}\\n${PROMPT_VERSION}\\n${EVIDENCE_ENCODING_VERSION}\\n${policyVersion}\\n${model.name}`) (analyze.ts:81).\n\nEl límite de profundidad de dependencias por defecto es 3: tanto el esquema de configuración (config/src/index.ts:33, max_reanalysis_depth default 3) como validateReanalysisDepth y buildDependencyIndex.collect/forSubjects (dependencies.ts:5,32,61) usan 3 por defecto.\n\nQué embeddings se recalculan: indexSnapshot documenta \"SQLite rebuilds all searchable knowledge; only changed inputs generate/upload vectors\" (indexer.ts:40); compara el embedding_hash/embedding_model cacheado en Qdrant contra el contentHash/modelKey actual del KnowledgeItem (indexer.ts:89-96) y solo re-embebe lo que no coincide; el parámetro symbolIds que refresh.ts pasa es explícitamente un \"compatibility hint: hashes remain authoritative\" (indexer.ts:27-28), no un filtro excluyente. Por tanto no se regenera todo el índice de embeddings en cada refresh.\n\nProducto puede omitirse: refresh.ts expone --no-product (línea 30) y solo llama a analyzeProductAndPrint si options.product es true (líneas 88-90); analyze.ts lanza error si se combina --module con audience 'product' (línea 33) y solo ejecuta el análisis de producto cuando audience !== 'technical' (líneas 90,115).",
+          "citations": [
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 26
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 64
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 69
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 87
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 230
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 269
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 246
+            },
+            {
+              "path": "packages/domain/src/source.ts",
+              "line": 4
+            },
+            {
+              "path": "packages/config/src/index.ts",
+              "line": 33
+            },
+            {
+              "path": "packages/lead-analyzer/src/dependencies.ts",
+              "line": 5
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 81
+            },
+            {
+              "path": "packages/knowledge-store/src/store.ts",
+              "line": 759
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 65
+            },
+            {
+              "path": "packages/lead-analyzer/src/product.ts",
+              "line": 126
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "line": 40
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 88
+            }
+          ]
+        }
+      },
+      {
+        "name": "StructuredOutput",
+        "input": {
+          "worksWithoutCommit": true,
+          "reusesUnchangedFileParse": true,
+          "defaultDependencyDepth": 3,
+          "unchangedAnalyzeUsesCache": true,
+          "canSkipProduct": true,
+          "regeneratesEveryEmbedding": false,
+          "lineMoveAlwaysRegeneratesSymbol": false,
+          "summaryCacheIdentity": [
+            "subjectId",
+            "level (symbol|file|module|document|product|repository)",
+            "contentHash/packHash (fingerprint del pack o packJson completo, incluye dependencias y resúmenes hijos)",
+            "promptVersion (PROMPT_VERSION)",
+            "model.name",
+            "EVIDENCE_ENCODING_VERSION",
+            "policyVersion"
+          ],
+          "invalidationFlow": {
+            "dependencies": "contentHash de un símbolo = contentHash(sliceSource(texto)), basado en offsets del span, no en la línea (scan.ts:269; source.ts:4-11); el id estable tampoco usa línea (scan.ts:246-252). refreshRepository solo agrega a changedSymbolIds si ese contentHash cambió vs el snapshot previo (refresh.ts code-graph:87-88), lo que invalida el packHash cacheado en summaries (analyze.ts:81; store.ts:749-762).",
+            "parents": "El pack de archivo embebe los SummaryDoc de sus símbolos hijos y el de módulo embebe los de archivo más un fingerprint de dependencias (analyze.ts:259-268); si un hijo cambia, el packHash del padre cambia. analyze.ts:65 deja explícito que la síntesis archivo→módulo→brief 'siempre se actualiza' en cada corrida, aunque fichas de símbolo individuales puedan servirse de caché.",
+            "product": "analyzeProductContext mete en el pack 'product' los resúmenes de documentos y del brief técnico más el contentHash de cada documento (product.ts:117-128); documentos enlazados vía DOCUMENTED_BY arrastran el summary técnico correspondiente (product.ts:51-65). Un cambio técnico que regenere el brief o un summary enlazado cambia el packHash de documento/producto, forzando su regeneración; puede omitirse con --no-product o --audience technical (refresh.ts:30,88-90; analyze.ts:33,52,115)."
+          },
+          "explanation": "refreshRepository (code-graph/refresh.ts) compara bytes del árbol de trabajo actual (readFileSync+contentHash sobre archivos trackeados) contra content_hash del snapshot previo, no git diff de commits; el comentario \"Compare against indexed bytes, including an already-indexed dirty working tree\" (línea 26) lo confirma: aunque el commit no cambie, ediciones sin commitear alteran el hash y upToDate=false. Sin cambios de bytes/config/extracción, devuelve upToDate:true sin reescanear (líneas 69-79); si se pasó --analyze, analyzeSnapshot corre igual y sirve todo de caché (refresh.test.ts:32-36: segunda corrida sin cambios no añade packs nuevos).\n\nEl parseo se reutiliza en scanRepository: si el hash del archivo coincide con la extracción cacheada, se reusa el JSON (reusedFiles++); si no, se reparsea (scan.ts:229-239).\n\nInvalidación por símbolo: contentHash viene del texto exacto (sliceSource por offsets), no de la posición (scan.ts:269); el id estable tampoco depende de línea (scan.ts:246-252). Solo se marca changedSymbolIds si ese hash difiere (refresh.ts:87-88); por eso mover líneas sin tocar texto NO regenera esa ficha, aunque el archivo sí cambia de bytes y dispara en cascada archivo→módulo→brief (analyze.ts:65,259-268) porque estos niveles incrustan los resúmenes hijos. Producto cascada un nivel más: analyzeProductContext incluye resúmenes de documentos y del brief (product.ts:117-128) y arrastra enlaces DOCUMENTED_BY (product.ts:51-65).\n\nIdentidad de caché de resumen: subjectId+level+contentHash(packHash)+promptVersion+model, consultados en findCachedSummary (store.ts:749-762); packHash = contentHash(fingerprint-o-packJson + PROMPT_VERSION + EVIDENCE_ENCODING_VERSION + policyVersion + model.name) (analyze.ts:81).\n\nProfundidad por defecto = 3: config/src/index.ts:33 (max_reanalysis_depth default 3) y dependencies.ts:5,32,61.\n\nEmbeddings: indexSnapshot solo re-embebe lo que cambió de contentHash/modelo frente a lo cacheado en Qdrant (indexer.ts:40,89-96); el parámetro symbolIds es solo un \"compatibility hint\", los hashes son la autoridad (indexer.ts:27-28).\n\nProducto es omitible: --no-product en refresh (línea 30, usado en líneas 88-90) y --audience technical/el check de línea 33,90,115 en analyze.ts.",
+          "citations": [
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 26
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 64
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 69
+            },
+            {
+              "path": "packages/code-graph/src/refresh.ts",
+              "line": 87
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 230
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 269
+            },
+            {
+              "path": "packages/code-graph/src/scan.ts",
+              "line": 246
+            },
+            {
+              "path": "packages/domain/src/source.ts",
+              "line": 4
+            },
+            {
+              "path": "packages/config/src/index.ts",
+              "line": 33
+            },
+            {
+              "path": "packages/lead-analyzer/src/dependencies.ts",
+              "line": 5
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 81
+            },
+            {
+              "path": "packages/knowledge-store/src/store.ts",
+              "line": 759
+            },
+            {
+              "path": "packages/lead-analyzer/src/analyze.ts",
+              "line": 65
+            },
+            {
+              "path": "packages/lead-analyzer/src/product.ts",
+              "line": 126
+            },
+            {
+              "path": "packages/retrieval/src/indexer.ts",
+              "line": 40
+            },
+            {
+              "path": "apps/cli/src/commands/refresh.ts",
+              "line": 88
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "baselineTokens": 737073,
+  "assistedTokens": 724296,
+  "reductionPercent": 1.7334782307858232,
+  "f7LessTokens": false,
+  "roadmapUnderTenPercent": false,
+  "limits": [
+    "One matched run per arm on actual RepoLead source; no required minimum manual reads or padded source.",
+    "Answers checked against prescribed implementation facts and valid citations, including at least four implementation locations. Supplemental test citations are allowed; not every sentence is automatically verified.",
+    "Real SDK pipeline totals include cached input/auxiliary calls; not Astra/Fable tokens or subscription invoices.",
+    "Both arms use the same structured output schema; formatting retries are included in totals and can affect this single-run comparison.",
+    "SCIP enabled after frozen installation in the isolated source capture.",
+    "Manual output required three StructuredOutput attempts and MCP two; rejected overlong outputs remain included. A manual invalid-regex search is also included. These behaviors affect the total; no causal isolation of retrieval changes."
+  ],
+  "backendHashes": {
+    "apps/cli/dist/index.cjs": "2b8e95d13010b2d22441f6dfeacb5febade1c4d51fbe4873a8bc344f140bebe6",
+    "apps/mcp-server/src/server.ts": "a316bac1c3c2245c113efcb10913ef5d12c522cf30182e39bacaccf921b85fec",
+    "packages/retrieval/src/runtime.ts": "bed0c659f43afae33c0d6e3217c392261433d82361b76ef1e9c7b9c7107fd7bc",
+    "packages/retrieval/src/evidence-context.ts": "ebd4f5910aaef81a117122628bbc5c2d329efd95e1b6cf44b8e845dcaef3dd2c",
+    "packages/retrieval/src/source-excerpts.ts": "b916dca467443f577d9ea0b9630480be01e7c5aebc66c24b297465cd0dd3a9d7",
+    "packages/retrieval/src/search.ts": "2af893f68be912b25adbd90c869416a613d542a8abd76f27e9477fb589599dce",
+    "packages/retrieval/src/reranker.ts": "2258797d6b0aad8b1079caa07dee29094a040b26634335e467a498313cf4df32",
+    "packages/knowledge-store/src/store.ts": "b52f47028c29b223aeea6832ffeea31e9c489a74b9dd332ae8718f3362ec83b7",
+    "packages/knowledge-store/src/search-index.ts": "a00d34e3c142485644a2b0db6b11b769197355f1367b7d72bf451e3c736adc46"
+  },
+  "review": {
+    "status": "insufficient",
+    "facts": "Manual answer covers the prescribed implementation facts, including evidence encoding and the absolute-location cache exception. MCP answer does not explain invalidation of an unchanged caller after its dependency changes. Its line-relocation explanation also omits the conservative regeneration exception for cached prose with absolute coordinates.",
+    "sourceEvidence": [
+      "packages/lead-analyzer/src/dependencies.ts:32",
+      "packages/lead-analyzer/src/hierarchy.ts:150",
+      "packages/lead-analyzer/src/analyze.ts:81",
+      "packages/lead-analyzer/src/analyze.ts:94"
+    ],
+    "acceptedSavings": false,
+    "note": "Reported 1.733% reduction is a raw comparison with unequal answer completeness; it is not an accepted saving."
+  }
+}

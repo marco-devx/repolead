@@ -1,0 +1,16 @@
+id: QUALITY-ERRORS-001
+version: 1
+name: Silently discarded exceptions
+severity: medium
+description: Empty catch/except bodies can hide failed work; deliberate best-effort cleanup may be valid.
+required_evidence: [location, metric, source_excerpt]
+candidate_detectors:
+  - name: metric_threshold
+    params:
+      metric: empty_catches
+      threshold: 1
+llm_judgment:
+  question: >
+    Does the empty handler silently discard a failure that the caller needs to
+    observe? Reject documented best-effort cleanup or a deliberate fallback when
+    its contract permits ignoring this error. Confirm only from supplied code.

@@ -1,0 +1,16 @@
+id: DESIGN-COHESION-001
+version: 1
+name: Disconnected module responsibilities
+severity: low
+description: Disconnected dependency components are a heuristic to review module boundaries.
+required_evidence: [location, metric]
+candidate_detectors:
+  - name: low_cohesion
+    params:
+      minFiles: 4
+      maxRatio: 0.5
+llm_judgment:
+  question: >
+    Does available evidence establish unrelated responsibilities in one module?
+    Independent utilities, plugins, endpoints and tests may legitimately have no
+    mutual imports. Reject when graph disconnection is the only evidence.

@@ -1,137 +1,122 @@
-import type { ScipIndex } from '@repolead/adapter-scip';
+import type { ScipIndex, ScipOccurrence } from '@repolead/adapter-scip';
 import { scipShortName } from '@repolead/adapter-scip';
-import type { CodeSymbol, Edge, EdgeType } from '@repolead/domain';
+import type { CallSite, CodeSymbol, Edge, InheritanceSite, SymbolReference } from '@repolead/domain';
 
+export interface ReconciliationDiagnostic { path: string; line: number | null; symbol: string; reason: string }
 export interface ScipEnrichment {
   edges: Edge[];
+  references: SymbolReference[];
   resolvedReferences: number;
-  /** Definiciones SCIP sin símbolo tree-sitter correspondiente (desacuerdo entre analizadores). */
   unmappedDefinitions: number;
+  diagnostics: ReconciliationDiagnostic[];
 }
+export interface ScipSource { id: string; content: string; calls: CallSite[]; inheritance?: InheritanceSite[] }
 
-/** El símbolo más interno (menor span) de un path que contiene la línea dada. */
-function enclosingSymbol(symbols: CodeSymbol[], line: number): CodeSymbol | null {
-  let best: CodeSymbol | null = null;
-  for (const symbol of symbols) {
-    if (line < symbol.startLine || line > symbol.endLine) {
-      continue;
-    }
-    if (!best || symbol.endLine - symbol.startLine < best.endLine - best.startLine) {
-      best = symbol;
-    }
+function contains(symbol: CodeSymbol, occurrence: ScipOccurrence): boolean {
+  if (occurrence.startLine < symbol.startLine || occurrence.startLine > symbol.endLine) { return false; }
+  if (symbol.span && occurrence.startColumn !== undefined) {
+    if (occurrence.startLine === symbol.startLine && occurrence.startColumn < symbol.span.startColumn) { return false; }
+    if (occurrence.startLine === symbol.endLine && occurrence.startColumn >= symbol.span.endColumn) { return false; }
   }
-  return best;
+  return true;
 }
-
-function shortNameOf(symbol: CodeSymbol): string {
-  const parts = symbol.qualifiedName.split('.');
-  return parts[parts.length - 1] ?? symbol.qualifiedName;
+function innermost(symbols: CodeSymbol[], occurrence: ScipOccurrence): CodeSymbol | null {
+  const size = (symbol: CodeSymbol) => symbol.span ? symbol.span.endOffset - symbol.span.startOffset : (symbol.endLine - symbol.startLine + 1) * 100000;
+  const candidates = symbols.filter((symbol) => contains(symbol, occurrence)).sort((a, b) => size(a) - size(b)
+    || Number(a.kind === 'endpoint') - Number(b.kind === 'endpoint'));
+  if (candidates.length > 1 && size(candidates[0]!) === size(candidates[1]!) && candidates[0]!.kind === candidates[1]!.kind) { return null; }
+  return candidates[0] ?? null;
 }
+function shortNameOf(symbol: CodeSymbol) { return symbol.qualifiedName.split('.').at(-1) ?? symbol.qualifiedName; }
 
-function referenceEdgeType(target: CodeSymbol): EdgeType {
-  return target.kind === 'function' || target.kind === 'method' ? 'CALLS' : 'DEPENDS_ON';
-}
-
-/**
- * Cruza el índice SCIP con los símbolos de Tree-sitter: cada definición SCIP
- * se mapea al símbolo propio por (path, línea, nombre); las referencias se
- * convierten en edges CALLS/DEPENDS_ON y las relaciones en IMPLEMENTS/EXTENDS.
- * SCIP es la fuente principal de referencias (regla de precedencia del plan);
- * los desacuerdos quedan contados en unmappedDefinitions.
- */
-export function buildScipEdges(scip: ScipIndex, symbols: CodeSymbol[], snapshotId: string): ScipEnrichment {
+/** Compiler-resolved references retain every occurrence; only AST call sites become CALLS. */
+export function buildScipEdges(scip: ScipIndex, symbols: CodeSymbol[], snapshotId: string,
+  files: Map<string, ScipSource> = new Map()): ScipEnrichment {
   const byPath = new Map<string, CodeSymbol[]>();
-  for (const symbol of symbols) {
-    const list = byPath.get(symbol.path) ?? [];
-    list.push(symbol);
-    byPath.set(symbol.path, list);
-  }
-
+  for (const symbol of symbols) { const list = byPath.get(symbol.path) ?? []; list.push(symbol); byPath.set(symbol.path, list); }
+  const diagnostics: ReconciliationDiagnostic[] = [];
+  const documents = scip.documents.map((document) => {
+    const source = files.get(document.relativePath)?.content;
+    const lines = source?.split('\n');
+    const column = (line: number, character: number): number => {
+      const text = lines?.[line - 1];
+      if (document.positionEncoding === 'utf8' && text !== undefined) { return Buffer.from(text).subarray(0, character).toString('utf8').length; }
+      if (document.positionEncoding === 'utf32' && text !== undefined) { return [...text].slice(0, character).join('').length; }
+      return character;
+    };
+    return { ...document, occurrences: document.occurrences.flatMap((occurrence) => {
+      if ((document.positionEncoding === 'utf8' || document.positionEncoding === 'utf32') && !lines) {
+        diagnostics.push({ path: document.relativePath, line: occurrence.startLine, symbol: occurrence.symbol, reason: 'Source required to normalize non-UTF16 positions.' }); return [];
+      }
+      return [{ ...occurrence,
+        startColumn: occurrence.startColumn === undefined ? undefined : column(occurrence.startLine, occurrence.startColumn),
+        endColumn: occurrence.endColumn === undefined ? undefined : column(occurrence.endLine ?? occurrence.startLine, occurrence.endColumn) }];
+    }) };
+  });
   const scipToOur = new Map<string, CodeSymbol>();
+  const ambiguous = new Set<string>();
   let unmappedDefinitions = 0;
-
-  for (const document of scip.documents) {
-    const fileSymbols = byPath.get(document.relativePath);
-    if (!fileSymbols) {
-      continue;
-    }
-    for (const occurrence of document.occurrences) {
-      if (!occurrence.isDefinition) {
-        continue;
-      }
-      const shortName = scipShortName(occurrence.symbol);
-      const candidates = fileSymbols.filter(
-        (symbol) =>
-          occurrence.startLine >= symbol.startLine &&
-          occurrence.startLine <= symbol.endLine &&
-          shortNameOf(symbol) === shortName,
-      );
-      const match = candidates.length > 0 ? enclosingSymbol(candidates, occurrence.startLine) : null;
-      if (match) {
-        scipToOur.set(occurrence.symbol, match);
-      } else if (shortName.length > 0) {
+  for (const document of documents) {
+    const fileSymbols = byPath.get(document.relativePath) ?? [];
+    for (const occurrence of document.occurrences.filter((entry) => entry.isDefinition)) {
+      const name = scipShortName(occurrence.symbol);
+      const candidates = fileSymbols.filter((symbol) => symbol.kind !== 'endpoint' && shortNameOf(symbol) === name);
+      const match = innermost(candidates, occurrence);
+      if (match && !ambiguous.has(occurrence.symbol)) {
+        const previous = scipToOur.get(occurrence.symbol);
+        if (previous && previous.id !== match.id) {
+          ambiguous.add(occurrence.symbol); scipToOur.delete(occurrence.symbol);
+          unmappedDefinitions += 1;
+          diagnostics.push({ path: document.relativePath, line: occurrence.startLine, symbol: occurrence.symbol, reason: 'Multiple extracted definitions map to this SCIP symbol.' });
+        } else { scipToOur.set(occurrence.symbol, match); }
+      } else {
         unmappedDefinitions += 1;
+        diagnostics.push({ path: document.relativePath, line: occurrence.startLine, symbol: occurrence.symbol,
+          reason: candidates.length ? 'Definition range is ambiguous or disagrees with extracted spans.' : 'Definition kind/name not extracted by the syntax adapter.' });
       }
     }
   }
-
+  const references: SymbolReference[] = [];
   const edges = new Map<string, Edge>();
-  let resolvedReferences = 0;
-
-  for (const document of scip.documents) {
-    const fileSymbols = byPath.get(document.relativePath);
-    if (!fileSymbols) {
-      continue;
-    }
+  for (const document of documents) {
+    const fileSymbols = byPath.get(document.relativePath) ?? [];
+    const file = files.get(document.relativePath);
     for (const occurrence of document.occurrences) {
-      if (occurrence.isDefinition) {
-        continue;
-      }
       const target = scipToOur.get(occurrence.symbol);
-      if (!target) {
-        continue;
-      }
-      const caller = enclosingSymbol(fileSymbols, occurrence.startLine);
-      if (!caller || caller.id === target.id) {
-        continue;
-      }
-      const edgeType = referenceEdgeType(target);
-      const key = `${caller.id}\n${target.id}\n${edgeType}`;
+      if (!target) { continue; }
+      const caller = innermost(fileSymbols, occurrence);
+      const inheritance = (file?.inheritance ?? []).find((entry) => entry.startLine === occurrence.startLine && entry.startColumn === occurrence.startColumn
+        && entry.endLine === (occurrence.endLine ?? occurrence.startLine) && entry.endColumn === occurrence.endColumn);
+      const isCall = !occurrence.isDefinition && (file?.calls ?? []).some((call) => call.startLine === occurrence.startLine && call.startColumn === occurrence.startColumn
+        && call.endLine === (occurrence.endLine ?? occurrence.startLine) && call.endColumn === occurrence.endColumn);
+      const sourceId = inheritance ? fileSymbols.find((symbol) => symbol.qualifiedName === inheritance.source)?.id : caller?.id ?? file?.id;
+      if (!sourceId) { continue; }
+      const reference: SymbolReference = { snapshotId, targetId: target.id, sourceId, path: document.relativePath,
+        startLine: occurrence.startLine, startColumn: occurrence.startColumn ?? 0, endLine: occurrence.endLine ?? occurrence.startLine,
+        endColumn: occurrence.endColumn ?? occurrence.startColumn ?? 0, isDefinition: occurrence.isDefinition, isCall,
+        analyzer: 'scip', scipSymbol: occurrence.symbol };
+      references.push(reference);
+      if (occurrence.isDefinition) { continue; }
+      const edgeType = inheritance?.relation ?? (isCall ? 'CALLS' : 'DEPENDS_ON');
+      const key = `${sourceId}\n${target.id}\n${edgeType}`;
       if (!edges.has(key)) {
-        edges.set(key, {
-          snapshotId,
-          sourceId: caller.id,
-          targetId: target.id,
-          edgeType,
-          confidence: 0.9,
-          analyzer: 'scip',
-          evidence: { path: document.relativePath, line: occurrence.startLine, scipSymbol: occurrence.symbol },
-        });
+        edges.set(key, { snapshotId, sourceId, targetId: target.id, edgeType, confidence: 0.95, analyzer: 'scip',
+          evidence: { path: document.relativePath, line: occurrence.startLine, column: occurrence.startColumn,
+            referenceKind: inheritance ? 'inheritance' : isCall ? 'call' : 'reference', scipSymbol: occurrence.symbol } });
       }
-      resolvedReferences += 1;
     }
   }
-
   for (const relationship of scip.relationships) {
     const source = scipToOur.get(relationship.source);
     const target = scipToOur.get(relationship.target);
-    if (!source || !target) {
-      continue;
-    }
-    const edgeType: EdgeType = source.kind === 'class' && target.kind === 'class' ? 'EXTENDS' : 'IMPLEMENTS';
+    if (!source || !target) { continue; }
+    // Class/interface heritage is classified by syntax, since SCIP's implementation
+    // relationship alone cannot distinguish `extends` from `implements SomeClass`.
+    if (source.kind !== 'method' || target.kind !== 'method') { continue; }
+    const edgeType = 'IMPLEMENTS';
     const key = `${source.id}\n${target.id}\n${edgeType}`;
-    if (!edges.has(key)) {
-      edges.set(key, {
-        snapshotId,
-        sourceId: source.id,
-        targetId: target.id,
-        edgeType,
-        confidence: 0.95,
-        analyzer: 'scip',
-        evidence: { scipSource: relationship.source, scipTarget: relationship.target },
-      });
-    }
+    edges.set(key, { snapshotId, sourceId: source.id, targetId: target.id, edgeType, confidence: 0.95, analyzer: 'scip',
+      evidence: { scipSource: relationship.source, scipTarget: relationship.target } });
   }
-
-  return { edges: [...edges.values()], resolvedReferences, unmappedDefinitions };
+  return { edges: [...edges.values()], references, resolvedReferences: references.filter((entry) => !entry.isDefinition).length, unmappedDefinitions, diagnostics };
 }
