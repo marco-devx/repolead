@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "snapshotId": "snap_f623705e-0c85-4719-9c83-fd4a8bb939d4",
+  "mode": "entrypoints",
+  "usecases": 125,
+  "pages": 0,
+  "analysisTasks": 125,
+  "compatibleCachedTasks": 116,
+  "newTaskCacheMisses": 9,
+  "indexedFiles": 928,
+  "durationMs": 676,
+  "limits": "Read-only SQLite planning, no generation, refresh, vector operations or container changes. Cache-key matches for this snapshot/model only; actual analysis still validates schema and provenance.",
+  "memoryResetAfterPlanning": true,
+  "freshRunNote": "All eligible WLT memory/vectors were cleared at user request after this read-only plan. Recorded cache-hit counts no longer apply to the next fresh run."
+}

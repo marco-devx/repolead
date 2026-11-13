@@ -60,7 +60,9 @@
       "scripts/verify-local-model-upgrade.ts",
       "benchmarks/local-stack-upgrade.json",
       "benchmarks/local-backend-acceptance.json",
-      "scripts/verify-local-backend.ts"
+      "scripts/verify-local-backend.ts",
+      "benchmarks/first-round-cache-acceptance.json",
+      "benchmarks/entrypoint-plan-acceptance.json"
     ],
     "limits": [
       "Real-model audit, hierarchy/product generation and architectural answers pass finite fixtures and prescribed fact reviews; general semantic accuracy is not established. SDK totals include formatting retries, cached input and auxiliary work, not subscription invoices.",
@@ -175,6 +177,35 @@
       "reviewNotes": [
         "The audit inferred likely triviality from one symbol without source behavior in its candidate evidence. This smoke run validates routing, schema and caching, not the semantic correctness of that rejection."
       ]
+    },
+    "firstRoundWorkflow": {
+      "mode": "files",
+      "scope": "File analyses, document analyses and one synthesis round; no later generation rounds or global module/repository/product brief. Existing cached legacy file dossiers can be reused without generating their later chain.",
+      "report": "benchmarks/first-round-cache-acceptance.json",
+      "cacheReplay": {
+        "repository": "access-service",
+        "technicalFiles": 856,
+        "moduleGroupsReused": 157,
+        "newModelCalls": 0,
+        "localInputTokens": 0,
+        "localOutputTokens": 0
+      },
+      "mcp": "Compiled Node CLI and official SDK: 1039 visible resources, zero archived global/later-round resources, eight evidence blocks retrieved from file/group memory without a global brief. Lexical smoke only; vector and reranker paths covered with contract services.",
+      "validation": "185 unit/integration tests, lint, TypeScript and build pass; five WLT runner integration checks use fake services and isolated process guards/locks. No production refresh or Docker lifecycle operation was run."
+    },
+    "entrypointWorkflow": {
+      "mode": "entrypoints",
+      "scope": "WLT Make runner explicitly selects one analysis per detected backend UseCase class and frontend page. No per-helper/DTO/component/test generation, no synthesis rounds, no global briefs or generative documentation. All raw indexed code/documents remain searchable.",
+      "beforeResetPlan": {
+        "repository": "access-service",
+        "usecases": 125,
+        "pages": 0,
+        "compatibleCachedTasks": 116,
+        "cacheMisses": 9,
+        "report": "benchmarks/entrypoint-plan-acceptance.json"
+      },
+      "reset": "User requested a fresh start for all 30 eligible WLT repos. Three existing memory directories were removed, with selected-repository vectors cleared. No backups or refresh run. These cache-hit figures describe the state before reset, not the fresh benchmark.",
+      "validation": "190 unit/integration tests plus lint, TypeScript and compiled CLI build pass. Six WLT runner tests use isolated fake services. Tests cover backend/frontend selection, multiple cases in one file, old cache reuse, dependency invalidation, untruncated packs, selected vector/lexical summaries and MCP resource navigation. No new generative quality or billing guarantee."
     }
   },
   "completionRule": "Una capacidad solo se completa con implementación integrada y evidencia de aceptación. Los servicios opcionales deben tener adaptadores utilizables y pruebas de contrato; no se simulan resultados de herramientas ausentes.",

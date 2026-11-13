@@ -11,6 +11,7 @@ import type { IndexProgress } from './indexer';
 import type { QdrantHit, QdrantPoint, QdrantSearcher } from './qdrant';
 import { symbolIdToPointId } from './qdrant';
 import { hybridKnowledgeSearch } from './search';
+import { buildEvidenceContext } from './evidence-context';
 
 class Vectors implements QdrantSearcher {
   points = new Map<string, QdrantPoint>();
@@ -73,6 +74,67 @@ function recordingEmbeddings(): EmbeddingsClient & { inputs: string[] } {
   const inputs: string[] = [];
   return { inputs, cacheKey: async () => 'pinned-fixture-v1', embed: async (texts) => { inputs.push(...texts); return texts.map(() => [0.5, 1]); } };
 }
+
+test('vector retrieval and reranking serve file analyses and first-round syntheses without global summaries', async () => {
+  const { store, snapshot, repository, files } = await fixture();
+  try {
+    const add = (subjectId: string, level: 'file' | 'module' | 'repository', purpose: string) => store.insertSummary({
+      id: subjectId, snapshotId: snapshot.id, subjectId, level, model: 'fixture', promptVersion: '1', contentHash: contentHash(purpose),
+      createdAt: '2026-01-01', contentJson: JSON.stringify({ responsibility: purpose, unknowns: [], evidenceIds: [] }),
+    });
+    add(files[0]!.id, 'file', 'Refund approval requires a manager; only settled payments qualify.');
+    add('module-billing#synthesis:0:1', 'module', 'Refund approvals group: manager permission and settled transaction checks.');
+    add('module-billing#synthesis:1:1', 'module', 'Obsolete refund global approval synthesis');
+    add('module-billing', 'module', 'Obsolete refund module global brief');
+    add('repo://search-fixture', 'repository', 'Obsolete refund repository global brief');
+    const embeddings = recordingEmbeddings(); const qdrant = new Vectors();
+    const base = { store, snapshotId: snapshot.id, repositoryName: repository.name, collection: 'first-round', embeddings, qdrant };
+    await indexSnapshot(base);
+    store.setSnapshotMetadata(snapshot.id, 'synthesis_mode', 'first-round');
+    // The old projection and old Qdrant points must not leak archived summaries, even before reindex.
+    const oldResults = await hybridKnowledgeSearch({ ...base, query: 'obsolete refund', filters: { entityKinds: ['summary'] } });
+    expect(oldResults.every((hit) => !hit.item.text.includes('Obsolete'))).toBe(true);
+    await indexSnapshot(base);
+    const items = store.listKnowledgeItems(snapshot.id, { entityKinds: ['summary'] });
+    expect(items.map((item) => item.subjectId).sort()).toEqual([files[0]!.id, 'module-billing#synthesis:0:1'].sort());
+    expect([...qdrant.points.values()].filter((point) => point.payload['entity_kind'] === 'summary')).toHaveLength(2);
+    const results = await hybridKnowledgeSearch({ ...base, query: 'autorización de devoluciones', filters: { entityKinds: ['summary'] },
+      reranker: { rerank: async (_query, documents) => documents.map((text) => text.includes('only settled') ? 1 : 0.1) } });
+    expect(results[0]!.item.subjectId).toBe(files[0]!.id);
+    expect(results[0]!.sources).toContain('vector'); expect(results[0]!.sources).toContain('rerank');
+    const evidence = await buildEvidenceContext({ ...base, queries: ['autorización de devoluciones'], includeSource: false, types: ['summary'] });
+    expect(evidence.text).toContain('only settled payments');
+    expect(evidence.text).toContain('Refund approvals group');
+    expect(evidence.text).not.toContain('Obsolete');
+  } finally { store.close(); }
+});
+
+test('entrypoint indexing keeps all raw code but vector search serves only selected usecase/page analyses', async () => {
+  const { store, snapshot, repository, files } = await fixture();
+  try {
+    for (const file of files) {
+      store.insertSummary({ id: `summary-${file.id}`, snapshotId: snapshot.id, subjectId: file.id, level: 'file', model: 'fixture',
+        promptVersion: '1', contentHash: file.id, createdAt: '2026-01-01',
+        contentJson: JSON.stringify({ responsibility: `Refund approval analysis ${file.path}`, unknowns: [] }) });
+    }
+    store.insertSummary({ id: 'old-group', snapshotId: snapshot.id, subjectId: 'module-billing#synthesis:0:1', level: 'module',
+      model: 'fixture', promptVersion: '1', contentHash: 'old', createdAt: '2026-01-01', contentJson: JSON.stringify({ responsibility: 'Refund old synthesis' }) });
+    const embeddings = recordingEmbeddings(); const qdrant = new Vectors();
+    const base = { store, snapshotId: snapshot.id, repositoryName: repository.name, collection: 'entrypoints', embeddings, qdrant };
+    await indexSnapshot(base);
+    store.setSnapshotMetadata(snapshot.id, 'synthesis_mode', 'entrypoints');
+    store.setSnapshotMetadata(snapshot.id, 'entrypoint_catalog', JSON.stringify([{ kind: 'usecase', name: 'RefundUseCase',
+      path: files[0]!.path, summarySubjectId: files[0]!.id }]));
+    const oldResults = await hybridKnowledgeSearch({ ...base, query: 'refund', filters: { entityKinds: ['summary'] } });
+    expect(oldResults.map((hit) => hit.item.subjectId)).toEqual([files[0]!.id]);
+    await indexSnapshot(base);
+    const summaries = store.listKnowledgeItems(snapshot.id, { entityKinds: ['summary'] });
+    expect(summaries).toHaveLength(1); expect(summaries[0]!.title).toBe('usecase: RefundUseCase');
+    expect(store.listKnowledgeItems(snapshot.id, { entityKinds: ['symbol'] })).toHaveLength(2);
+    const evidence = await buildEvidenceContext({ ...base, queries: ['autorización de devoluciones'], includeSource: false, types: ['summary'] });
+    expect(evidence.text).toContain('RefundUseCase'); expect(evidence.text).not.toContain('old synthesis');
+  } finally { store.close(); }
+});
 
 test('SQLite alone rebuilds complete symbol bodies and every knowledge kind; filters apply before LIMIT', async () => {
   const { store, snapshot, symbols } = await fixture();

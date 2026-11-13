@@ -18,6 +18,7 @@ export default defineConfig({
     // desde node_modules en runtime, no se bundlean.
     externals: [
       'better-sqlite3',
+      'pg',
       'web-tree-sitter',
       '@vscode/tree-sitter-wasm',
       '@anthropic-ai/claude-agent-sdk',

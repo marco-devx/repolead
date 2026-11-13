@@ -70,7 +70,7 @@ async function checkService(name: string, url: string, options: CheckOptions): P
 
 export async function runDoctorChecks(env: NodeJS.ProcessEnv = process.env): Promise<DoctorResult[]> {
   const qdrantUrl = env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333';
-  const teiUrl = env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
+  const teiUrl = env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8082';
 
   return Promise.all([
     probeJoern(env).then((probe): DoctorResult => ({ name: 'joern', ok: probe.available, required: false,

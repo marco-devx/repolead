@@ -64,15 +64,20 @@ export function buildKnowledgeItems(store: KnowledgeStore, snapshotId: string): 
       path: symbol.path, startLine: symbol.startLine, endLine: symbol.endLine, sourceComplete: complete,
       text: `${symbol.kind} ${symbol.qualifiedName} ${symbol.signature ?? ''} — ${symbol.path}\n${complete ? body : '[Indexed symbol body unavailable; refresh this snapshot.]'}` });
   }
-  for (const summary of store.listSummaries(snapshotId)) {
+  const entrypoints = JSON.parse(store.getSnapshotMetadata(snapshotId, 'entrypoint_catalog') ?? '[]') as {
+    name: string; kind: string; path: string; summarySubjectId: string;
+  }[];
+  const bySummary = new Map(entrypoints.map((target) => [target.summarySubjectId, target]));
+  for (const summary of store.listVisibleSummaries(snapshotId)) {
     const content = JSON.parse(summary.contentJson) as unknown;
     const symbol = bySymbol.get(summary.subjectId);
     const file = byFileId.get(summary.subjectId);
     const module = modules.find((entry) => entry.id === summary.subjectId);
     const evidence = store.getSummaryEvidence(summary.id);
+    const target = bySummary.get(summary.subjectId);
     add({ subjectId: summary.subjectId, entityKind: 'summary', kind: summary.level,
-      title: `${summary.level}: ${symbol?.qualifiedName ?? file?.path ?? module?.name ?? summary.subjectId}`,
-      path: symbol?.path ?? file?.path ?? module?.path ?? evidence[0]?.path ?? '.',
+      title: target ? `${target.kind}: ${target.name}` : `${summary.level}: ${symbol?.qualifiedName ?? file?.path ?? module?.name ?? summary.subjectId}`,
+      path: target?.path ?? symbol?.path ?? file?.path ?? module?.path ?? evidence[0]?.path ?? '.',
       text: `${summary.level} knowledge\n${meaningfulText(content)}`, sourceComplete: true, evidenceIds: evidenceIds(content) });
   }
   for (const finding of store.getFindings(snapshotId, 'confirmed')) {

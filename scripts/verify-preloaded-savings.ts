@@ -56,7 +56,7 @@ try {
   const collection = indexedCollection(store, scanned.snapshotId);
   const indexStarted = Date.now();
   await indexSnapshot({ store, snapshotId: scanned.snapshotId, repositoryName: scanned.repositoryName, collection,
-    embeddings: new TeiEmbeddingsClient(process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080'),
+    embeddings: new TeiEmbeddingsClient(process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8082'),
     qdrant: new QdrantRestClient(process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333') });
   preparation = { scope, model: actual.name, batchSize: 1, generated, calls, durationMs, newCallsOnRepeat: calls.length - before,
     tokens: calls.reduce((sum, call) => sum + call.inputTokens + call.outputTokens, 0),

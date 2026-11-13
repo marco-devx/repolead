@@ -1,0 +1,41 @@
+{
+  "clientId": "repolead-producto-mcp",
+  "name": "RepoLead Producto MCP",
+  "enabled": true,
+  "protocol": "openid-connect",
+  "publicClient": false,
+  "clientAuthenticatorType": "client-secret",
+  "standardFlowEnabled": true,
+  "directAccessGrantsEnabled": false,
+  "implicitFlowEnabled": false,
+  "serviceAccountsEnabled": false,
+  "redirectUris": [
+    "https://claude.ai/api/mcp/auth_callback",
+    "https://claude.com/api/mcp/auth_callback"
+  ],
+  "webOrigins": [
+    "https://claude.ai",
+    "https://claude.com"
+  ],
+  "attributes": {
+    "pkce.code.challenge.method": "S256",
+    "access.token.lifespan": "300"
+  },
+  "defaultClientScopes": [
+    "profile",
+    "email"
+  ],
+  "protocolMappers": [
+    {
+      "name": "repolead-mcp-resource-audience",
+      "protocol": "openid-connect",
+      "protocolMapper": "oidc-audience-mapper",
+      "config": {
+        "included.custom.audience": "https://mcp.contexto.example.com/mcp",
+        "access.token.claim": "true",
+        "id.token.claim": "false",
+        "introspection.token.claim": "true"
+      }
+    }
+  ]
+}

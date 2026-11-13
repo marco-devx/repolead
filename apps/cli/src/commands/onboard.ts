@@ -10,7 +10,7 @@ import { analysisBudget, loadConfig } from '@repolead/config';
 import { openStore } from '@repolead/knowledge-store';
 import { analyzeSnapshot } from '@repolead/lead-analyzer';
 import { loadPolicies, runPolicies } from '@repolead/policy-engine';
-import { QdrantRestClient, TeiEmbeddingsClient, defaultEmbeddingCollection, indexSnapshot } from '@repolead/retrieval';
+import { vectorBackend, TeiEmbeddingsClient, defaultEmbeddingCollection, indexSnapshot } from '@repolead/retrieval';
 
 import { backendLabel, pickModel, pickAnalysisRouting } from '../model-select';
 import { tokenBudget } from './context';
@@ -56,7 +56,7 @@ export function registerOnboard(program: Command): void {
     .option('--name <name>', 'nombre del repositorio')
     .option('--model <name>', 'modelo para analyze y audit')
     .option('--backend <backend>', 'ollama (default) | api | claude-code')
-    .addOption(new Option('--analysis-mode <mode>', 'files (default): fuente completa por archivo; symbols: exhaustivo').choices(['files', 'symbols']))
+    .addOption(new Option('--analysis-mode <mode>', 'entrypoints: usecases/pages; files (default): por archivo; symbols: exhaustivo').choices(['entrypoints', 'files', 'symbols']))
     .option('--context-tokens <n>', 'presupuesto por análisis (config o 120000; o200k_base)', tokenBudget)
     .option('--policies <dir>', 'directorio de policies (default: el pack de RepoLead)')
     .option('--no-scip', 'no ejecutar scip-typescript')
@@ -69,7 +69,7 @@ export function registerOnboard(program: Command): void {
       name?: string;
       model?: string;
       backend?: string;
-      analysisMode?: 'files' | 'symbols';
+      analysisMode?: 'entrypoints' | 'files' | 'symbols';
       policies?: string;
       scip: boolean;
       analyze: boolean;
@@ -156,14 +156,14 @@ export function registerOnboard(program: Command): void {
       }
 
       console.log('\n[4/4] reindex — vectores semánticos');
-      const teiUrl = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
-      const qdrantUrl = process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333';
+      const teiUrl = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8082';
+      const vectors = options.vectors ? await vectorBackend({ migrate: true }) : null;
       if (!options.vectors) {
         const store = await openStore(dbPath);
         try { store.setSnapshotMetadata(scan.snapshotId, 'vector_refresh_pending', 'true'); }
         finally { store.close(); }
         console.log('− vectores aplazados (--no-vectors); ejecutar repolead reindex después del análisis');
-      } else if ((await reachable(`${teiUrl}/health`)) && (await reachable(`${qdrantUrl}/healthz`))) {
+      } else if ((await reachable(`${teiUrl}/health`)) && vectors) {
         const store = await openStore(dbPath);
         const embeddings = new TeiEmbeddingsClient(teiUrl);
         const indexed = await indexSnapshot({
@@ -172,13 +172,13 @@ export function registerOnboard(program: Command): void {
           repositoryName: scan.repositoryName,
           collection: await defaultEmbeddingCollection(embeddings),
           embeddings,
-          qdrant: new QdrantRestClient(qdrantUrl),
+          qdrant: vectors,
           onProgress: printVectorProgress,
         });
         store.close();
         console.log(`✓ ${indexed} elementos de conocimiento vectorizados`);
       } else {
-        console.log('− saltado (TEI/Qdrant no disponibles: docker compose up -d)');
+        console.log('− saltado (TEI/backend vectorial no disponibles)');
       }
 
       const installRoot = policiesDir ? dirname(policiesDir) : null;

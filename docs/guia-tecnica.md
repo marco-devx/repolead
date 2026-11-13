@@ -2,6 +2,24 @@
 
 Esta guía explica cómo usar RepoLead en un repositorio nuevo, qué ejecuta cada comando y cómo se conectan sus componentes. Describe la implementación del código que acompaña este documento, no funcionalidades planeadas. Los valores predeterminados mencionados son los configurados en el proyecto, no una garantía de disponibilidad de servicios externos.
 
+El comando Make de WLT usa ahora **`entrypoints`**: un análisis por clase `UseCase` de backend y por página de frontend. No genera análisis propios para el resto de archivos, documentación o componentes auxiliares, ni rondas de síntesis ni resúmenes globales. Todo el código y la documentación cruda siguen indexados para consultas MCP. La configuración genérica del CLI conserva `files` por compatibilidad; se selecciona el modo nuevo con `--analysis-mode entrypoints` o `analysis_mode: entrypoints`.
+
+El flujo predeterminado `files` conserva análisis por archivo, secciones y síntesis de primera ronda. Omite las rondas 2.x y posteriores y los resúmenes globales técnico y de producto; continúa con el índice de búsqueda y los vectores. Claude recupera los análisis pertinentes mediante `context_pack mode=evidence`. Las referencias a briefs jerárquicos describen el modo exhaustivo `symbols` o resultados históricos.
+
+Para compartir el contexto con Producto mediante PostgreSQL/pgvector y SSO corporativo, consultar la [guía de despliegue cloud](../deploy/cloud/README.md). Es un perfil separado del MCP técnico local y de la demo con token compartido. Reutiliza análisis/vectores existentes, publica la última carga completa por repositorio y expone cuatro herramientas funcionales. El almacenamiento vectorial local también admite `REPOLEAD_VECTOR_BACKEND=pgvector`, junto con `REPOLEAD_PG_LOCAL_URL`; SQLite conserva el índice/grafo y las cachés locales.
+
+| Comando nuevo | Efecto técnico |
+|---|---|
+| `repolead cloud --env-file .env.cloud migrate` | Crea el esquema PG cloud y concede permisos a los roles previstos. Requiere el propietario. |
+| `repolead cloud … import-vectors --dir /ruta/repos --repos-file seleccion.json` | Copia los vectores de Qdrant al PG local validando modelo, dimensión y procedencia; no llama a modelos. |
+| `repolead cloud … publish --dir /ruta/repos --repos-file seleccion.json` | Transfiere análisis, fuente capturada, grafo y vectores por hash; activa cada publicación completa atómicamente. `--dry-run` no conecta a los servicios. `--available-only` informa y omite bases aún incompletas. |
+| `repolead cloud … grant persona@empresa.com --repos repo-a,repo-b` | Autoriza una identidad del issuer corporativo a esos repositorios. `--revoke` deshabilita el acceso en la siguiente petición. |
+| `repolead cloud … serve` | Sirve Streamable HTTP en `/mcp` con OAuth/OIDC obligatorio, JWKS y grants actuales; no acepta el token de la demo. |
+| `repolead cloud … worker` | Procesa trabajos persistentes de embeddings de consultas e investigación del código capturado con modelos locales. No administra contenedores. |
+| `repolead cloud … refresh-workspace --dir /ruta/wlt` | Invoca el runner por fases de WLT con las variables PG cargadas; respeta el lock de GPU compartido con el worker. |
+
+El símbolo `…` de la tabla sustituye `--env-file /ruta/.env.cloud`. Desde WLT, los wrappers equivalentes son `make producto-preparar`, `producto-migrar-vectores`, `producto-publicar`, `producto-worker` y `producto-refrescar`. Una migración no exige repetir la generación; los cambios de código sí requieren el refresh incremental. Sin worker/inferencia, el MCP cloud conserva recuperación textual y vectores de consultas ya cacheados; las consultas semánticas y corroboraciones nuevas esperan al worker.
+
 ## Ruta de lectura
 
 - **Nivel inicial:** secciones 1–3, para comprender el producto y comenzar.
@@ -134,7 +152,7 @@ El Compose incluido configura:
 | Servicio | Modelo o función | Puerto local predeterminado |
 |---|---|---|
 | `qdrant` | Almacena y busca vectores | `6333` HTTP; también publica `6334` |
-| `embeddings` | `Qwen/Qwen3-Embedding-4B` mediante TEI | `8080` |
+| `embeddings` | `Qwen/Qwen3-Embedding-4B` mediante TEI | `8082` |
 | `reranker` | `Qwen/Qwen3-Reranker-0.6B` mediante servicio Transformers compatible con TEI | `8081` |
 
 Compose fija la revisión de embeddings mediante `--revision` y la del reranker mediante `MODEL_REVISION`; `REPOLEAD_EMBEDDING_REVISION` y `REPOLEAD_RERANKER_REVISION` permiten sustituirlas. El despliegue actualizado ofrece 32.768 tokens por entrada de embeddings y por par de reranking, independientes de los 120.000 de contexto agregado. El cliente envía `truncate: false`; una prueba real confirmó rechazo HTTP 422 al enviar 40.002 tokens al embedding. Consulta `/info` para tu despliegue.
@@ -450,15 +468,30 @@ repolead analyze --backend ollama --context-tokens 120000
 repolead analyze --module retrieval --backend api --model nombre-del-modelo
 ```
 
-Opciones: `--db`, `--model`, `--backend`, `--analysis-mode files|symbols` (config o `files`), `--module`, `--audience technical|product|all` (default `all`), `--dry-run`, `--context-tokens` (config o 120000) y `--batch-size` (modo `symbols`, 1–4; config o 1).
+Opciones: `--db`, `--model`, `--backend`, `--analysis-mode entrypoints|files|symbols` (config o `files`), `--module`, `--audience technical|product|all` (default `all`), `--dry-run`, `--context-tokens` (config o 120000) y `--batch-size` (modo `symbols`, 1–4; config o 1).
 
-El CLI usa por defecto `analysis_mode: files`: analiza toda la fuente técnica reconocida por archivo, sin generar una ficha individual para cada DTO, función o clase. Divide archivos grandes en secciones completas y con caché; después sintetiza el dossier del archivo, los módulos y el brief. Las síntesis grandes también se dividen para consumir toda la evidencia hija. Cada paquete respeta el techo de tokens y `analysis_budget.file_pack_bytes` (24.000 bytes por defecto); el código que no cabe continúa en el siguiente paquete. Si ni una línea o evidencia cabe, falla explícitamente en vez de presentar cobertura completa.
+En modo `entrypoints`, el selector reconoce clases terminadas en `UseCase` bajo `use_cases`, `usecases` o `use-cases`, excluyendo tests y auxiliares. Si un archivo contiene varias, analiza cada clase por separado con sus declaraciones compartidas. Para frontend selecciona archivos JSX/TSX bajo `pages`: usa referencias del router y convenciones `Page`/`Screen` cuando hay router, y excluye barrels, componentes internos, formularios, tabs, modales y tests. La detección es estática y no demuestra cobertura completa del producto ni resuelve toda composición dinámica de rutas.
+
+Cada objetivo recibe una tarea, sin divisiones generativas ni síntesis adicionales. Los paquetes incluyen fuente completa del objetivo, con un máximo de 100.000 bytes y el presupuesto de tokens configurado. Si no cabe, se rechaza explícitamente antes de generar; no se presenta un recorte como análisis completo. Los reintentos de validación/longitud siguen siendo posibles. El caso común de un único usecase por archivo y las páginas conserva el formato de caché anterior cuando el paquete coincide; los helpers y dependencias permanecen disponibles como código indexado, y los cambios en dependencias invalidan los análisis afectados según la profundidad configurada.
+
+`entrypoint_catalog` registra selección, nombres y ubicaciones. Solo esos análisis se publican como resúmenes y vectores de resumen; análisis antiguos de otros archivos, síntesis y globales quedan archivados. Se vectorizan también símbolos/código y documentos crudos, por lo que la primera indexación completa conserva un costo propio. `product_analysis` registra la disponibilidad de estos análisis y documentos sin generar otra capa documental/global. El runner de WLT omite auditoría generativa en el alta; `repolead audit` continúa disponible de forma explícita.
+
+```bash
+repolead analyze --analysis-mode entrypoints --dry-run
+repolead refresh . --analyze --analysis-mode entrypoints
+```
+
+El dry-run requiere que exista un snapshot previo. Para un inicio desde cero en WLT, `make repolead-refresh` ejecuta el scan antes del análisis y los vectores. No convierte el código en un manual completo: las reglas, permisos o validaciones que vivan en otras capas se comprueban recuperando su implementación con MCP.
+
+El CLI usa por defecto `analysis_mode: files`: analiza toda la fuente técnica reconocida por archivo, sin generar una ficha individual para cada DTO, función o clase. Divide archivos grandes en secciones completas y con caché; después produce solo grupos de síntesis de primera ronda. No genera rondas 2.x/3.x, un dossier global de módulo, un brief de repositorio ni un resumen global de producto. Cada paquete respeta el techo de tokens y `analysis_budget.file_pack_bytes` (24.000 bytes por defecto); el código que no cabe continúa en el siguiente paquete. Si ni una línea o evidencia cabe, falla explícitamente en vez de presentar cobertura completa.
+
+Las síntesis de primera ronda conservan sus IDs, prompts e identidad de modelo anteriores para reutilizar la caché. Un dossier de archivo antiguo ya completado puede reutilizarse si toda su cadena sigue siendo válida en caché, sin nuevas generaciones de rondas posteriores. Las rondas posteriores y briefs antiguos permanecen almacenados como historial, pero se excluyen de los recursos MCP, del índice léxico y de la nueva proyección vectorial en este modo. `technical_analysis` y `product_analysis` registran finalización, alcance y omisión deliberada de los globales. El runner WLT acepta esos metadatos para continuar con `reindex`.
 
 El índice de símbolos, sus cuerpos y relaciones siguen disponibles para búsquedas y evidencia. Los dossiers de archivo añaden `productFacts` citados para campos, restricciones, permisos, mensajes, estados, rutas y auditoría. `--analysis-mode symbols` conserva el análisis exhaustivo anterior por símbolo. El backend Agent SDK mantiene desactivadas sus herramientas de lectura/ejecución y no carga settings, hooks, skills, servidores MCP ni `CLAUDE.md` del proyecto/usuario; cada llamada remota tiene un timeout de 120 segundos.
 
 En modo `symbols`, las fichas reciben hasta 100.000 líneas de fuente por defecto, dentro del presupuesto de tokens, con omisiones explícitas si no cabe el cuerpo. En modo `files`, el límite de líneas determina secciones sucesivas y no descarta el final. El análisis usa la copia del snapshot; en bases antiguas sin ella, la lectura del árbol exige que su hash siga coincidiendo. Los dossiers técnicos abarcan archivos de texto reconocidos, incluidos barrels, scripts de inicialización y configuración sin símbolos extraídos. La documentación configurada tiene sus propias fichas y síntesis de producto. Los formatos no reconocidos quedan identificados como cobertura pendiente.
 
-Con `--module` filtra por nombre o ruta y no genera los briefs globales técnico/de producto. `--dry-run` muestra el plan del modo seleccionado sin llamar al modelo. En modo `files`, cuenta archivos, secciones y síntesis mínimas; las reducciones jerárquicas pueden añadir pasos y ampliar el contador durante la ejecución. El cambio de granularidad necesita generar sus nuevos dossiers una vez; no elimina las fichas anteriores que sigan disponibles en el snapshot.
+Con `--module` filtra por nombre o ruta. `--dry-run` muestra el plan del modo seleccionado sin llamar al modelo. En modo `files`, cuenta archivos y secciones; el número de grupos se calcula antes de ejecutar cada primera ronda y actualiza el total de progreso. No se añaden rondas posteriores ni un cierre global. El cambio de granularidad necesita generar sus nuevos dossiers una vez; no elimina las fichas anteriores que sigan disponibles en el snapshot.
 
 La salida debe cumplir el esquema Zod y citar únicamente IDs de evidencia entregados al modelo. Una salida inválida admite dos intentos de corrección adicionales; si sigue fallando, no se guarda como resumen. La caché considera evidencia, versión de la política de análisis, prompt y modelo. Un acierto evita la llamada y conserva la procedencia al copiar el resumen al snapshot actual. El presupuesto limita cada paquete, no todas las llamadas ni sus salidas. Dentro de cada llamada los IDs largos se sustituyen por referencias cortas (`E1`, `E2`, …), restringidas por el esquema. Antes de validar y persistir se traducen a los IDs originales. Las síntesis no reenvían citas anidadas de sus hijos; cada afirmación conserva sus padres de evidencia en SQLite. Esto reduce repetición y evita confundir referencias de distintos niveles sin borrar procedencia.
 
@@ -511,6 +544,10 @@ Solo en modo híbrido, al seleccionar explícitamente un backend remoto y config
 
 Los 120.000 tokens son el presupuesto de evidencia de RepoLead, medido con un tokenizador de referencia; no garantizan que esa entrada quepa en Qwen ni en la memoria disponible. La ventana de Ollama también debe alojar instrucciones, esquema y salida. Si la comprobación de contexto rechaza una entrada, reduce explícitamente `--context-tokens` o configura una ventana local compatible con tus recursos. No se recorta la entrada silenciosamente ni se envía a un proveedor remoto.
 
+Si Ollama responde con `done_reason: length`, alcanzó el límite de salida antes de completar la respuesta. RepoLead descarta ese JSON incompleto y reintenta la misma solicitud hasta dos veces, duplicando la salida disponible sin exceder 16.000 tokens ni el espacio libre de la ventana local. Con la configuración predeterminada, los límites son 4.096 → 8.192 → 16.000. Cada intento mantiene las mismas instrucciones, evidencia y esquema; ajusta la ventana solicitada para reservar la salida y conserva el timeout configurado por intento. La terminal informa el reintento. No se reintentan por esta vía errores HTTP, timeouts ni cambios de pesos del modelo.
+
+El aumento solo afecta a la solicitud que se cortó: la siguiente vuelve al límite base. No modifica `local_model.output`, la identidad del modelo, los prompts ni las claves de caché existentes. Al ejecutar otra vez `refresh`, los resultados válidos anteriores siguen siendo reutilizables y se vuelve a intentar la síntesis que falló. La contabilidad suma los tokens de todas las respuestas recibidas, incluidas las cortadas, tanto si se recupera como si finalmente falla. Solo se persiste un resumen cuando la salida termina normalmente y pasa la validación de esquema y evidencia. Si se agotan los intentos o el espacio disponible, devuelve un error explícito y conserva los resúmenes ya completados; no guarda texto truncado como un resultado válido.
+
 La [prueba real del backend principal](../benchmarks/local-backend-acceptance.json) ejecutó la CLI compilada sobre un proyecto aislado con una función condicional y documentación: seis niveles de memoria y un juicio de auditoría, siete llamadas locales, 13.341 tokens de entrada y 2.550 de salida, unos 138 segundos. Repetir `analyze`, `audit` y `refresh --analyze` produjo cero llamadas nuevas. La ficha conservó las dos ramas y producto mantuvo el correo futuro como documentado, sin presentarlo como implementado. El juicio de auditoría supuso trivialidad por el número de símbolos sin evidencia del comportamiento en su candidato: se valida su integración y caché, no la corrección general de sus decisiones. No demuestra equivalencia de calidad con Claude ni una entrada llena de 120K. Se reproduce con `bun run verify-local-backend`; usa el modelo local real y desactiva SCIP y vectores en esa fixture.
 
 La identidad de caché incorpora endpoint, modelo, digest real, contexto, salida y modo sin thinking. El máximo local predeterminado es 131.072 posiciones; cada petición reserva solo el bloque necesario para entrada, esquema, salida y framing, sin asignar toda la ventana para una ficha pequeña. Se solicita `think: false` y JSON estructurado. Se verifica el digest antes/después de generar; `digest` permite exigir pesos concretos. Una comprobación conservadora de bytes UTF-8 reserva salida y framing para evitar truncamiento silencioso del contexto. Una respuesta incompleta se rechaza. Los contadores locales se incluyen en el total de análisis, pero no son tokens facturados por Claude. Referencias: [chat de Ollama](https://docs.ollama.com/api/chat), [salidas estructuradas](https://docs.ollama.com/capabilities/structured-outputs) y [modelo Qwen3.5](https://ollama.com/library/qwen3.5).
@@ -553,7 +590,7 @@ Opciones: `--db`, `--module`, `--file`, `--symbol`, `--product`, `--document`, `
 
 Lee el brief del snapshot actual o el dossier/ficha del objetivo. El módulo acepta nombre o ruta y el símbolo nombre exacto o ID; las ambigüedades se rechazan. No llama a un modelo ni genera un resumen faltante. `--json` devuelve el contenido estructurado; sin esa opción lo presenta por secciones con información del modelo y fecha.
 
-Si no existe el resumen, ejecuta `analyze`; para el brief global, ejecútalo sin `--module`.
+En modo `files`, los globales se omiten por diseño: `brief` informa ese estado y orienta a `context --evidence` o MCP. No exige regenerarlos. Para un objetivo sin dossier único puede haber secciones o grupos de primera ronda recuperables por búsqueda. En modo exhaustivo `symbols`, un resumen realmente faltante requiere `analyze`.
 
 Código: [brief.ts](../apps/cli/src/commands/brief.ts).
 
@@ -645,13 +682,13 @@ repolead serve --db /ruta/a/mi-proyecto/.repolead/repolead.db
 repolead serve --dir /ruta/a/proyectos
 ```
 
-Opciones: `--db`, `--dir`, `--http`, `--port` (3939; 0 permite un puerto libre), `--host` (`127.0.0.1`), `--allow-origin` (repetible), `--token`, `--no-source`, `--tool-profile all|context`.
+Opciones: `--db`, `--dir`, `--http`, `--port` (3939; 0 permite un puerto libre), `--host` (`127.0.0.1`), `--allow-origin` (repetible), `--token`, `--no-source`, `--tool-profile all|context`, `--product`, `--only <repo1,repo2>`.
 
 `--tool-profile context` publica solo `repo_overview`, `context_pack`, `search` y `get_evidence`, tanto por stdio como por HTTP. Reduce el catálogo de esquemas enviado al agente cuando solo necesita consultar conocimiento. `all` es el valor predeterminado y conserva las 14 herramientas, incluidas diagnóstico, impacto y oportunidades. Los recursos MCP siguen disponibles en ambos perfiles; este selector no es una barrera de confidencialidad. El ahorro de esquemas no garantiza ahorro de toda la sesión: también cuentan las consultas elegidas, la salida y el razonamiento del cliente.
 
 Por defecto usa stdio: el cliente MCP lanza el proceso y habla por entrada/salida estándar. Los mensajes de diagnóstico van a stderr. Ejecutarlo a mano puede parecer que queda esperando; está esperando a un cliente, no mostrando una interfaz web.
 
-`--dir` busca bases en el directorio indicado y sus subdirectorios **inmediatos**, no recursivamente a cualquier profundidad. Tiene prioridad sobre `--db`. La lista de repositorios se descubre al arrancar: agregar otra base requiere reiniciar ese servidor.
+`--dir` busca bases en el directorio indicado y sus subdirectorios **inmediatos**, no recursivamente a cualquier profundidad. Tiene prioridad sobre `--db`. En el servidor técnico la lista se descubre al arrancar. Con `--product`, se vuelven a descubrir nuevas bases autorizadas cada cinco segundos.
 
 Con `--http`, expone MCP Streamable HTTP stateless en `/mcp`, con autenticación Bearer obligatoria mediante `--token` o `REPOLEAD_TOKEN`. Escucha en localhost; `--host 0.0.0.0` permite acceso desde otras interfaces. Si llega un header `Origin`, debe coincidir con un `--allow-origin https://producto.example`; los demás reciben 403. El preflight permitido no exige token, pero la petición MCP posterior sí. El cuerpo tiene un máximo de 1 MiB y se decodifica como UTF-8 después de reunir los chunks. Los valores siguen los [requisitos de transporte MCP 2025-11-25](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports). No incorpora TLS ni permisos por repositorio.
 
@@ -660,6 +697,51 @@ Las bases deben tener aliases únicos. Un nombre ambiguo de símbolo o módulo d
 `--no-source` impide nuevas lecturas de fuente cruda a través de las herramientas, incluido `context_pack`. Los nombres, firmas, resúmenes y excerpts ya almacenados pueden seguir siendo visibles: no es un anonimizado del proyecto.
 
 Código: [serve.ts](../apps/cli/src/commands/serve.ts), [server.ts](../apps/mcp-server/src/server.ts) y [http.ts](../apps/mcp-server/src/http.ts).
+
+#### Vista funcional para Producto: `serve --product`
+
+```bash
+# Define REPOLEAD_TOKEN por tu mecanismo de secretos; publica este puerto mediante HTTPS.
+repolead serve --dir /srv/proyectos --only backend,webapp --product --http --port 3941
+```
+
+Es un servidor con catálogo separado: `product_catalog`, `product_context`, `product_evidence` y `product_investigate`. No registra recursos MCP ni herramientas técnicas; `get_evidence`, rangos de fuente y lectura de documentos crudos no están disponibles. SQLite se abre de solo lectura, sin migraciones ni cambios de journal, para consultar mientras continúa una generación. `--only` es obligatorio con `--product --dir` y limita los repositorios disponibles para esa credencial.
+
+La publicación exige modo `entrypoints`, selección completa sin filtro de módulo, estados técnico/producto completos, catálogo íntegro y proyección de búsqueda. Elige el snapshot completo más reciente por repositorio; una carga nueva incompleta no reemplaza la anterior completa. Los repositorios todavía no generados se incorporan al descubrir su base y completar sus análisis. No obliga a Producto a seleccionar versiones. `indexedAt` es la fecha de captura, no de despliegue.
+
+La proyección permite responsabilidad, reglas, efectos, errores, hechos funcionales e incertidumbres de los análisis de casos de uso y páginas, respaldados por evidencia de fuente persistida. Omite firmas, dependencias técnicas, documentos originales, extractos y rutas de código. Los hechos estructurados requieren una referencia de evidencia de fuente del análisis. Filtra bloques de código y patrones habituales de secretos/URLs/correos en la prosa, informa las omisiones y no constituye un clasificador DLP completo. Los identificadores y literales funcionales pueden aparecer en las interpretaciones; no son acceso al archivo original.
+
+`product_catalog` sin argumentos muestra repositorios, fechas, conteos y categorías. Con `repo`, `offset` y `limit` (40 por defecto, hasta 100), permite explorar libremente los temas y referencias disponibles. `product_context` recibe un repositorio explícito, hasta seis consultas y `limit` hasta 30. Su máximo/presupuesto predeterminado es 120.000 tokens; el plugin puede pedir menos en cada consulta para ahorrar contexto. Devuelve análisis completos que caben, referencias opacas `product:…`, categorías sin hechos recuperados y omisiones por límite/presupuesto. `product_evidence` amplía una referencia actual del mismo repositorio, nunca devuelve código; si expiró tras una actualización, se debe consultar de nuevo.
+
+La selección usa coincidencias léxicas sobre la proyección funcional. Si existe índice vectorial y los servicios están disponibles, también reutiliza la recuperación híbrida de resúmenes con validación de snapshot/repositorio/hash y reranker; únicamente serializa la proyección permitida. Informa qué señales aportaron resultados. La recuperación de resúmenes no genera nuevas síntesis ni inicia modelos o contenedores. Mientras se completa la fase vectorial, conviene incluir términos en inglés porque algunos análisis se generaron en ese idioma.
+
+`product_investigate` investiga una pregunta puntual directamente en las fuentes capturadas del snapshot completo. `action=start` acepta `repo`, `question`, hasta cuatro referencias `product:…`, consultas técnicas en `queries`, `depth` (1–3, 3 por defecto), `maxFiles` (4–40, 40 por defecto) y presupuesto de respuesta `maxTokens` (hasta 120.000, valor predeterminado). Si no hay resúmenes pertinentes, puede localizar entradas por nombres de archivos/símbolos indexados usando las palabras clave. No acepta rutas arbitrarias del sistema.
+
+La selección sigue imports y relaciones del grafo. Reconoce candidatos de implementación de puertos Python por nombre y enlaces de implementación/herencia del índice; esos candidatos no prueban la inyección efectiva en runtime. Incluye DTO, validadores, repositorios/modelos y componentes cuando son alcanzables. Solo lee blobs capturados cuyo hash coincide con el archivo indexado; no lee un working tree posterior. Conserva archivos completos dentro de 90.000 bytes de evidencia numerada y del presupuesto conservador del contexto local, con omisiones explícitas por profundidad, falta de fuente o tamaño. Ese límite protege al modelo local y es distinto del máximo de respuesta MCP. Se redactan indicios de credenciales antes de enviar evidencia al modelo local.
+
+El servidor devuelve `jobId` y estado sin mantener una petición HTTP larga. Consultar `action=status` con repo y jobId respetando `pollAfterSeconds`; los estados finales son complete, failed y stale. Usa Ollama local, sin fallback remoto, y no descarga modelos ni opera Docker. Hay una sola investigación generando a la vez y hasta cuatro en cola/ejecución; el refresh sigue funcionando y la consulta puede esperar turno. La preparación de la base no se repite. Cada investigación nueva usa dos pasos locales: borrador con fuente y revisión contra los archivos citados. Las respuestas incompletas siguen la recuperación por longitud del adaptador Ollama.
+
+El resultado separa `findings` (comportamientos explícitos), `observations` (ausencias limitadas a las fuentes citadas), `inferences` (deducciones todavía no comprobadas), `unknowns` y `nextChecks`. Valida el esquema, texto permitido, referencias de fuente del mismo snapshot y rangos existentes; descarta hallazgos con citas inválidas. Publica metadatos de archivo relativo, hash y líneas, sin snippets ni descarga del código. La validación de citas no demuestra por sí sola corrección semántica; tampoco garantiza ausencia global de una regla o conocimiento de producción.
+
+Para profundizar, un nuevo start admite hasta seis `sourceRefs` de las fuentes suministradas u omitidas: por ejemplo, enfocar el validador o DTO que faltó sin ampliar todo el repositorio. Las referencias se validan contra repo, snapshot y hash. Los resultados se reutilizan en memoria por pregunta y evidencia (hasta 32 trabajos; limpieza de finalizados antiguos al iniciar nuevas consultas), sin escribir en la base canónica. Status rechaza la reutilización cuando cambia la publicación o la evidencia capturada. Después de un reinicio puede ser necesario repetir una investigación. Un nuevo start reintenta un fallo; consultar status no regenera. Si la respuesta excede maxTokens, se conserva para recuperarla con un presupuesto mayor.
+
+El endpoint de Ollama y modelo de investigación pueden fijarse al arrancar el servicio con `REPOLEAD_RESEARCH_OLLAMA_URL` y `REPOLEAD_RESEARCH_MODEL`; por defecto usa localhost:11434 y el modelo local predeterminado del proyecto. No se aceptan estos valores desde las herramientas públicas. Para que el caller adopte la corroboración, reconectar el MCP y actualizar las instrucciones del plugin: `product_evidence` sigue ampliando solo un análisis; `product_investigate` es el que consulta fuente internamente.
+
+Los análisis generados describen código indexado, no configuración o permisos efectivos de un cliente. Una categoría vacía no prueba ausencia de funcionalidad; DTO, controladores, componentes o dependencias sin análisis pueden dejar vacíos. Producto debe separar hechos respaldados, decisiones nuevas y supuestos para Tech. El token compartido de demo concede la misma lista de repositorios a todos sus portadores; no implementa OAuth corporativo ni permisos individuales de la aplicación.
+
+Para una demo temporal, con CLI compilado y `cloudflared` oficial instalado en PATH o `.repolead-tools/cloudflared`:
+
+```bash
+# autorizados.json: ["backend", "webapp"]
+python3 scripts/product-demo.py start --dir /ruta/proyectos --repos-file autorizados.json --tunnel cloudflared
+python3 scripts/product-demo.py status
+bun scripts/verify-product-demo.ts
+python3 scripts/product-demo.py stop
+```
+
+El script guarda URL, token y guía privada en `.repolead/product-demo/` con permisos 0600. Solo detiene sus propios procesos identificados por PID y hora de inicio; no opera Docker ni el refresh. Un nuevo inicio rota la credencial y puede cambiar la URL. La verificación comprueba HTTPS, rechazo sin token, catálogo funcional y recuperación real; no certifica precisión semántica ni generación de Word desde Cowork.
+
+En Cowork/Desktop, configurar el conector remoto por separado del plugin en Customize → Connectors, con URL HTTPS, Authentication → No sign in y Request headers → Authorization: Bearer … . Los Owners gestionan el alta en Team/Enterprise. La conexión llega desde la infraestructura de Anthropic: [guía oficial](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp). El túnel temporal de [Cloudflare](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/) sirve para pruebas y requiere mantener la computadora encendida; no reemplaza el despliegue compartido estable.
 
 ### 4.13 `install-hooks [path]`: orientar a Claude Code
 
@@ -949,7 +1031,7 @@ El aumento adaptativo del presupuesto **no está automatizado** en RepoLead. Lo 
 
 ### 6.2 Presupuesto de análisis: otra cosa distinta
 
-`--context-tokens 4000` limita la evidencia por petición, no el número de análisis ni sus salidas. En modo `files`, las llamadas mínimas son secciones completas de archivos + síntesis de archivos divididos + módulos + un brief; las síntesis jerárquicas y reintentos pueden añadir llamadas. En modo `symbols`, se añaden las fichas individuales. Documentos y contexto de producto tienen sus propias llamadas. Revisa `analyze --dry-run` antes del alta de un proyecto grande. El [plan de access-service](../benchmarks/file-mode-plan.json), calculado en lectura sola, pasa de 6.664 tareas exhaustivas a un mínimo de 880 tareas por archivo y cubre 78.459 líneas de fuente. Es una reducción del plan base del 86,8 %, no una medición equivalente de tiempo o calidad.
+`--context-tokens 4000` limita la evidencia por petición, no el número de análisis ni sus salidas. En modo `files`, las llamadas corresponden a secciones completas y grupos de primera ronda; los reintentos pueden añadir llamadas, pero no se generan rondas posteriores ni briefs globales. En modo `symbols`, se añaden las fichas individuales y la jerarquía exhaustiva. La documentación conserva sus propios análisis. Revisa `analyze --dry-run` antes del alta de un proyecto grande. El [plan histórico de access-service](../benchmarks/file-mode-plan.json) estimaba un mínimo de 880 tareas antes de incluir síntesis adicionales; no debe interpretarse como el total actual ni como una medición de calidad o tiempo.
 
 La [comprobación con Ollama real](../benchmarks/file-mode-acceptance.json) verificó permiso `access.create`, obligatoriedad y longitud de un campo, edad mínima, mensajes, estados literales y evento de auditoría en una fixture pequeña. La repetición de `refresh` añadió cero llamadas. La primera salida omitió los estados literales y motivó una corrección del prompt; los mensajes se comprobaron también en la lista de errores del dossier, sin exigir que se duplicaran en `productFacts`. Esta comprobación no demuestra equivalencia de calidad universal ni mide la duración completa de WLT.
 
@@ -1097,8 +1179,8 @@ Si un servicio está ausente o falla durante la búsqueda, se conservan las señ
 El flujo generativo es:
 
 ```text
-fuente y relaciones → fichas de símbolos
-fichas → dossiers de archivos → dossiers de módulos → brief JSON
+files (predeterminado): fuente completa → análisis por archivo → primera ronda → índices → MCP
+symbols (exhaustivo): fuente → fichas → dossiers de archivos/módulos → brief JSON
 ```
 
 Los esquemas de salida organizan propósito, entradas/salidas, efectos, invariantes, errores, responsabilidad, API pública y riesgos según el nivel. La síntesis intercala secciones de los dossiers hijos para que un dossier grande no oculte todos los demás. Si no cabe todo, registra omisiones. Las referencias desconocidas se rechazan antes de persistir la interpretación; eso valida la procedencia, no demuestra automáticamente la verdad semántica de cada conclusión.
@@ -1187,7 +1269,7 @@ Si el código cambió, se rechaza la lectura como evidencia actual y se indica a
 
 | Variable | Valor predeterminado / uso |
 |---|---|
-| `REPOLEAD_TEI_URL` | `http://localhost:8080`, embeddings. |
+| `REPOLEAD_TEI_URL` | `http://localhost:8082`, embeddings. |
 | `REPOLEAD_QDRANT_URL` | `http://localhost:6333`, índice vectorial. |
 | `REPOLEAD_RERANKER_URL` | `http://localhost:8081`, reordenamiento. |
 | `REPOLEAD_OLLAMA_TIMEOUT_MS` | Sobrescribe `local_model.timeoutMs` para las generaciones locales del CLI (entero de 1.000 a 600.000 ms). Sin esta variable se usa la configuración del repo o 180.000 ms. |

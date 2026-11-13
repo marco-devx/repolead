@@ -1,0 +1,4 @@
+{$REPOLEAD_MCP_DOMAIN} {
+  encode gzip
+  reverse_proxy mcp:3939
+}

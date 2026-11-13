@@ -1,0 +1,11 @@
+.git
+.env
+.env.*
+node_modules
+**/node_modules
+**/dist
+**/__pycache__
+.repolead
+.repolead-tools
+docs/temps
+*.log

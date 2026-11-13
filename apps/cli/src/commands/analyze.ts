@@ -2,7 +2,7 @@ import type { Command } from 'commander';
 import { Option } from 'commander';
 
 import { analysisBudget, loadConfig } from '@repolead/config';
-import { analyzeSnapshot, buildDependencyIndex, buildDocumentPacks, buildModuleEvidencePack, buildSymbolPack, listSourceFiles, planFileAnalysis, selectSymbols, technicalFiles } from '@repolead/lead-analyzer';
+import { analyzeSnapshot, buildDependencyIndex, buildDocumentPacks, buildModuleEvidencePack, buildSymbolPack, listSourceFiles, planEntryPointAnalysis, planFileAnalysis, selectSymbols, technicalFiles } from '@repolead/lead-analyzer';
 import { openStore } from '@repolead/knowledge-store';
 import { countTokens, owningModule } from '@repolead/retrieval';
 
@@ -17,7 +17,7 @@ export function registerAnalyze(program: Command): void {
     .option('--db <path>', 'ruta del archivo SQLite', '.repolead/repolead.db')
     .option('--model <name>', 'modelo (default local: qwen3.5:9b-q4_K_M)')
     .option('--backend <backend>', 'ollama (default) | api | claude-code')
-    .addOption(new Option('--analysis-mode <mode>', 'files (default): fuente completa por archivo; symbols: exhaustivo').choices(['files', 'symbols']))
+    .addOption(new Option('--analysis-mode <mode>', 'entrypoints: usecases/pages; files (default): por archivo; symbols: exhaustivo').choices(['entrypoints', 'files', 'symbols']))
     .option('--module <name>', 'analiza solo este módulo')
     .addOption(new Option('--audience <audience>', 'contexto técnico, de producto o ambos').choices(['technical', 'product', 'all']).default('all'))
     .option('--dry-run', 'construye los evidence packs sin llamar al modelo')
@@ -27,7 +27,7 @@ export function registerAnalyze(program: Command): void {
       db: string;
       model?: string;
       backend?: string;
-      analysisMode?: 'files' | 'symbols';
+      analysisMode?: 'entrypoints' | 'files' | 'symbols';
       module?: string;
       dryRun?: boolean;
       contextTokens?: number;
@@ -50,17 +50,28 @@ export function registerAnalyze(program: Command): void {
 
         if (options.dryRun) {
           if (options.audience !== 'technical' && !options.module) {
+            if (analysisMode === 'entrypoints') {
+              console.log('Producto: análisis de usecases/pages y documentación indexada; sin generaciones documentales ni globales.');
+            } else {
             const documents = store.listDocuments(snapshot.id);
             const parts = documents.reduce((count, document) => count + buildDocumentPacks(document, budget.maxTokens, budget.maxSourceLinesPerPack, analysisMode === 'files' ? budget.filePackBytes : undefined).length, 0);
-            console.log(`Producto: ${documents.length} documentos · ${parts} secciones · hasta ${documents.length} síntesis documentales + 1 contexto de producto.`);
+            console.log(`Producto: ${documents.length} documentos · ${parts} secciones · ${analysisMode === 'files' ? 'solo primera ronda documental, sin contexto global' : `hasta ${documents.length} síntesis documentales + 1 contexto de producto`}.`);
+            }
           }
           if (options.audience === 'product') { return; }
+          if (analysisMode === 'entrypoints') {
+            const plan = planEntryPointAnalysis({ store, snapshotId: snapshot.id, budget, moduleFilter: options.module });
+            console.log(`Modo entrypoints: ${plan.targets.filter((target) => target.kind === 'usecase').length} usecases · ${plan.targets.filter((target) => target.kind === 'page').length} pages.`);
+            console.log(`Plan sin caché: ${plan.targets.length} análisis. Sin análisis propios para DTOs, helpers, hooks, componentes ni tests; sin síntesis. Todo el código sigue indexado.`);
+            for (const target of plan.targets) { console.log(`− ${target.kind}: ${target.name} · ${target.path}`); }
+            return;
+          }
           if (analysisMode === 'files') {
             const plan = planFileAnalysis({ store, snapshotId: snapshot.id, budget, moduleFilter: options.module });
             const parts = plan.plans.reduce((n, entry) => n + entry.packs.length, 0);
             const merges = plan.plans.filter((entry) => entry.packs.length > 1).length;
             console.log(`Modo files: ${plan.symbolsCovered} símbolos cubiertos en ${plan.files.length} archivos · ${plan.sourceLines} líneas completas.`);
-            console.log(`Plan sin caché: ${parts} secciones + ${merges} síntesis de archivo + ${plan.modules.length} módulos + ${options.module ? 0 : 1} brief; las síntesis grandes pueden requerir pasos adicionales.`);
+            console.log(`Plan base sin caché: ${parts} secciones + ${merges} archivos divididos + primera ronda en ${plan.modules.length} módulos. Sin rondas 2.x ni briefs globales; el número de grupos se calcula antes de cada primera ronda.`);
             console.log(`Paquetes de hasta ${budget.filePackBytes} bytes y ${budget.maxTokens} tokens; se divide el código, sin descartar el final. No se llama al modelo en dry-run.`);
             return;
           }
@@ -120,7 +131,7 @@ export function registerAnalyze(program: Command): void {
           });
 
           console.log(`✓ símbolos: ${result.symbolsAnalyzed} analizados, ${result.symbolsCached} desde caché`);
-          console.log(`✓ archivos: ${result.filesAnalyzed} analizados, ${result.filesCached} desde caché`);
+          console.log(`✓ ${analysisMode === 'entrypoints' ? 'usecases/pages' : 'archivos'}: ${result.filesAnalyzed} analizados, ${result.filesCached} desde caché`);
           console.log(`✓ módulos: ${result.modulesAnalyzed} analizados, ${result.modulesCached} desde caché`);
           if (result.briefGenerated || result.briefCached) {
             console.log(`✓ Repository Brief ${result.briefCached ? 'desde caché' : 'generado'}`);

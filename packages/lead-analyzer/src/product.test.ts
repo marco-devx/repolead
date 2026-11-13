@@ -61,6 +61,25 @@ test('product context is generated from SQLite documents, cited, and reused with
   } finally { store.close(); }
 });
 
+test('file mode indexes document analyses without generating a global product or later synthesis rounds', async () => {
+  const { store, snapshot } = await fixture('# Rules\nInvoices require manager approval.\n');
+  try {
+    const model = new ProductModel();
+    const options = { store, snapshotId: snapshot.id, model, analysisMode: 'files' as const };
+    const result = await analyzeProductContext(options);
+    expect(result.globalSummarySkipped).toBe(true);
+    expect(model.packs.every((pack) => pack.subject.level === 'document')).toBe(true);
+    expect(store.listSummaries(snapshot.id, 'product')).toEqual([]);
+    expect(JSON.parse(store.getSnapshotMetadata(snapshot.id, 'product_analysis')!)).toMatchObject({
+      synthesisMode: 'first-round', status: 'complete', globalSummarySkipped: true, documents: 1,
+    });
+    expect(store.searchKnowledge(snapshot.id, 'invoice', 4, { entityKinds: ['summary'] }).length).toBeGreaterThan(0);
+    const before = model.packs.length;
+    await analyzeProductContext(options);
+    expect(model.packs).toHaveLength(before);
+  } finally { store.close(); }
+});
+
 test('all documentation lines are analyzed in bounded sections, including the final business rule', async () => {
   const content = ['# Rules', ...Array.from({ length: 80 }, (_, index) => `Rule ${index}: only the account owner can approve this transaction.`), 'FINAL RULE: refunds require approval.'].join('\n');
   const { store, snapshot, document } = await fixture(content);

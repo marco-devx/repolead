@@ -176,8 +176,13 @@ function toFtsQuery(query: string): string {
     .join(' ');
 }
 
-export async function openStore(path = ':memory:'): Promise<KnowledgeStore> {
-  const db = await openDatabase(path);
+export async function openStore(path = ':memory:', options: { readonly?: boolean } = {}): Promise<KnowledgeStore> {
+  const db = await openDatabase(path, options.readonly);
+  if (options.readonly) {
+    // No migrations, checkpoints or journal changes on databases being generated.
+    db.exec('PRAGMA query_only = ON; PRAGMA busy_timeout = 5000;');
+    return new KnowledgeStore(db);
+  }
   db.exec(`
     PRAGMA journal_mode = WAL;
     PRAGMA busy_timeout = 5000;
@@ -236,7 +241,8 @@ export class KnowledgeStore {
   }
 
   matchesKnowledge(item: KnowledgeItem, filters: KnowledgeFilters): boolean {
-    return (!filters.entityKinds?.length || filters.entityKinds.includes(item.entityKind))
+    return (item.entityKind !== 'summary' || this.isSummaryVisible(item.snapshotId, { level: item.kind, subjectId: item.subjectId }))
+      && (!filters.entityKinds?.length || filters.entityKinds.includes(item.entityKind))
       && (!filters.excludeTests || (item.entityKind !== 'test' && !TEST_PATH_PATTERNS.some((pattern) => pattern.test(item.path))
         && !this.db.prepare('SELECT 1 FROM tests WHERE snapshot_id = ? AND path = ? LIMIT 1').get(item.snapshotId, item.path)))
       && (!filters.language || item.language === filters.language)
@@ -256,6 +262,15 @@ export class KnowledgeStore {
     // Apply filters before LIMIT so unrelated languages/modules cannot exhaust the candidate set.
     const conditions = ['k.snapshot_id = ?'];
     const parameters: (string | number)[] = [terms.join(' OR '), snapshotId];
+    if (this.getSnapshotMetadata(snapshotId, 'synthesis_mode') === 'entrypoints') {
+      const subjects = this.entryPointSummarySubjects(snapshotId);
+      conditions.push(subjects.length ? `(k.entity_kind <> 'summary' OR (k.kind = 'file' AND k.subject_id IN (${subjects.map(() => '?').join(',')})))`
+        : "k.entity_kind <> 'summary'");
+      parameters.push(...subjects);
+    }
+    if (this.getSnapshotMetadata(snapshotId, 'synthesis_mode') === 'first-round') {
+      conditions.push("(k.entity_kind <> 'summary' OR (k.kind NOT IN ('repository','product') AND (k.kind <> 'module' OR k.subject_id LIKE '%#synthesis:0:%') AND (k.subject_id NOT LIKE '%#synthesis:%' OR k.subject_id LIKE '%#synthesis:0:%')))");
+    }
     if (filters.entityKinds?.length) { conditions.push(`k.entity_kind IN (${filters.entityKinds.map(() => '?').join(',')})`); parameters.push(...filters.entityKinds); }
     if (filters.language) { conditions.push('k.language = ?'); parameters.push(filters.language); }
     if (filters.kind) { conditions.push('k.kind = ?'); parameters.push(filters.kind); }
@@ -698,6 +713,34 @@ export class KnowledgeStore {
     }).map(toSummary);
   }
 
+  /** Archived global/later-round summaries remain cached but are not served or indexed in first-round mode. */
+  listVisibleSummaries(snapshotId: string, level?: SummaryLevel): SummaryDoc[] {
+    const summaries = this.listSummaries(snapshotId, level);
+    const mode = this.getSnapshotMetadata(snapshotId, 'synthesis_mode');
+    if (mode === 'entrypoints') {
+      const subjects = new Set(this.entryPointSummarySubjects(snapshotId));
+      return summaries.filter((summary) => summary.level === 'file' && subjects.has(summary.subjectId));
+    }
+    if (mode !== 'first-round') { return summaries; }
+    return summaries.filter((summary) => this.isSummaryVisible(snapshotId, summary));
+  }
+
+  isSummaryVisible(snapshotId: string, summary: { level: string; subjectId: string }): boolean {
+    if (this.getSnapshotMetadata(snapshotId, 'synthesis_mode') === 'entrypoints') {
+      return summary.level === 'file' && this.entryPointSummarySubjects(snapshotId).includes(summary.subjectId);
+    }
+    if (this.getSnapshotMetadata(snapshotId, 'synthesis_mode') !== 'first-round') { return true; }
+    if (summary.level === 'repository' || summary.level === 'product') { return false; }
+    const synthesis = /#synthesis:(\d+):\d+$/.exec(summary.subjectId);
+    if (synthesis && synthesis[1] !== '0') { return false; }
+    return summary.level !== 'module' || synthesis?.[1] === '0';
+  }
+
+  private entryPointSummarySubjects(snapshotId: string): string[] {
+    const catalog = JSON.parse(this.getSnapshotMetadata(snapshotId, 'entrypoint_catalog') ?? '[]') as { summarySubjectId: string }[];
+    return [...new Set(catalog.map((entry) => entry.summarySubjectId))];
+  }
+
   getSummary(snapshotId: string, subjectId: string, level: SummaryLevel): SummaryDoc | null {
     const row = this.db.prepare(`SELECT * FROM summaries WHERE snapshot_id = ? AND subject_id = ? AND level = ?
       ORDER BY created_at DESC, rowid DESC LIMIT 1`).get(snapshotId, subjectId, level) as SummaryRow | undefined;
@@ -801,6 +844,13 @@ export class KnowledgeStore {
     return row
       ? { id: row.id, repositoryId: row.repository_id, commitSha: row.commit_sha, createdAt: row.created_at }
       : null;
+  }
+
+  listSnapshots(): Snapshot[] {
+    const rows = this.db.prepare('SELECT * FROM snapshots ORDER BY created_at DESC, rowid DESC').all() as {
+      id: string; repository_id: string; commit_sha: string; created_at: string;
+    }[];
+    return rows.map((row) => ({ id: row.id, repositoryId: row.repository_id, commitSha: row.commit_sha, createdAt: row.created_at }));
   }
 
   getRepository(repositoryId: string): Repository | null {

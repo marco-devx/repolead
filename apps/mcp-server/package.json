@@ -9,6 +9,7 @@
     "@repolead/change-analysis": "workspace:*",
     "@repolead/domain": "workspace:*",
     "@repolead/knowledge-store": "workspace:*",
+    "@repolead/lead-analyzer": "workspace:*",
     "@repolead/retrieval": "workspace:*",
     "zod": "^4.4.3"
   }

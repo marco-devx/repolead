@@ -19,6 +19,7 @@ import { EVIDENCE_ENCODING_VERSION, modelEvidence } from './model-evidence';
 import { analysisBatchSize, BatchedTechLeadModel, forAnalysisBatches } from './batched-model';
 import { ANALYSIS_POLICY_VERSION, PROMPT_VERSION, summaryPrompt, summarySchema, TECH_LEAD_SYSTEM, validateSummary } from './prompts';
 import { analyzeFiles } from './file-analysis';
+import { analyzeEntryPoints } from './entrypoint-analysis';
 
 export interface AnalyzeProgress {
   subject: string;
@@ -30,8 +31,10 @@ export interface AnalyzeProgress {
 }
 
 export interface AnalyzeOptions {
+  /** Probe legacy cached file synthesis without allowing a model call. */
+  cacheOnly?: boolean;
   /** CLI defaults to files. Omitted retains the existing exhaustive library API. */
-  analysisMode?: 'files' | 'symbols';
+  analysisMode?: 'entrypoints' | 'files' | 'symbols';
   store: KnowledgeStore;
   snapshotId: string;
   model: TechLeadModel;
@@ -45,6 +48,8 @@ export interface AnalyzeOptions {
   policyVersion?: string;
   onProgress?: (progress: AnalyzeProgress) => void;
 }
+
+export class AnalysisCacheMiss extends Error {}
 
 export interface AnalyzeResult {
   symbolsSkipped: number;
@@ -116,6 +121,7 @@ export async function analyzeSubject(options: AnalyzeOptions, pack: Hierarchical
     return { summary, cached: true, inputTokens: 0, outputTokens: 0 };
   }
 
+  if (options.cacheOnly) { throw new AnalysisCacheMiss(`No valid cached summary for ${pack.subject.id}`); }
   const startedAt = new Date().toISOString();
   const cacheKey = `${pack.subject.id}\n${packHash}`;
   let inputTokens = 0;
@@ -201,8 +207,10 @@ function childUnknowns(children: SummaryDoc[]): string[] {
 }
 
 export async function analyzeSnapshot(options: AnalyzeOptions): Promise<AnalyzeResult> {
+  if (options.analysisMode === 'entrypoints') { return analyzeEntryPoints(options); }
   if (options.analysisMode === 'files') { return analyzeFiles(options); }
   const { store, snapshotId } = options;
+  store.setSnapshotMetadata(snapshotId, 'synthesis_mode', 'hierarchical');
   const budget = options.budget ?? DEFAULT_BUDGET;
   const batchSize = analysisBatchSize(budget.batchSize);
   const primary = batchSize > 1 ? new BatchedTechLeadModel(options.model, batchSize) : options.model;

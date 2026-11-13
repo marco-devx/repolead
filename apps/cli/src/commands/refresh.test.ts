@@ -39,7 +39,10 @@ test('refresh --analyze prepares and resumes both audiences even when indexed by
     const store = await openStore(initial.dbPath);
     try {
       expect(store.getLatestSnapshot()?.id).toBe(initial.snapshotId);
-      expect(store.listSummaries(initial.snapshotId, 'product')).toHaveLength(1);
+      expect(store.listSummaries(initial.snapshotId, 'product')).toHaveLength(0);
+      expect(JSON.parse(store.getSnapshotMetadata(initial.snapshotId, 'product_analysis')!)).toMatchObject({
+        synthesisMode: 'first-round', status: 'complete', globalSummarySkipped: true,
+      });
       expect(JSON.parse(store.getSnapshotMetadata(initial.snapshotId, 'technical_analysis')!).maxReanalysisDepth).toBe(1);
     } finally { store.close(); }
   } finally {
@@ -65,7 +68,8 @@ test('refresh and onboard can defer vectors without contacting embedding service
     try {
       const snapshot = store.getLatestSnapshot()!;
       expect(store.getSnapshotMetadata(snapshot.id, 'vector_refresh_pending')).toBe('true');
-      expect(store.listSummaries(snapshot.id, 'product')).toHaveLength(1);
+      expect(store.listSummaries(snapshot.id, 'product')).toHaveLength(0);
+      expect(JSON.parse(store.getSnapshotMetadata(snapshot.id, 'product_analysis')!).status).toBe('complete');
     } finally { store.close(); }
   } finally { fetch.mockRestore(); log.mockRestore(); rmSync(root, { recursive: true, force: true }); }
 });

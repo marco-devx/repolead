@@ -1,4 +1,5 @@
 import { registerDataFlow } from './commands/dataflow';
+import { registerCloud } from './commands/cloud';
 
 import { Command } from 'commander';
 
@@ -40,6 +41,7 @@ export function buildProgram(): Command {
   registerPrioritization(program);
   registerMutation(program);
   registerDataFlow(program);
+  registerCloud(program);
 
   return program;
 }

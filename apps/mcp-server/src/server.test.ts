@@ -136,6 +136,59 @@ test('overview never presents an intermediate synthesis as a completed brief', a
   } finally { await client.close(); store.close(); }
 });
 
+test('first-round MCP navigation serves current resources without requesting missing globals or exposing archived rounds', async () => {
+  const { store, client } = await seedAndConnect();
+  try {
+    const snapshot = store.getLatestSnapshot()!;
+    for (const [subjectId, level] of [['repo://demo', 'repository'], ['module://demo/src/payment', 'module'],
+      ['module://demo/src/payment#synthesis:0:1', 'module'], ['module://demo/src/payment#synthesis:1:1', 'module']] as const) {
+      store.insertSummary({ id: subjectId, snapshotId: snapshot.id, subjectId, level,
+        contentJson: JSON.stringify({ responsibility: 'Refund rules', unknowns: [] }), model: 'fixture',
+        promptVersion: '7', contentHash: subjectId, createdAt: new Date().toISOString() });
+    }
+    const archivedUri = (await client.listResources()).resources.find((resource) => resource.name.includes('repository'))!.uri;
+    store.setSnapshotMetadata(snapshot.id, 'synthesis_mode', 'first-round');
+    store.setSnapshotMetadata(snapshot.id, 'technical_analysis', JSON.stringify({ status: 'complete' }));
+    const overview = payloadOf(await client.callTool({ name: 'repo_overview', arguments: {} })) as {
+      synthesisMode: string; brief: string; availableMemory: { moduleSyntheses: number };
+    };
+    expect(overview.synthesisMode).toBe('first-round'); expect(overview.brief).toContain('omitido por diseño');
+    expect(overview.brief).not.toContain('corre'); expect(overview.availableMemory.moduleSyntheses).toBe(1);
+    const module = payloadOf(await client.callTool({ name: 'module_context', arguments: { module: 'payment' } })) as {
+      firstRoundGroups: number; dossier: string;
+    };
+    expect(module.firstRoundGroups).toBe(1); expect(module.dossier).toContain('context_pack');
+    expect((await client.listResources()).resources).toHaveLength(1);
+    await expect(client.readResource({ uri: archivedUri })).rejects.toThrow('Archived');
+  } finally { await client.close(); store.close(); }
+});
+
+test('entrypoint MCP exposes selected usecase analyses and source-only navigation without requesting whole-repo generation', async () => {
+  const { store, client } = await seedAndConnect(false);
+  try {
+    const snapshot = store.getLatestSnapshot()!;
+    const subjectId = 'usecase://demo/src/payment/service.ts#PaymentUseCase';
+    store.insertSummary({ id: 'usecase-summary', snapshotId: snapshot.id, subjectId, level: 'file',
+      contentJson: JSON.stringify({ responsibility: 'Process payment with approval', unknowns: [] }), model: 'fixture',
+      promptVersion: '7', contentHash: 'usecase', createdAt: new Date().toISOString() });
+    store.setSnapshotMetadata(snapshot.id, 'synthesis_mode', 'entrypoints');
+    store.setSnapshotMetadata(snapshot.id, 'entrypoint_catalog', JSON.stringify([{ kind: 'usecase', name: 'PaymentUseCase',
+      path: 'src/payment/service.ts', summarySubjectId: subjectId, startLine: 1, endLine: 10 }]));
+    const overview = payloadOf(await client.callTool({ name: 'repo_overview', arguments: {} })) as {
+      synthesisMode: string; availableMemory: { usecases: number; pages: number };
+    };
+    expect(overview.synthesisMode).toBe('entrypoints'); expect(overview.availableMemory.usecases).toBe(1);
+    expect(overview.availableMemory.pages).toBe(0);
+    const result = payloadOf(await client.callTool({ name: 'symbol_context', arguments: { symbol: 'checkout' } })) as {
+      card: string; fileResources: string[];
+    };
+    expect(result.card).toContain('entrypoint'); expect(result.fileResources).toHaveLength(1);
+    const resources = (await client.listResources()).resources;
+    expect(resources).toHaveLength(1);
+    expect((await client.readResource({ uri: resources[0]!.uri })).contents[0]).toMatchObject({ mimeType: 'application/json' });
+  } finally { await client.close(); store.close(); }
+});
+
 test('context profile reduces tool schema tokens and refuses hidden tools while retaining retrieval', async () => {
   const full = await seedAndConnect(); const lean = await seedAndConnect(true, REPO, 'context');
   try {

@@ -5,6 +5,7 @@
   "type": "module",
   "main": "./src/index.ts",
   "dependencies": {
+    "pg": "^8.16.0",
     "@repolead/adapter-tree-sitter": "workspace:*",
     "@repolead/domain": "workspace:*",
     "@repolead/knowledge-store": "workspace:*",

@@ -11,6 +11,11 @@ RepoLead is a **repository intelligence system**. Deterministic analyzers (Tree-
 
 **Documentación en español:** [Guía técnica: del primer uso a la arquitectura interna](docs/guia-tecnica.md), con el flujo de trabajo, todos los comandos, MCP y presupuestos de tokens.
 
+**Shared product MCP:** [PostgreSQL/pgvector + corporate SSO deployment](deploy/cloud/README.md).
+Publish existing local analyses and vectors without regenerating them, serve the latest complete
+context from containers, and use an authorized inference worker for new semantic queries and
+source corroboration. The local vector backend also supports `REPOLEAD_VECTOR_BACKEND=pgvector`.
+
 ## Why
 
 When an AI agent explores a repository by reading files, every question burns context: repeated reads, compacted sessions, conclusions without evidence, and the same discoveries made over and over. RepoLead inverts the flow:
@@ -38,12 +43,19 @@ Agents query a small, up-to-date, verifiable knowledge base instead of crawling 
  Qdrant          <- semantic index (rebuildable from SQLite at any time)
      |
      v
- [analyze]  source/evidence -> symbol cards -> file dossiers -> module dossiers -> brief (cached)
+ [analyze]  complete file analyses -> first-round synthesis groups (cached; no global brief)
  [audit]    YAML policies -> deterministic detectors -> selected model as judge -> findings
      |
      v
  [serve]  MCP server -> Claude Code / Codex query it with 14 tools
 ```
+
+For a faster product-focused workflow, use `--analysis-mode entrypoints` (or
+`analysis_mode: entrypoints` in `.repolead.yaml`). It generates one analysis per backend
+UseCase class and frontend page, without synthesis rounds or global briefs. Other source
+files remain indexed as code, so agents can retrieve supporting implementations as needed.
+The WLT Make runner selects this mode explicitly. Generic CLI configuration still defaults
+to `files` unless overridden.
 
 Key properties:
 
@@ -135,14 +147,18 @@ Product context contains goals, features, roles, user flows, business rules and
 decisions with evidence. Claims distinguish `documented`, `implemented` and
 `inferred`; unsupported information stays in `unknowns`. Documentation alone
 cannot support an `implemented` claim. Large documents are analyzed in bounded
-sections covering every line; final syntheses report any omitted evidence.
+sections covering every line. The default file workflow stops after first-round
+synthesis groups: no later rounds, repository brief or global product summary is generated.
 These checks establish provenance, not automatic semantic correctness.
 
-MCP clients read `repo_overview` with `audience: "product"` or the listed
-product/document resources; engineering uses the technical brief and detailed
-dossiers. Reads use stored knowledge without new generation. Configure the
-client to request the appropriate overview at conversation start: merely
-connecting MCP does not inject the database into its context window.
+MCP clients use `context_pack mode=evidence` with focused queries and
+`types:["summary","document"]` to retrieve pertinent file analyses, first-round
+groups and product documents. Hybrid retrieval uses vectors, lexical matches and
+reranking when available; it does not require a global summary. Verify implementation
+details with source evidence. `repo_overview` reports inventory and analysis status.
+Reads use stored knowledge without new generation; connecting MCP does not inject
+the database into the client's context window. Explicit exhaustive symbol mode
+retains its legacy global briefs.
 
 `refresh . --analyze` refreshes both audiences. It compares indexed file hashes,
 reuses unchanged syntax extractions and recomputes changed summaries through
@@ -361,21 +377,24 @@ Optionally, make the steering automatic: `repolead install-hooks .` registers a 
 The server can expose the indexed knowledge over authenticated HTTP for MCP clients that support a configured bearer token:
 
 ```bash
-REPOLEAD_TOKEN=<strong-secret> repolead serve --dir /srv/repos --http --host 0.0.0.0 --port 3939 --no-source
+REPOLEAD_TOKEN=<strong-secret> repolead serve --dir /srv/repos --only backend,webapp --product --http --host 127.0.0.1 --port 3939
 ```
 
 - `--http` switches from stdio to stateless MCP Streamable HTTP at `/mcp`; MCP requests require `Authorization: Bearer <token>`. It binds to `127.0.0.1` by default; `--host` selects another interface.
 - A browser `Origin` must match a repeatable `--allow-origin https://product.example` entry. Allowed preflight requests do not require the token; subsequent MCP requests do. Bodies are limited to 1 MiB. These origin/local-binding defaults follow the [MCP 2025-11-25 transport requirements](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports).
-- `--no-source` enables product mode: dossiers, briefs, findings, search and stored evidence excerpts are served, but raw source lines never leave the server.
+- `--product` exposes a separate functional projection through `product_catalog`, `product_context`, `product_evidence` and `product_investigate`. It registers no technical tools or raw resources and opens SQLite read-only. With `--dir`, an explicit `--only` repository allowlist is required; newly created allowlisted databases are discovered every five seconds. Queries select the latest complete entrypoint analysis automatically, retaining an older complete snapshot while a newer one is processing. Generated interpretations include provenance refs, uncertainty, omissions and coverage gaps; they do not establish deployed behavior. `product_investigate` corroborates a focused question against captured source and dependencies using a background local-model job, with a second source review. Start it with product refs or English code keywords and poll its job ID; follow source refs to investigate omitted dependencies. It returns functional findings, bounded observations, inferences and source-location metadata, without raw code. Jobs are serialized, limited to four pending/running and cached in memory while evidence stays current. Obvious code blocks and secret patterns are excluded from projected prose; this is not a general DLP guarantee.
+- `--no-source` only disables new raw source reads in the technical server. Stored excerpts, signatures, documents and technical resources remain accessible; it is not the product confidentiality boundary.
 - `--tool-profile context` exposes only `repo_overview`, `context_pack`, `search` and `get_evidence`, reducing the schema catalog for retrieval-only clients. The default `all` profile keeps all fourteen tools. Resources remain available in both profiles; this is not an access-control boundary.
 - For repeated evidence retrieval in the same conversation, `context_pack` accepts `knownBlocks`. Start with `mode=evidence, knownBlocks=[]` to receive SHA-256 receipts; on follow-ups, pass only receipts whose full block text remains available to the client. Validated identical blocks return `UNCHANGED` references, while changed evidence is delivered again. After conversation compaction, omit receipts for lost blocks to retrieve their text. This is opt-in transport reuse, not a model prompt-cache or a guarantee of billing savings.
-- Keep the endpoint inside your VPN or behind a reverse proxy with TLS.
+- Use HTTPS through a reverse proxy or tunnel. Claude's remote custom connectors connect from Anthropic infrastructure, including Cowork and Desktop; a private VPN-only address is insufficient. Fixed bearer credentials can be configured under Request headers in the connector settings. See [Claude's connector instructions](https://support.claude.com/en/articles/11175166-get-started-with-custom-connectors-using-remote-mcp).
 
 Connect using a client that can attach the configured bearer token, for example:
 
 ```bash
 claude mcp add --transport http repolead https://your-host/mcp --header "Authorization: Bearer <token>"
 ```
+
+For an ephemeral demo, `python3 scripts/product-demo.py start --dir /path/to/repos --repos-file allowed.json --tunnel cloudflared` starts only a product MCP and HTTPS tunnel. `allowed.json` is a JSON array of authorized repository aliases; build the CLI and install the official tunnel binary first. Credentials stay in ignored private files under `.repolead/product-demo/`. Use `status` or `stop` on that script to inspect or stop only its owned processes. It does not operate Docker or run analyses. `bun scripts/verify-product-demo.ts` verifies public retrieval and isolation using that local credential file; it does not validate generated PRDs or product semantics.
 
 Keep the indexes fresh with a cron job on the host:
 

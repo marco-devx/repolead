@@ -1,0 +1,99 @@
+name: repolead-cloud
+services:
+  postgres:
+    profiles: [database]
+    image: pgvector/pgvector:0.8.7-pg17
+    environment:
+      POSTGRES_USER: repolead_owner
+      POSTGRES_DB: repolead
+      POSTGRES_PASSWORD: ${REPOLEAD_OWNER_PASSWORD:-}
+      REPOLEAD_APP_PASSWORD: ${REPOLEAD_APP_PASSWORD:-}
+      REPOLEAD_WORKER_PASSWORD: ${REPOLEAD_WORKER_PASSWORD:-}
+    command: [postgres, -c, shared_buffers=256MB, -c, work_mem=8MB, -c, maintenance_work_mem=128MB, -c, max_connections=30, -c, max_parallel_workers_per_gather=1]
+    volumes:
+      - cloud-pg:/var/lib/postgresql/data
+      - ./deploy/cloud/postgres-init.sh:/docker-entrypoint-initdb.d/10-repolead.sh:ro
+    ports: ["127.0.0.1:${REPOLEAD_PG_LOCAL_PORT:-5438}:5432"]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U repolead_owner -d repolead"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    mem_limit: 2g
+    cpus: 1.25
+    restart: unless-stopped
+
+  mcp:
+    image: repolead-cloud:local
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+    environment:
+      REPOLEAD_PG_READ_URL: ${REPOLEAD_PG_READ_URL:?Set REPOLEAD_PG_READ_URL}
+      REPOLEAD_PG_TLS: ${REPOLEAD_PG_TLS:-verify-full}
+      REPOLEAD_PG_CA_FILE: ${REPOLEAD_PG_CA_FILE:-}
+      AUTH_OIDC_ISSUER_URL: ${AUTH_OIDC_ISSUER_URL:?Set the same issuer as tickets-portal}
+      BASE_URL: ${BASE_URL:?Set the public HTTPS MCP origin}
+      REPOLEAD_ALLOWED_ORIGINS: ${REPOLEAD_ALLOWED_ORIGINS:-https://claude.ai}
+    ports: ["127.0.0.1:${REPOLEAD_MCP_LOCAL_PORT:-3939}:3939"]
+    read_only: true
+    tmpfs: ["/tmp:size=64m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    cpus: 0.5
+    pids_limit: 128
+    healthcheck:
+      test: [CMD, bun, -e, "fetch('http://127.0.0.1:3939/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  edge:
+    profiles: [edge]
+    image: caddy:2.10.2-alpine
+    environment:
+      REPOLEAD_MCP_DOMAIN: ${REPOLEAD_MCP_DOMAIN:-mcp.example.invalid}
+    ports: ["80:80", "443:443"]
+    volumes:
+      - ./deploy/cloud/Caddyfile:/etc/caddy/Caddyfile:ro
+      - cloud-caddy:/data
+    mem_limit: 128m
+    cpus: 0.25
+    restart: unless-stopped
+
+  worker:
+    profiles: [local-worker]
+    image: repolead-cloud:local
+    build:
+      context: .
+      dockerfile: Dockerfile.cloud
+    command: [worker, --cache-dir, /data/worker]
+    # Local Linux worker accesses existing loopback Ollama/TEI; no model containers are managed here.
+    network_mode: host
+    environment:
+      REPOLEAD_PG_WORKER_URL: ${REPOLEAD_PG_WORKER_URL:-}
+      REPOLEAD_PG_TLS: ${REPOLEAD_WORKER_PG_TLS:-verify-full}
+      REPOLEAD_PG_CA_FILE: ${REPOLEAD_PG_CA_FILE:-}
+      REPOLEAD_TEI_URL: ${REPOLEAD_TEI_URL:-http://127.0.0.1:8082}
+      REPOLEAD_RESEARCH_OLLAMA_URL: ${REPOLEAD_RESEARCH_OLLAMA_URL:-http://127.0.0.1:11434}
+      REPOLEAD_RESEARCH_MODEL: ${REPOLEAD_RESEARCH_MODEL:-qwen3.5:9b-q4_K_M}
+      REPOLEAD_GPU_LOCK: /data/gpu.lock
+    volumes:
+      - cloud-worker:/data/worker
+      - type: bind
+        source: ${REPOLEAD_GPU_LOCK_HOST:-/tmp/repolead-gpu-1000.lock}
+        target: /data/gpu.lock
+        bind:
+          create_host_path: false
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 2g
+    cpus: 2
+    restart: unless-stopped
+
+volumes:
+  cloud-pg:
+  cloud-caddy:
+  cloud-worker:

@@ -35,7 +35,7 @@ const configSchema = z.strictObject({
     max_reanalysis_depth: z.number().int().min(0).max(32).default(3),
   }).prefault({}),
   symbol_selection: z.enum(['all', 'public-or-nontrivial']).default('all'),
-  analysis_mode: z.enum(['files', 'symbols']).default('files'),
+  analysis_mode: z.enum(['entrypoints', 'files', 'symbols']).default('files'),
   local_model: z.strictObject({
     url: z.url().default('http://127.0.0.1:11434'),
     model: z.string().min(1).default(DEFAULT_LOCAL_MODEL),

@@ -20,15 +20,15 @@ export interface SqlDatabase {
  * El comentario webpackIgnore evita que Rspack intente resolver el
  * specifier en build time.
  */
-export async function openDatabase(path: string): Promise<SqlDatabase> {
+export async function openDatabase(path: string, readonly = false): Promise<SqlDatabase> {
   const specifier = process.versions.bun ? 'bun:sqlite' : 'better-sqlite3';
   const loaded = (await import(/* webpackIgnore: true */ specifier)) as {
-    Database?: new (path: string) => SqlDatabase;
-    default?: new (path: string) => SqlDatabase;
+    Database?: new (path: string, options?: { readonly: boolean }) => SqlDatabase;
+    default?: new (path: string, options?: { readonly: boolean }) => SqlDatabase;
   };
   const Database = loaded.Database ?? loaded.default;
   if (!Database) {
     throw new Error(`No se pudo cargar el driver SQLite (${specifier})`);
   }
-  return new Database(path);
+  return new Database(path, { readonly });
 }

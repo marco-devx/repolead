@@ -6,7 +6,7 @@ import { refreshRepository } from '@repolead/code-graph';
 import { analysisBudget, loadConfig } from '@repolead/config';
 import { openStore } from '@repolead/knowledge-store';
 import { analyzeSnapshot } from '@repolead/lead-analyzer';
-import { QdrantRestClient, TeiEmbeddingsClient, defaultEmbeddingCollection, indexSnapshot } from '@repolead/retrieval';
+import { vectorBackend, TeiEmbeddingsClient, defaultEmbeddingCollection, indexSnapshot } from '@repolead/retrieval';
 
 import { backendLabel, pickModel, pickAnalysisRouting } from '../model-select';
 import { tokenBudget } from './context';
@@ -31,7 +31,7 @@ export function registerRefresh(program: Command, modelFactory = pickModel): voi
     .option('--no-product', 'omitir contexto de producto al usar --analyze')
     .option('--model <name>', 'modelo para --analyze')
     .option('--backend <backend>', 'ollama (default) | api | claude-code')
-    .addOption(new Option('--analysis-mode <mode>', 'files: fuente completa por archivo; symbols: fichas individuales').choices(['files', 'symbols']))
+    .addOption(new Option('--analysis-mode <mode>', 'entrypoints: usecases/pages; files: por archivo; symbols: exhaustivo').choices(['entrypoints', 'files', 'symbols']))
     .option('--context-tokens <n>', 'presupuesto por análisis (config o 120000; o200k_base)', tokenBudget)
     .option('--no-scip', 'no ejecutar scip-typescript')
     .option('--no-vectors', 'aplazar embeddings/vectores hasta ejecutar reindex')
@@ -41,7 +41,7 @@ export function registerRefresh(program: Command, modelFactory = pickModel): voi
       product: boolean;
       model?: string;
       backend?: string;
-      analysisMode?: 'files' | 'symbols';
+      analysisMode?: 'entrypoints' | 'files' | 'symbols';
       scip: boolean;
       vectors: boolean;
       contextTokens?: number;
@@ -76,7 +76,7 @@ export function registerRefresh(program: Command, modelFactory = pickModel): voi
         if (options.analyze) {
           const model = await modelFactory(options.backend ?? config.model.backend, options.model ?? config.model.name, config.local_model);
           console.log(`analyze: ${backendLabel(model)} · ${model.name}`);
-          console.log(`modo: ${analysisMode} · ${analysisMode === 'files' ? 'código completo por archivo; secciones y síntesis adicionales si hacen falta' : 'fichas individuales por símbolo'}`);
+          console.log(`modo: ${analysisMode} · ${analysisMode === 'entrypoints' ? 'solo usecases/pages; sin síntesis' : analysisMode === 'files' ? 'código por archivo y primera ronda' : 'fichas individuales por símbolo'}`);
           const analysis = await analyzeSnapshot({
             ...await pickAnalysisRouting(config, model),
             analysisMode,
@@ -90,7 +90,7 @@ export function registerRefresh(program: Command, modelFactory = pickModel): voi
               ),
           });
           console.log(
-            `✓ ${analysis.symbolsAnalyzed} símbolos, ${analysis.filesAnalyzed} archivos, ${analysis.modulesAnalyzed} módulos re-analizados · ${analysis.symbolsCached + analysis.filesCached + analysis.modulesCached} desde caché · brief ${analysis.briefCached ? 'desde caché' : 'regenerado'}`,
+            `✓ ${analysis.symbolsAnalyzed} símbolos, ${analysis.filesAnalyzed} análisis de ${analysisMode === 'entrypoints' ? 'usecase/page' : 'archivo'}, ${analysis.modulesAnalyzed} análisis de módulo · ${analysis.symbolsCached + analysis.filesCached + analysis.modulesCached} desde caché · ${analysisMode !== 'symbols' ? 'resumen global omitido' : `brief ${analysis.briefCached ? 'desde caché' : 'regenerado'}`}`,
           );
           console.log(`  tokens: ${analysis.inputTokens} in / ${analysis.outputTokens} out`);
           if (analysisMode === 'files') { console.log(`  ${analysis.symbolsSkipped} símbolos cubiertos dentro de sus archivos, sin fichas individuales`); }
@@ -104,13 +104,12 @@ export function registerRefresh(program: Command, modelFactory = pickModel): voi
           store.setSnapshotMetadata(snapshot.id, 'vector_refresh_pending', 'true');
           console.log('− vectores aplazados (--no-vectors); ejecutar repolead reindex después del análisis');
         } else {
-        const teiUrl = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
-        const qdrantUrl = process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333';
-        const [teiUp, qdrantUp] = await Promise.all([
+        const teiUrl = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8082';
+        const [teiUp, vectors] = await Promise.all([
           reachable(`${teiUrl}/health`),
-          reachable(`${qdrantUrl}/healthz`),
+          vectorBackend({ migrate: true }),
         ]);
-        if (teiUp && qdrantUp) {
+        if (teiUp && vectors) {
           const embeddings = new TeiEmbeddingsClient(teiUrl);
           const indexed = await indexSnapshot({
             store,
@@ -118,13 +117,13 @@ export function registerRefresh(program: Command, modelFactory = pickModel): voi
             repositoryName: repository.name,
             collection: await defaultEmbeddingCollection(embeddings),
             embeddings,
-            qdrant: new QdrantRestClient(qdrantUrl),
+            qdrant: vectors,
             symbolIds: new Set(result.changedSymbolIds),
             onProgress: printVectorProgress,
           });
           console.log(`✓ ${String(indexed).padStart(6)} vectores asociados al snapshot actual`);
         } else {
-          console.log('− vectores sin actualizar (TEI/Qdrant no disponibles)');
+          console.log('− vectores sin actualizar (TEI/backend vectorial no disponibles)');
         }
         }
       } finally { store.close(); }

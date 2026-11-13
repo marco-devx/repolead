@@ -5,7 +5,7 @@ Este servicio no tiene código propio: es Text Embeddings Inference (TEI) servid
 
 ```bash
 docker compose up -d embeddings
-curl http://localhost:8080/health
+curl http://localhost:8082/health
 ```
 
 El cliente TypeScript con batching vive en `packages/retrieval` (Fase 4).

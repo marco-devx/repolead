@@ -20,7 +20,7 @@ const root = join(tempRoot, 'repository');
 const dbPath = join(tempRoot, 'knowledge.db');
 const collection = `repolead-acceptance-${randomUUID()}`;
 const urls = {
-  embeddings: process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080',
+  embeddings: process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8082',
   reranker: process.env['REPOLEAD_RERANKER_URL'] ?? 'http://localhost:8081',
   qdrant: process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333',
 };

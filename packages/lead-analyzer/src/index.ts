@@ -10,3 +10,4 @@ export * from './dependencies';
 export * from './ollama-model';
 export * from './selection';
 export * from './file-analysis';
+export * from './entrypoint-analysis';

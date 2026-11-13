@@ -6,7 +6,7 @@ export interface ModelCompletion {
   outputTokens: number;
   telemetry?: { provider: string; models: string[]; estimatedCostUsd?: number; durationMs?: number; accounting: string;
     usageBreakdown?: { uncachedInputTokens: number; cacheWriteInputTokens: number; cacheReadInputTokens: number; outputTokens: number; totalTokens: number };
-    structuredOutputAttempts?: number; assistantMessages?: number; formattingErrors?: string[];
+    structuredOutputAttempts?: number; generationAttempts?: number; assistantMessages?: number; formattingErrors?: string[];
     batch?: { requests: number; inputTokens: number; outputTokens: number; allocation: 'proportional-proxy' } };
 }
 

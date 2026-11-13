@@ -37,8 +37,10 @@ export async function refreshRepository(options: ScanOptions): Promise<RefreshRe
   let previousModules: Module[] = [];
   let configurationChanged = false;
   let extractionChanged = false;
+  let previousSynthesisMode: string | null = null;
   try {
     if (previous) {
+      previousSynthesisMode = store.getSnapshotMetadata(previous.id, 'synthesis_mode');
       const repository = store.getRepository(previous.repositoryId)!;
       if (resolve(repository.rootPath) !== rootPath) { throw new Error('This database belongs to a different repository path.'); }
       if (options.repositoryName && options.repositoryName !== repository.name) {
@@ -82,6 +84,9 @@ export async function refreshRepository(options: ScanOptions): Promise<RefreshRe
   const scan = await scanRepository({ ...options, dbPath, repositoryName, previousSnapshotId: previous?.id });
   const reopened = await openStore(dbPath);
   try {
+    if (previousSynthesisMode === 'first-round' || previousSynthesisMode === 'entrypoints') {
+      reopened.setSnapshotMetadata(scan.snapshotId, 'synthesis_mode', previousSynthesisMode);
+    }
     const currentSymbols = reopened.listSymbols(scan.snapshotId);
     const currentIds = new Set(currentSymbols.map((symbol) => symbol.id));
     const changedSymbolIds = currentSymbols.filter((symbol) => previousSymbols.get(symbol.id)?.contentHash !== symbol.contentHash)

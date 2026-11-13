@@ -7,7 +7,7 @@ import { openStore } from '@repolead/knowledge-store';
 
 import { analyzeSnapshot } from './analyze';
 import { planFileAnalysis } from './file-analysis';
-import { synthesizeComplete } from './bounded-synthesis';
+import { synthesizeComplete, synthesizeFirstRound } from './bounded-synthesis';
 import { evidenceEntry } from './hierarchy';
 import { ContractModel } from '../test-support/contract-model';
 import { createChainFixture } from '../test-support/chain-fixture';
@@ -35,6 +35,12 @@ test('file mode covers all source lines including late validation, reuses cache,
         expect(Buffer.byteLength(JSON.stringify(packed.pack))).toBeLessThanOrEqual(4096);
       }
       const first = await analyzeSnapshot(options);
+      expect(first.briefGenerated).toBe(false);
+      expect(store.listSummaries(scan.snapshotId, 'repository')).toEqual([]);
+      expect(store.listSummaries(scan.snapshotId).every((summary) => !/#synthesis:[1-9]/.test(summary.subjectId))).toBe(true);
+      expect(JSON.parse(store.getSnapshotMetadata(scan.snapshotId, 'technical_analysis')!)).toMatchObject({
+        synthesisMode: 'first-round', status: 'complete', globalSummariesSkipped: true, completeSourceCoverage: true,
+      });
       expect(first.symbolsAnalyzed).toBe(0);
       expect(first.symbolsSkipped).toBeGreaterThan(40);
       expect(model.packs.some((pack) => pack.subject.level === 'symbol')).toBe(false);
@@ -45,6 +51,7 @@ test('file mode covers all source lines including late validation, reuses cache,
       expect(model.packs.length).toBe(calls);
       writeFileSync(join(fixture.root, 'src/leaf/price.ts'), source.replace('permission required', 'approval required'));
       const refreshed = await refreshRepository({ rootPath: fixture.root, scip: false });
+      expect(store.getSnapshotMetadata(refreshed.scan!.snapshotId, 'synthesis_mode')).toBe('first-round');
       const next = { ...options, snapshotId: refreshed.scan!.snapshotId };
       await analyzeSnapshot(next);
       const changed = model.packs.slice(calls);
@@ -55,6 +62,40 @@ test('file mode covers all source lines including late validation, reuses cache,
       expect(model.packs.length).toBe(count);
     } finally { store.close(); }
   } finally { rmSync(fixture.root, { recursive: true, force: true }); }
+});
+
+test('first-round synthesis reuses historical first-round packets and never produces another round or a global dossier', async () => {
+  const store = await openStore(':memory:');
+  try {
+    const repo = store.upsertRepository({ name: 'first-round', rootPath: '/not-mounted' });
+    const snapshot = store.createSnapshot({ repositoryId: repo.id, commitSha: 'fixture' });
+    const model = new ContractModel();
+    const { analyzeSubject } = await import('./analyze');
+    const entries = Array.from({ length: 35 }, (_, i) => evidenceEntry('source', `src/part${i}.ts`,
+      { source: `unique_rule_${i}: ${'complete condition '.repeat(15)}` }));
+    const subject = { id: 'module://first-round/root', name: 'first-round', path: '.', level: 'module' as const };
+    const limits = { maxTokens: 120000, maxBytes: 4096 };
+    const run = async (input: Parameters<Parameters<typeof synthesizeComplete>[3]>[0]) =>
+      (await analyzeSubject({ store, snapshotId: snapshot.id, model }, input.pack, input.evidence)).summary;
+    await synthesizeComplete(subject, entries, limits, run);
+    const initial = model.packs.length;
+    const rounds: number[] = [];
+    const groups = await synthesizeFirstRound(subject, entries, limits, run, {}, (count) => rounds.push(count));
+    expect(groups.length).toBeGreaterThan(1);
+    expect(rounds).toEqual([groups.length]);
+    expect(model.packs).toHaveLength(initial);
+    expect(groups.every((summary) => /#synthesis:0:\d+$/.test(summary.subjectId))).toBe(true);
+    const generated: string[] = [];
+    await synthesizeFirstRound({ ...subject, id: 'fresh-module' }, entries, limits, async (input) => {
+      generated.push(input.pack.subject.id);
+      return run(input);
+    });
+    expect(generated).toHaveLength(groups.length);
+    expect(generated.every((id) => /^fresh-module#synthesis:0:\d+$/.test(id))).toBe(true);
+    store.setSnapshotMetadata(snapshot.id, 'synthesis_mode', 'first-round');
+    expect(store.listVisibleSummaries(snapshot.id).every((summary) => /#synthesis:0:\d+$/.test(summary.subjectId))).toBe(true);
+    expect(store.getSummary(snapshot.id, subject.id, 'module')).not.toBeNull();
+  } finally { store.close(); }
 });
 
 test('bounded synthesis consumes every child instead of dropping the tail', async () => {

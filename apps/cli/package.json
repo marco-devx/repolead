@@ -10,6 +10,7 @@
     "build": "rsbuild build"
   },
   "dependencies": {
+    "@repolead/cloud": "workspace:*",
     "@repolead/adapter-stryker": "workspace:*",
     "@repolead/change-analysis": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.30.0",

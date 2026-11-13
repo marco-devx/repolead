@@ -2,20 +2,21 @@ import { contentHash, DEFAULT_CONTEXT_TOKENS, DEFAULT_SOURCE_LINES } from '@repo
 import type { SummaryDoc } from '@repolead/domain';
 import { owningModule, readSnapshotSource } from '@repolead/retrieval';
 
-import { analyzeSubject } from './analyze';
+import { AnalysisCacheMiss, analyzeSubject } from './analyze';
 import type { AnalyzeOptions, AnalyzeResult } from './analyze';
-import { packetFits, packetLimits, synthesizeComplete, synthesisEntries } from './bounded-synthesis';
+import { packetFits, packetLimits, synthesizeComplete, synthesizeFirstRound, synthesisEntries } from './bounded-synthesis';
 import type { PackedAnalysis } from './bounded-synthesis';
 import { buildDependencyIndex, validateReanalysisDepth } from './dependencies';
 import { dependencyUnknowns, evidenceEntry, fitHierarchyPack, listSourceFiles, technicalFiles } from './hierarchy';
 
 /** Full source coverage without one model generation per symbol. */
-export function planFileAnalysis(options: Pick<AnalyzeOptions, 'store' | 'snapshotId' | 'budget' | 'moduleFilter'>) {
+export function planFileAnalysis(options: Pick<AnalyzeOptions, 'store' | 'snapshotId' | 'budget' | 'moduleFilter'>,
+  selection?: { paths: ReadonlySet<string>; maxBytes: number; singlePacket: boolean }) {
   const { store, snapshotId } = options;
   const snapshot = store.getSnapshot(snapshotId);
   const repository = snapshot && store.getRepository(snapshot.repositoryId);
   if (!repository) { throw new Error('Unknown repository snapshot.'); }
-  const limits = packetLimits(options.budget?.maxTokens ?? DEFAULT_CONTEXT_TOKENS, options.budget?.filePackBytes);
+  const limits = packetLimits(options.budget?.maxTokens ?? DEFAULT_CONTEXT_TOKENS, selection?.maxBytes ?? options.budget?.filePackBytes);
   const maxLines = options.budget?.maxSourceLinesPerPack ?? DEFAULT_SOURCE_LINES;
   if (!Number.isInteger(maxLines) || maxLines < 1) { throw new Error('maxSourceLinesPerPack must be positive.'); }
   const maxDepth = validateReanalysisDepth(options.budget?.maxReanalysisDepth);
@@ -25,7 +26,7 @@ export function planFileAnalysis(options: Pick<AnalyzeOptions, 'store' | 'snapsh
   const moduleIds = new Set(modules.map((module) => module.id));
   const graph = store.loadGraph(snapshotId);
   const allFiles = listSourceFiles(store, snapshotId);
-  const files = technicalFiles(store, snapshotId, allFiles).filter((file) => moduleIds.has(owningModule(file.path, allModules)?.id ?? ''));
+  const files = technicalFiles(store, snapshotId, allFiles).filter((file) => moduleIds.has(owningModule(file.path, allModules)?.id ?? '') && (!selection || selection.paths.has(file.path)));
   const dependencies = buildDependencyIndex(store, snapshotId, graph, allFiles);
   const byPath = new Map<string, string[]>();
   for (const symbol of graph.symbols.values()) {
@@ -53,6 +54,13 @@ export function planFileAnalysis(options: Pick<AnalyzeOptions, 'store' | 'snapsh
       }, [facts, evidenceEntry('source', file.path, { completeSection: true,
         source: lines.slice(start, end).map((line, index) => `${start + index + 1}\t${line}`).join('\n') },
       { startLine: start + 1, endLine: end })], limits.maxTokens, { fingerprint, unknowns: notes });
+      if (selection?.singlePacket) {
+        const packed = packFor(lines.length);
+        if (!packetFits(packed, limits) || lines.length > maxLines) {
+          throw new Error(`Entry point ${file.path} exceeds the single-analysis source budget. Increase the evidence/line budget or split this entry point; no partial analysis was generated.`);
+        }
+        packs.push(packed); start = lines.length; continue;
+      }
       let low = start + 1; let high = Math.min(lines.length, start + maxLines);
       let best: { end: number; packed: PackedAnalysis } | null = null;
       while (low <= high) {
@@ -71,12 +79,14 @@ export function planFileAnalysis(options: Pick<AnalyzeOptions, 'store' | 'snapsh
 
 export async function analyzeFiles(options: AnalyzeOptions): Promise<AnalyzeResult> {
   const { store, snapshotId, model } = options;
+  store.setSnapshotMetadata(snapshotId, 'synthesis_mode', 'first-round');
+  store.setSnapshotMetadata(snapshotId, 'technical_analysis', JSON.stringify({ analysisMode: 'files', synthesisMode: 'first-round', status: 'running' }));
   const plan = planFileAnalysis(options);
   const result: AnalyzeResult = { symbolsSkipped: plan.symbolsCovered, localInputTokens: 0, localOutputTokens: 0,
     symbolsAnalyzed: 0, symbolsCached: 0, filesAnalyzed: 0, filesCached: 0, modulesAnalyzed: 0, modulesCached: 0,
     briefGenerated: false, briefCached: false, inputTokens: 0, outputTokens: 0 };
-  const minimumTasks = plan.plans.reduce((n, p) => n + p.packs.length + (p.packs.length > 1 ? 1 : 0), 0)
-    + plan.modules.length + (options.moduleFilter ? 0 : 1);
+  let minimumTasks = plan.plans.reduce((n, p) => n + p.packs.length + (p.packs.length > 1 ? 1 : 0), 0)
+    + plan.modules.length;
   let index = 0;
   const run = async (input: PackedAnalysis): Promise<SummaryDoc> => {
     const started = Date.now(); const outcome = await analyzeSubject(options, input.pack, input.evidence);
@@ -94,29 +104,40 @@ export async function analyzeFiles(options: AnalyzeOptions): Promise<AnalyzeResu
   for (const { file, packs, fingerprint, notes } of plan.plans) {
     const children: SummaryDoc[] = [];
     for (const pack of packs) { children.push(await run(pack)); }
-    const summary = children.length === 1 ? children[0]! : await synthesizeComplete(
-      { id: file.id, name: file.path, path: file.path, level: 'file' },
-      synthesisEntries(children.map((summary) => ({ summary, path: file.path })), plan.limits), plan.limits, run,
-      { fingerprint, unknowns: notes });
-    dossiers.push({ summary, path: file.path });
+    if (children.length === 1) { dossiers.push({ summary: children[0]!, path: file.path }); continue; }
+    const subject = { id: file.id, name: file.path, path: file.path, level: 'file' as const };
+    const entries = synthesisEntries(children.map((summary) => ({ summary, path: file.path })), plan.limits);
+    // Read an already completed legacy file dossier only if its entire old chain is cached.
+    // This preserves existing file/module first-round cache keys without generating later rounds.
+    if (store.getSummary(snapshotId, file.id, 'file')) {
+      try {
+        const summary = await synthesizeComplete(subject, entries, plan.limits, async (input) =>
+          (await analyzeSubject({ ...options, cacheOnly: true }, input.pack, input.evidence)).summary,
+        { fingerprint, unknowns: notes });
+        dossiers.push({ summary, path: file.path }); result.filesCached += 1;
+        options.onProgress?.({ subject: file.path, level: 'file', outcome: 'cached', durationMs: 0,
+          index: ++index, total: Math.max(minimumTasks, index) });
+        continue;
+      } catch (error) { if (!(error instanceof AnalysisCacheMiss)) { throw error; } }
+    }
+    const summaries = await synthesizeFirstRound(subject, entries, plan.limits, run, { fingerprint, unknowns: notes },
+      (groups) => { minimumTasks += groups - 1; });
+    dossiers.push(...summaries.map((summary) => ({ summary, path: file.path })));
   }
-  const moduleCards: { summary: SummaryDoc; path: string }[] = [];
+  let moduleGroups = 0;
   for (const module of plan.modules) {
     const children = dossiers.filter((entry) => owningModule(entry.path, plan.allModules)?.id === module.id);
     const facts = evidenceEntry('module', module.path, { name: module.name, filesAnalyzed: children.length,
       symbolsIndexed: [...plan.graph.symbols.values()].filter((symbol) => owningModule(symbol.path, plan.allModules)?.id === module.id).length });
-    moduleCards.push({ path: module.path, summary: await synthesizeComplete(
+    const summaries = await synthesizeFirstRound(
       { id: module.id, name: module.name, path: module.path, level: 'module' },
-      [facts, ...synthesisEntries(children, plan.limits)], plan.limits, run) });
-  }
-  if (!options.moduleFilter) {
-    const unknowns = plan.allFiles.some((file) => file.language === null)
-      ? ['Some files have no recognized text format and no technical dossier; indexed counts are not proof of behavior.'] : [];
-    await synthesizeComplete({ id: `repo://${plan.repository.name}`, name: 'Repository Brief', level: 'repository' },
-      [...synthesisEntries(moduleCards, plan.limits), evidenceEntry('repository', '.', { repository: plan.repository.name, counts: store.getCounts(snapshotId) })],
-      plan.limits, run, { unknowns });
+      [facts, ...synthesisEntries(children, plan.limits)], plan.limits, run, {},
+      (groups) => { minimumTasks += groups - 1; });
+    moduleGroups += summaries.length;
   }
   store.setSnapshotMetadata(snapshotId, 'technical_analysis', JSON.stringify({ analysisMode: 'files',
+    synthesisMode: 'first-round', status: 'complete', globalSummariesSkipped: true, moduleGroups,
+    scope: options.moduleFilter ?? null,
     maxReanalysisDepth: options.budget?.maxReanalysisDepth ?? 3,
     files: plan.files.length, symbols: plan.symbolsCovered, symbolsCoveredByFiles: true, sourceLines: plan.sourceLines,
     sourceSections: plan.plans.reduce((n, entry) => n + entry.packs.length, 0), filePackBytes: plan.limits.maxBytes,

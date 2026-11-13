@@ -30,7 +30,7 @@ export function registerBrief(program: Command): void {
 
       let summary: SummaryDoc | null;
       if (options.product) {
-        summary = store.listSummaries(snapshot.id, 'product').find((entry) => !entry.subjectId.includes('#synthesis:')) ?? null;
+        summary = store.listVisibleSummaries(snapshot.id, 'product').find((entry) => !entry.subjectId.includes('#synthesis:')) ?? null;
       } else if (options.document) {
         const document = store.listDocuments(snapshot.id).find((entry) => entry.path === options.document);
         if (!document) { throw new Error('Documento no indexado; comprueba documentation.paths y ejecuta refresh.'); }
@@ -49,7 +49,17 @@ export function registerBrief(program: Command): void {
         const repo = store.getRepository(snapshot.repositoryId)!;
         summary = store.getSummary(snapshot.id, fileUri(repo.name, options.file), 'file');
       } else {
-        summary = store.listSummaries(snapshot.id, 'repository').find((entry) => !entry.subjectId.includes('#synthesis:')) ?? null;
+        summary = store.listVisibleSummaries(snapshot.id, 'repository').find((entry) => !entry.subjectId.includes('#synthesis:')) ?? null;
+      }
+
+      if (summary && !store.isSummaryVisible(snapshot.id, summary)) { summary = null; }
+      const mode = store.getSnapshotMetadata(snapshot.id, 'synthesis_mode');
+      if (!summary && (mode === 'first-round' || mode === 'entrypoints')) {
+        const navigation = { synthesisMode: mode, globalSummarySkipped: true,
+          availableAnalyses: store.listVisibleSummaries(snapshot.id).length,
+          hint: 'Consulta los análisis pertinentes con context --evidence o MCP context_pack mode=evidence. En entrypoints se generan solo usecases/pages; el resto del código sigue indexado. Los resúmenes globales no se generan.' };
+        console.log(options.json ? JSON.stringify(navigation, null, 2) : navigation.hint);
+        return;
       }
 
       if (!summary) {

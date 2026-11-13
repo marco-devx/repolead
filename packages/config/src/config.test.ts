@@ -8,6 +8,7 @@ test('configuration defaults and explicit CLI budget precedence', () => {
   expect(config.analysis_mode).toBe('files');
   expect(config.analysis_budget.file_pack_bytes).toBe(24000);
   expect(parseConfig('analysis_mode: symbols').analysis_mode).toBe('symbols');
+  expect(parseConfig('analysis_mode: entrypoints').analysis_mode).toBe('entrypoints');
   expect(config.analysis_budget.max_tokens).toBe(120000);
   expect(analysisBudget(config).batchSize).toBe(1);
   expect(analysisBudget(config, undefined, 4).batchSize).toBe(4);

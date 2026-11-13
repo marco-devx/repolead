@@ -25,7 +25,7 @@ services:
     image: ghcr.io/huggingface/text-embeddings-inference:cpu-1.9.4
     command: --model-id Qwen/Qwen3-Embedding-4B --revision ${REPOLEAD_EMBEDDING_REVISION:-5cf2132abc99cad020ac570b19d031efec650f2b} --max-batch-tokens 32768 --max-concurrent-requests 64 --auto-truncate true
     ports:
-      - "8080:80"
+      - "8082:80"
     volumes:
       - tei-data:/data
 

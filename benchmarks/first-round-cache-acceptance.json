@@ -1,0 +1,71 @@
+{
+  "scope": "Isolated current access-service SQLite cache replay and compiled MCP retrieval; original database unchanged",
+  "passed": true,
+  "technicalCacheReplay": {
+    "passed": true,
+    "cacheOnly": true,
+    "durationMs": 39719,
+    "result": {
+      "symbolsSkipped": 5806,
+      "localInputTokens": 0,
+      "localOutputTokens": 0,
+      "symbolsAnalyzed": 0,
+      "symbolsCached": 0,
+      "filesAnalyzed": 0,
+      "filesCached": 878,
+      "modulesAnalyzed": 0,
+      "modulesCached": 157,
+      "briefGenerated": false,
+      "briefCached": false,
+      "inputTokens": 0,
+      "outputTokens": 0
+    },
+    "technical": {
+      "analysisMode": "files",
+      "synthesisMode": "first-round",
+      "status": "complete",
+      "globalSummariesSkipped": true,
+      "moduleGroups": 157,
+      "scope": null,
+      "maxReanalysisDepth": 3,
+      "files": 856,
+      "symbols": 5806,
+      "symbolsCoveredByFiles": true,
+      "sourceLines": 78459,
+      "sourceSections": 868,
+      "filePackBytes": 24000,
+      "model": "ollama:qwen3.5:9b-q4_K_M@56671c2ab9385f9cfcb404638e32cd62d88e3501d44822208363c010179a3c90:57267a325e75a8d69a88e677f471baa4c7c549b567bab2147cc3e41737dfb37a",
+      "completeSourceCoverage": true
+    },
+    "visible": {
+      "module": 157,
+      "file": 882
+    }
+  },
+  "mcp": {
+    "passed": true,
+    "transport": "compiled Node CLI + official MCP SDK stdio",
+    "resources": 1039,
+    "archivedResources": 0,
+    "availableMemory": {
+      "fileAnalyses": 882,
+      "moduleSyntheses": 157,
+      "documentAnalyses": 0
+    },
+    "evidenceBlocks": 8,
+    "characters": 65824,
+    "limits": "Read-only original SQLite copied to an isolated temporary database; lexical retrieval, no generative or real vector/model calls. Semantic ranking covered separately by contract tests, not a new real-model quality benchmark."
+  },
+  "sourceHashes": {
+    "packages/lead-analyzer/src/file-analysis.ts": "0d7dd9063a5d6153e6e5e800d402652c9d5228a2c2c61c35a69ee83c0ff97110",
+    "packages/lead-analyzer/src/bounded-synthesis.ts": "146a44b44a403b89197121c7ed33e4e4bc8d97703f31507f764f8931fa9e7dbc",
+    "packages/knowledge-store/src/store.ts": "5692de07d9c6153e3a12ad046d208cbdc937074167c596b8754a09ec98c52d88",
+    "apps/mcp-server/src/server.ts": "ff77d75e3034ed8be57e9280d7d48fdc066c5b9dd53f24953acb3bc28218b111"
+  },
+  "limits": [
+    "Read-only online SQLite copy; no real generative model or GPU/container operation.",
+    "Proves reuse of this snapshot and these model settings, not zero generations after arbitrary future changes.",
+    "MCP smoke uses lexical search with vector endpoints disabled; vector selection/reranking and archived-point rejection are tested with contract services.",
+    "Full retrieval quality and Claude billing savings are not established by these checks."
+  ]
+}

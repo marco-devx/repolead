@@ -1,0 +1,15 @@
+FROM oven/bun:1.3.13 AS build
+WORKDIR /app
+COPY . .
+RUN bun install --frozen-lockfile --ignore-scripts && bun run build
+
+FROM oven/bun:1.3.13-slim
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends util-linux && rm -rf /var/lib/apt/lists/*
+COPY --from=build --chown=bun:bun /app/node_modules ./node_modules
+COPY --from=build --chown=bun:bun /app/apps/cli/dist ./apps/cli/dist
+RUN mkdir -p /data/worker && chown -R bun:bun /data
+USER bun
+EXPOSE 3939
+ENTRYPOINT ["bun", "apps/cli/dist/index.cjs", "cloud"]
+CMD ["serve", "--host", "0.0.0.0"]

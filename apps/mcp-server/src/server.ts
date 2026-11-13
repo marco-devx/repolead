@@ -1,14 +1,12 @@
 import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
+import { createProductServer } from './product';
 
 import { impactAnalysis, traceFlow, listHotspots, improvementOpportunities, opportunityEvidence, mutationResults, dataFlowResults } from '@repolead/change-analysis';
 import type { CodeSymbol } from '@repolead/domain';
 import { KNOWLEDGE_KINDS, SUMMARY_LEVELS, DEFAULT_CONTEXT_TOKENS, MAX_CONTEXT_TOKENS, fileUri } from '@repolead/domain';
 import type { KnowledgeStore } from '@repolead/knowledge-store';
 import {
-  QdrantRestClient,
-  TeiEmbeddingsClient,
-  TeiRerankerClient,
   hybridSearch,
   hybridKnowledgeSearch,
   buildContextPack,
@@ -63,23 +61,17 @@ function findSymbolsIn(context: RepoContext, name: string): CodeSymbol[] {
   return [];
 }
 
-async function reachable(url: string): Promise<boolean> {
-  try {
-    return (await fetch(url, { signal: AbortSignal.timeout(1000) })).ok;
-  } catch {
-    return false;
-  }
-}
-
 /**
  * Servidor MCP sobre una o varias bases de RepoLead. Con varios repos, cada
  * tool acepta `repo`; cuando el objetivo es inequívoco (un solo repo, o el
  * símbolo/módulo existe en uno solo) se resuelve sin pedirlo.
  */
 export interface ServerOptions {
+  /** Functional projection only: no source, technical tools or raw resources. */
+  product?: boolean;
   /** A smaller tool catalog for clients that only need retrieval, not diagnostics. */
   toolProfile?: 'all' | 'context';
-  /** false = modo producto: nunca se sirve código fuente crudo (get_evidence
+  /** false = source restriction only, NOT a product security boundary (get_evidence
    * devuelve solo los metadatos y excerpts persistidos en la base). */
   exposeSource?: boolean;
 }
@@ -89,6 +81,7 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
   if (repos.some((repo) => !repo.name.trim()) || new Set(repos.map((repo) => repo.name)).size !== repos.length) {
     throw new Error('Served repository aliases must be nonempty and unique.');
   }
+  if (options.product) { return createProductServer(repos); }
   const exposeSource = options.exposeSource !== false;
   const contexts: RepoContext[] = [];
   for (const { name, store } of repos) {
@@ -113,7 +106,7 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
   const single = contexts.length === 1 ? contexts[0]! : null;
 
   const server = new McpServer({ name: 'repolead', version: '0.3.0' }, {
-    instructions: 'For product questions, start with repo_overview audience=product and read the listed product/document resources. For implementation questions, start with context_pack mode=evidence and batch focused subquestions in queries (up to 8, default 120000 tokens). It searches and returns cited source excerpts plus available stored memory in one call; types=[symbol,summary] focuses implementation. Use mode=map with symbols for exact names already known. Follow up only on missing evidence; batch needed files with get_evidence ranges under one maxTokens budget. Check omissions and unknowns: partial excerpts cannot establish absence, and documented intent is not implementation proof. All tools are read-only.',
+    instructions: 'Start questions with context_pack mode=evidence, repo and focused subquestions in queries (up to 8, default 120000 tokens). For product knowledge use types=[summary,document]: entrypoints mode generates analyses only for backend UseCase classes and frontend pages; other code remains indexed. Vector/lexical retrieval and reranking select relevant analyses. No global brief or synthesis is required in entrypoints mode; do not request regeneration. For implementation details use types=[symbol,summary] or get_evidence ranges to inspect dependencies and verify actual source. Use repo_overview for inventory and analysis status. knownBlocks=[] enables receipts; reuse only blocks still present in THIS conversation and fetch lost blocks again after compaction. Check warnings, omissions and uncertainty. Documentation is not proof of implementation; generated entrypoint analyses do not establish complete product coverage. All tools are read-only.',
   });
 
   const contextTools = new Set(['context_pack', 'repo_overview', 'search', 'get_evidence']);
@@ -150,7 +143,7 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
     new ResourceTemplate('repolead://knowledge/{repo}/{level}/{subject}', {
       list: () => {
         resolveRepo();
-        return { resources: contexts.flatMap((context) => context.store.listSummaries(context.snapshotId).map((summary) => ({
+        return { resources: contexts.flatMap((context) => context.store.listVisibleSummaries(context.snapshotId).map((summary) => ({
           uri: summaryUri(context.name, summary.level, summary.subjectId),
           name: `${context.name}: ${summary.level} ${summary.subjectId}`,
           description: `Precomputed ${summary.level} analysis with evidence and uncertainty; snapshot ${context.snapshotId}`,
@@ -169,6 +162,7 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
       if (Buffer.from(subject).toString('base64url') !== encoded) { throw new Error('Invalid subject encoding.'); }
       const summary = context.store.getSummary(context.snapshotId, subject, level);
       if (!summary) { throw new Error('No analysis for this subject in the current snapshot; run analyze.'); }
+      if (!context.store.isSummaryVisible(context.snapshotId, summary)) { throw new Error('Archived global or later-round summary; use context_pack to retrieve current file analyses and first-round syntheses.'); }
       return { contents: [{ uri: uri.href, mimeType: 'application/json', text: JSON.stringify({
         repo: context.name, snapshotId: context.snapshotId, subjectId: subject, level,
         model: summary.model, createdAt: summary.createdAt, summary: JSON.parse(summary.contentJson) as unknown,
@@ -221,13 +215,11 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
         if (queries || types || includeTests !== undefined || knownBlocks !== undefined) { throw new Error('queries/types/includeTests/knownBlocks require evidence mode.'); }
         let seedIds: string[] | undefined;
         if (query && !symbols?.length && !module) {
-          const tei = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
-          const qdrant = process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333';
-          const [teiUp, qdrantUp] = await Promise.all([reachable(`${tei}/health`), reachable(`${qdrant}/healthz`)]);
+          const services = await retrievalServices();
           const hits = await hybridSearch({
             store: context.store, snapshotId: context.snapshotId, collection: collectionFor(context), query, limit: 3,
-            embeddings: teiUp ? new TeiEmbeddingsClient(tei) : null,
-            qdrant: qdrantUp ? new QdrantRestClient(qdrant) : null,
+            embeddings: services.embeddings,
+            qdrant: services.qdrant,
           });
           seedIds = hits.map((hit) => hit.symbol.id);
         }
@@ -262,7 +254,11 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
           hint: 'pasa `repo` para el detalle y el Repository Brief de uno',
         });
       }
-      const brief = resolved.store.listSummaries(resolved.snapshotId, audience === 'product' ? 'product' : 'repository')
+      const synthesisMode = resolved.store.getSnapshotMetadata(resolved.snapshotId, 'synthesis_mode');
+      const firstRound = synthesisMode === 'first-round' || synthesisMode === 'entrypoints';
+      const catalog = JSON.parse(resolved.store.getSnapshotMetadata(resolved.snapshotId, 'entrypoint_catalog') ?? '[]') as { kind: string }[];
+      const visible = resolved.store.listVisibleSummaries(resolved.snapshotId);
+      const brief = visible.filter((summary) => summary.level === (audience === 'product' ? 'product' : 'repository'))
         .find((summary) => !summary.subjectId.includes('#synthesis:'));
       return textResult({
         repository: resolved.name,
@@ -273,7 +269,16 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
         modules: resolved.store.listModules(resolved.snapshotId).map((module) => module.name),
         documents: audience === 'product' ? resolved.store.listDocuments(resolved.snapshotId).map((document) => ({ path: document.path, title: document.title })) : undefined,
         resource: brief ? summaryUri(resolved.name, brief.level, brief.subjectId) : null,
-        brief: brief ? (JSON.parse(brief.contentJson) as unknown) : 'sin analizar: corre `repolead analyze`',
+        brief: brief ? (JSON.parse(brief.contentJson) as unknown) : firstRound
+          ? 'Resumen global omitido por diseño. Recupera los análisis pertinentes con context_pack mode=evidence.' : 'sin analizar: corre `repolead analyze`',
+        ...(firstRound ? { synthesisMode,
+          analysisStatus: JSON.parse(resolved.store.getSnapshotMetadata(resolved.snapshotId, 'technical_analysis') ?? '{}') as unknown,
+          productStatus: JSON.parse(resolved.store.getSnapshotMetadata(resolved.snapshotId, 'product_analysis') ?? '{}') as unknown,
+          availableMemory: { fileAnalyses: visible.filter((summary) => summary.level === 'file').length,
+            moduleSyntheses: visible.filter((summary) => summary.level === 'module').length,
+            documentAnalyses: visible.filter((summary) => summary.level === 'document').length,
+            usecases: catalog.filter((target) => target.kind === 'usecase').length,
+            pages: catalog.filter((target) => target.kind === 'page').length } } : {}),
       });
     },
   );
@@ -296,7 +301,11 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
       });
       if (matches.length !== 1) { return textResult({ error: matches.length ? `módulo ambiguo: ${matches.map(({ context, module }) => `${context.name} ${module.path} (${module.id})`).join(', ')}; usa ID/ruta y repo.` : `módulo desconocido: ${moduleName}` }); }
       const { context, module } = matches[0]!;
-      const dossier = context.store.getSummary(context.snapshotId, module.id, 'module');
+      const synthesisMode = context.store.getSnapshotMetadata(context.snapshotId, 'synthesis_mode');
+      const firstRound = synthesisMode === 'first-round' || synthesisMode === 'entrypoints';
+      const dossier = firstRound ? null : context.store.getSummary(context.snapshotId, module.id, 'module');
+      const groups = firstRound ? context.store.listVisibleSummaries(context.snapshotId, 'module')
+        .filter((summary) => summary.subjectId.startsWith(`${module.id}#synthesis:0:`)) : [];
       const findings = context.store
         .getFindings(context.snapshotId, 'confirmed')
         .filter((finding) => finding.module === module.id);
@@ -305,7 +314,9 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
         module: module.name,
         path: module.path,
         quality: context.store.qualityFacts(context.snapshotId, module.id),
-        dossier: dossier ? (JSON.parse(dossier.contentJson) as unknown) : 'sin analizar',
+        dossier: dossier ? (JSON.parse(dossier.contentJson) as unknown) : firstRound
+          ? 'Sin dossier global por diseño; recupera los análisis pertinentes con context_pack mode=evidence, types=[summary], module=<ruta>.' : 'sin analizar',
+        ...(firstRound ? { synthesisMode, firstRoundGroups: groups.length } : {}),
         findings: findings.map((finding) => ({
           ruleId: finding.ruleId,
           severity: finding.severity,
@@ -351,9 +362,18 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
       }
       const { context, symbol } = located;
       const graph = context.store.loadGraph(context.snapshotId);
-      const card = context.store.getSummary(context.snapshotId, symbol.id, 'symbol');
+      const candidateCard = context.store.getSummary(context.snapshotId, symbol.id, 'symbol');
+      const card = candidateCard && context.store.isSummaryVisible(context.snapshotId, candidateCard) ? candidateCard : null;
       const repository = context.store.getRepository(context.store.getSnapshot(context.snapshotId)!.repositoryId)!;
-      const fileDossier = !card ? context.store.getSummary(context.snapshotId, fileUri(repository.name, symbol.path), 'file') : null;
+      const candidateFile = !card ? context.store.getSummary(context.snapshotId, fileUri(repository.name, symbol.path), 'file') : null;
+      const fileDossier = candidateFile && context.store.isSummaryVisible(context.snapshotId, candidateFile) ? candidateFile : null;
+      const catalog = JSON.parse(context.store.getSnapshotMetadata(context.snapshotId, 'entrypoint_catalog') ?? '[]') as {
+        path: string; startLine: number; endLine: number; summarySubjectId: string;
+      }[];
+      const subjects = new Set(catalog.filter((entry) => entry.path === symbol.path && symbol.startLine >= entry.startLine
+        && symbol.endLine <= entry.endLine).map((entry) => entry.summarySubjectId));
+      const fileSections = !card && !fileDossier ? context.store.listVisibleSummaries(context.snapshotId, 'file')
+        .filter((summary) => subjects.has(summary.subjectId) || summary.subjectId.startsWith(`${fileUri(repository.name, symbol.path)}#`)) : [];
       const describe = (id: string): string => graph.symbols.get(id)?.qualifiedName ?? id;
       const ordered = (edges: { edgeType: string; confidence: number }[]) =>
         [...edges].sort(
@@ -380,8 +400,12 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
         location: `${symbol.path}:${symbol.startLine}-${symbol.endLine}`,
         quality: context.store.qualityFacts(context.snapshotId, symbol.id, symbol.path, symbol),
         card: card ? JSON.parse(card.contentJson) as unknown : fileDossier
-          ? 'Covered by the complete file dossier; no individual symbol generation was required.' : 'sin analizar: corre repolead analyze',
+          ? 'Covered by the complete file dossier; no individual symbol generation was required.' : fileSections.length
+            ? 'Covered by indexed entrypoint analyses or file sections; use context_pack mode=evidence to retrieve relevant claims.'
+            : context.store.getSnapshotMetadata(context.snapshotId, 'synthesis_mode') === 'entrypoints'
+              ? 'Indexed as source only; generated analyses are limited to usecases/pages. Use get_evidence for implementation.' : 'sin analizar: corre repolead analyze',
         ...(fileDossier ? { fileDossier: JSON.parse(fileDossier.contentJson) as unknown } : {}),
+        ...(fileSections.length ? { fileResources: fileSections.map((summary) => summaryUri(context.name, summary.level, summary.subjectId)) } : {}),
         incoming: incomingAll
           .slice(0, 20)
           .map((edge) => `${describe(edge.sourceId)} —${edge.edgeType}→ (${edge.analyzer})`),
@@ -730,17 +754,10 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
         return textResult(resolved);
       }
       const targets = resolved ? [resolved] : contexts;
-      const tei = process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080';
-      const qdrant = process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333';
-      const reranker = process.env['REPOLEAD_RERANKER_URL'] ?? 'http://localhost:8081';
-      const [teiUp, qdrantUp, rerankerUp] = await Promise.all([
-        reachable(`${tei}/health`),
-        reachable(`${qdrant}/healthz`),
-        reachable(`${reranker}/health`),
-      ]);
+      const services = await retrievalServices();
       const warnings: string[] = [];
-      if (!teiUp || !qdrantUp) { warnings.push('Vector services unavailable; using lexical search and graph.'); }
-      if (!rerankerUp) { warnings.push('Reranker unavailable; using fused ranking.'); }
+      if (!services.embeddings || !services.qdrant) { warnings.push('Vector services unavailable; using lexical search and graph.'); }
+      if (!services.reranker) { warnings.push('Reranker unavailable; using fused ranking.'); }
       const perRepo = await Promise.all(
         targets.map(async (context) => {
           const hits = await hybridKnowledgeSearch({
@@ -748,9 +765,7 @@ export function createServer(repos: ServedRepo[], options: ServerOptions = {}): 
             snapshotId: context.snapshotId,
             collection: collectionFor(context),
             query,
-            embeddings: teiUp ? new TeiEmbeddingsClient(tei) : null,
-            qdrant: qdrantUp ? new QdrantRestClient(qdrant) : null,
-            reranker: rerankerUp ? new TeiRerankerClient(reranker) : null,
+            ...services,
             limit: limit ?? 8,
             filters: { entityKinds: type ? [type] : undefined, language, module, kind },
             onWarning: (message) => warnings.push(`${context.name}: ${message}`),

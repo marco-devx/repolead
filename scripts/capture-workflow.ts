@@ -30,7 +30,7 @@ export async function captureWorkflowRepository(project: string, scip = true, ve
   try {
     if (vectors) {
       await indexSnapshot({ store, snapshotId: scanned.snapshotId, repositoryName: scanned.repositoryName,
-        collection: `repolead-acceptance-${basename(root)}`, embeddings: new TeiEmbeddingsClient(process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8080'),
+        collection: `repolead-acceptance-${basename(root)}`, embeddings: new TeiEmbeddingsClient(process.env['REPOLEAD_TEI_URL'] ?? 'http://localhost:8082'),
         qdrant: new QdrantRestClient(process.env['REPOLEAD_QDRANT_URL'] ?? 'http://localhost:6333') });
       vectorIndex = JSON.parse(store.getSnapshotMetadata(scanned.snapshotId, 'vector_index')!);
     }

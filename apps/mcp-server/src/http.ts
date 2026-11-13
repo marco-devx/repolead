@@ -102,7 +102,7 @@ export async function startHttpServer(repos: ServedRepo[], options: HttpServerOp
       try {
         if (Number(request.headers['content-length'] ?? 0) > maxBytes) { request.resume(); throw new RequestError(413, 'request too large'); }
         const body = await readBody(request, maxBytes);
-        const server = createServer(repos, { exposeSource: options.exposeSource, toolProfile: options.toolProfile });
+        const server = createServer(repos, { exposeSource: options.exposeSource, toolProfile: options.toolProfile, product: options.product });
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: undefined,
           enableJsonResponse: true,

@@ -10,4 +10,5 @@ export * from './source-ranges';
 export * from './context';
 export * from './evidence-context';
 export * from './runtime';
+export * from './postgres';
 export * from './benchmark';

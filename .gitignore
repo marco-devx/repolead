@@ -6,6 +6,8 @@ coverage/
 .repolead/
 .repolead-tools/
 .env
+.env.cloud
+.env.cloud.*
 /docs/*
 !/docs/guia-tecnica.md
 !/docs/roadmap-status.json

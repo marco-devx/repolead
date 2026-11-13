@@ -8,7 +8,7 @@ import type { AnalyzeOptions } from './analyze';
 import { evidenceEntry, fitHierarchyPack, summaryEntries } from './hierarchy';
 import type { EvidenceEntry } from './hierarchy';
 import { analysisBatchSize, BatchedTechLeadModel, forAnalysisBatches } from './batched-model';
-import { packetFits, packetLimits, synthesizeComplete } from './bounded-synthesis';
+import { packetFits, packetLimits, synthesizeFirstRound } from './bounded-synthesis';
 
 type Packed = ReturnType<typeof fitHierarchyPack>;
 
@@ -71,6 +71,7 @@ export interface ProductAnalysisResult {
   documentsAnalyzed: number;
   documentsCached: number;
   productCached: boolean;
+  globalSummarySkipped?: boolean;
   inputTokens: number;
   outputTokens: number;
 }
@@ -81,8 +82,20 @@ export async function analyzeProductContext(options: AnalyzeOptions): Promise<Pr
   const snapshot = store.getSnapshot(snapshotId);
   const repository = snapshot ? store.getRepository(snapshot.repositoryId) : null;
   if (!repository) { throw new Error('Unknown repository snapshot.'); }
+  if (options.analysisMode === 'entrypoints') {
+    store.setSnapshotMetadata(snapshotId, 'synthesis_mode', 'entrypoints');
+    store.setSnapshotMetadata(snapshotId, 'product_analysis', JSON.stringify({ synthesisMode: 'entrypoints', status: 'complete',
+      globalSummarySkipped: true, generativeDocumentationSkipped: true, documents: store.listDocuments(snapshotId).length,
+      source: 'usecase/page analyses and indexed raw documentation' }));
+    store.rebuildSearchIndex(snapshotId);
+    return { documentsAnalyzed: 0, documentsCached: 0, productCached: false, globalSummarySkipped: true, inputTokens: 0, outputTokens: 0 };
+  }
   const maxTokens = validateTokenBudget(options.budget?.maxTokens ?? DEFAULT_CONTEXT_TOKENS);
   const limits = options.analysisMode === 'files' ? packetLimits(maxTokens, options.budget?.filePackBytes) : null;
+  if (limits) {
+    store.setSnapshotMetadata(snapshotId, 'synthesis_mode', 'first-round');
+    store.setSnapshotMetadata(snapshotId, 'product_analysis', JSON.stringify({ synthesisMode: 'first-round', status: 'running' }));
+  }
   const batchSize = analysisBatchSize(options.budget?.batchSize);
   const model = batchSize > 1 ? new BatchedTechLeadModel(options.model, batchSize) : options.model;
   const documents = store.listDocuments(snapshotId);
@@ -94,7 +107,7 @@ export async function analyzeProductContext(options: AnalyzeOptions): Promise<Pr
     }
     return { document, packs, links };
   });
-  const total = prepared.reduce((count, entry) => count + entry.packs.length + (entry.packs.length > 1 || entry.links.length ? 1 : 0), 1);
+  let total = prepared.reduce((count, entry) => count + entry.packs.length + (entry.packs.length > 1 || entry.links.length ? 1 : 0), limits ? 0 : 1);
   const result: ProductAnalysisResult = { documentsAnalyzed: 0, documentsCached: 0, productCached: false, inputTokens: 0, outputTokens: 0 };
   let index = 0;
   const run = async (input: Packed): Promise<SummaryDoc> => {
@@ -120,11 +133,19 @@ export async function analyzeProductContext(options: AnalyzeOptions): Promise<Pr
       const entries = [...summaryEntries(children.map((child) => ({ summary: child, path: document.path }))), ...links];
       const subject = { id: document.id, name: document.path, path: document.path, level: 'document' as const };
       const notes = { fingerprint: document.contentHash, unknowns: uncertainty(children) };
-      summary = limits ? await synthesizeComplete(subject, entries, limits, run, notes)
-        : await run(fitHierarchyPack(subject, entries, maxTokens, notes));
+      if (limits) {
+        await synthesizeFirstRound(subject, entries, limits, run, notes, (groups) => { total += groups - 1; });
+      } else { summary = await run(fitHierarchyPack(subject, entries, maxTokens, notes)); }
     }
     documentsById.set(document.id, summary);
   });
+  if (limits) {
+    result.globalSummarySkipped = true;
+    store.setSnapshotMetadata(snapshotId, 'product_analysis', JSON.stringify({ synthesisMode: 'first-round', status: 'complete',
+      globalSummarySkipped: true, documents: documents.length }));
+    store.rebuildSearchIndex(snapshotId);
+    return result;
+  }
   const cards = prepared.map(({ document }) => ({ summary: documentsById.get(document.id)!, path: document.path }));
   const technical = store.listSummaries(snapshotId, 'repository').filter((summary) => !summary.subjectId.includes('#synthesis:'));
   const metadata = evidenceEntry('repository', '.', { repository: repository.name, documentPaths: documents.map((document) => document.path),
@@ -138,8 +159,7 @@ export async function analyzeProductContext(options: AnalyzeOptions): Promise<Pr
   const subject = { id: `product://${repository.name}`, name: 'Product Context', level: 'product' as const };
   const entries = [...summaryEntries(cards), ...summaryEntries(technical.map((summary) => ({ summary, path: '.' }))), metadata];
   const notes = { fingerprint: documents.map((document) => [document.id, document.contentHash]), unknowns };
-  if (limits) { await synthesizeComplete(subject, entries, limits, run, notes); }
-  else { await run(fitHierarchyPack(subject, entries, maxTokens, notes)); }
+  await run(fitHierarchyPack(subject, entries, maxTokens, notes));
   store.rebuildSearchIndex(snapshotId);
   return result;
 }
